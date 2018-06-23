@@ -1,0 +1,19 @@
+{
+  "name": "identity-server-js",
+  "version": "0.0.1",
+  "description": "Masterwallet - Identity Server (NodeJS)",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "Web Cerebrium <webcerebrium@gmail.com> (https://webcerebrium.com/)",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "chacha": "^2.1.0",
+    "cors": "^2.8.4",
+    "express": "^4.16.3"
+  }
+}
