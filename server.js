@@ -8,7 +8,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-app.get('/api/ping', require('./api/ping'));
+app.get('/api/status', require('./api/status'));
 
 /*
 
