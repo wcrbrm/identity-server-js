@@ -8,7 +8,7 @@ if (process.versions.hasOwnProperty('electron')) {
   const program = require('commander');
   program
     .option('--cors', 'Enable CORS', false)
-    .option('-f, --storage [storage]', 'Sceipfiy storage location')
+    .option('-d, --storage [storage]', 'Provide storage folder location')
     .option('-h, --host [host]', 'Bind to address (127.0.0.1 by default)')
     .option('-p, --port [port]', 'Port to be launched (7773  by default)')
     .option('-v, --verbose', 'Increase verbosity', true, 40)
