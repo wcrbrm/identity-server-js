@@ -1,11 +1,14 @@
 if (process.versions.hasOwnProperty('electron')) {
 
+  // TODO: electron application should read configation file for server parameters
   module.exports = {
   };
 
 } else {
   const homedir = require('os').homedir();
   const program = require('commander');
+ 
+  // TODO: include options for http proxy support
   program
     .option('--cors', 'Enable CORS', false)
     .option('-d, --storage [storage]', 'Provide storage folder location')
