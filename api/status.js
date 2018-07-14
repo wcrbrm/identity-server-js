@@ -13,7 +13,7 @@ module.exports = (options) => {
       //// and if there is a file, there should be "hardened" in response
       installation,
       require2FA: false,
-      locked: true
+      locked: false
     });
   };
 };

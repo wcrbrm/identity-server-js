@@ -39,12 +39,13 @@ app.post(`${root}/settings`, require('./api/settings')());
 // may be it should be just always locked
 app.post(`${root}/lock`, require('./api/lock')());
 app.post(`${root}/unlock`, require('./api/unlock`)());
+*/
 
 // getting list of the wallets
-app.get(`${root}/wallets`, require('./api/wallets/list')());
+const modWallets = require('./api/wallets');
+app.get(`${root}/wallets`,  modWallets('list', options));
+app.post(`${root}/wallets`, modWallets('create', options));
 
-app.post(`${root}/wallets/create`, require('./api/wallets/create')());
-app.post(`${root}/wallets/import`, require('./api/wallets/import')());
 
 
 // pairing could actually be useful only to remote connections
@@ -53,7 +54,6 @@ app.post(`${root}/wallets/import`, require('./api/wallets/import')());
 // pair validation is basically (remote IP address + browser)??
 // cannot be for keeping remote installatino
 
-*/
 
 // MAIN QUESTION: how to pair?
 // proposal 1. 
