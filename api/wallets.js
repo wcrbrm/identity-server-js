@@ -1,6 +1,6 @@
 const sha1 = require('js-sha1');
-const { getStorageJson, saveStorageJson } = require('./storage');
-const { error, ok, body } = require("./express-util");
+const { getStorageJson, saveStorageJson } = require('./../services/storage');
+const { error, ok, body } = require("./../services/express-util");
 
 module.exports = (operation, options) => {
   return (req, res, next) => {
