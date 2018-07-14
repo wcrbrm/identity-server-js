@@ -1,13 +1,5 @@
 const fs = require('fs');
-
-const error = (res, message) => {
-  console.log( (new Date()).toISOString(), message );
-  return res.status(500).json({ 
-    status: "error", 
-    time: (new Date()).getTime(),
-    error: message 
-  });
-};
+const { error } = require('./express-util');
 
 const getStorageJson = (options, response) => {
   const path = options.storage + "/encrypted.storage";

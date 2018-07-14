@@ -1,20 +1,6 @@
 const sha1 = require('js-sha1');
-const { error, getStorageJson, saveStorageJson } = require('./storage');
-
-const ok = (res, data) => {
-  res.json({
-    status: "ok",
-    time: (new Date()).getTime(),
-    data
-  });
-};
-
-const body = (req) => {
-  try {
-    return JSON.parse(req.body);
-  } catch (e) {
-  }
-};
+const { getStorageJson, saveStorageJson } = require('./storage');
+const { error, ok, body } = require("./express-util");
 
 module.exports = (operation, options) => {
   return (req, res, next) => {
