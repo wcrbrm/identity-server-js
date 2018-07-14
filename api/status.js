@@ -1,3 +1,9 @@
+const { getStorageJson } = require('./../services/storage');
+
+
+console.log('calling');
+getStorageJson();
+
 module.exports = (options) => {
   return (req, res, next) => {
     console.log('STATUS:', JSON.stringify(options));
