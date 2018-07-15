@@ -20,5 +20,19 @@ describe('/api/wallets', () => {
      });   
   });
 
+  it('should create a wallet', (done) => {
+    chai
+      .request(app).post('/api/wallets')
+      .set('Content-Type', 'application/json')
+      .send({ publicKey: '000000', privateKey: '111111', network: 'BTC' })
+      .end((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(200);
+        const { data } = res.body;
+        const { id } = data;
+        expect(typeof id).to.equal("string");
+        done();
+     });   
+  });
 
 });

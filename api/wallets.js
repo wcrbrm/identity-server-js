@@ -19,14 +19,14 @@ module.exports = (operation, options) => {
       const json = getStorageJson(options, res);
       if (!json) return;
 
-      const payload = JSON.parse(req.body);
+      const payload = body(req);
       if (payload) {
         const id = sha1(JSON.stringify(payload) + '-' + (new Date()).toISOString());
         const newWallet = { ...payload, id };
         json.wallets.push(newWallet);
         try {
           saveStorageJson(options, json);
-          ok(res, {id: newWallet });  
+          ok(res, newWallet);  
         } catch (e) {
           error(res, "Error on save: " + e.toString());
         }
