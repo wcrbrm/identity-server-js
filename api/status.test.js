@@ -1,12 +1,19 @@
+require('./../services/storage.mock');
 
-describe('status endpoint', () => {
-  it('should work', () => {
+const chai = require('chai');
+const { expect, should } = chai;
+chai.use(require('chai-http'));
 
-    const modStorage = require('./../services/storage');
-    modStorage.getStorageJson = () => (console.warn('getting storage was replaced successfully'));
+const app = require('./../server');
 
-    const options = {};
-    const modStatus = require('./status')(options);    
-
+describe('/api/status', () => {
+  it('should work', (done) => {
+    chai
+      .request(app).get('/api/status')
+      .end((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(200);
+        done();
+     });   
   });
 });

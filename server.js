@@ -83,8 +83,11 @@ app.get('/', (req, res, next) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-const { host, port } = options;
-console.log("app listening on %s:%d ", host, port);
-app.listen(port, host);
+if (require.main === module) {
+  const { host, port } = options;
+  console.log("app listening on %s:%d ", host, port);
+  app.listen(port, host);
 
-
+} else {
+  module.exports = app;
+}

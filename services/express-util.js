@@ -1,5 +1,7 @@
 const ok = (res, data) => {
-  console.log("Response: ", JSON.stringify(data));
+  if (require.main === module) {
+    console.log((new Date()).toISOString(), "Response: ", JSON.stringify(data));
+  }
   res.json({
     status: "ok",
     time: (new Date()).getTime(),
