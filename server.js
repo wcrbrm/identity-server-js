@@ -45,7 +45,8 @@ app.post(`${root}/unlock`, require('./api/unlock`)());
 const modWallets = require('./api/wallets');
 app.get(`${root}/wallets`,  modWallets('list', options));
 app.post(`${root}/wallets`, modWallets('create', options));
-
+app.delete(`${root}/wallets/:id`, modWallets('delete', options));
+app.get(`${root}/wallets/:id`,    modWallets('info', options));
 
 
 // pairing could actually be useful only to remote connections
