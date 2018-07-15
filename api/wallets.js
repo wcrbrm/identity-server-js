@@ -4,7 +4,9 @@ const { error, ok, body } = require("./../services/express-util");
 
 module.exports = (operation, options) => {
   return (req, res, next) => {
-    console.log('operation:', operation, JSON.stringify(options));
+    if (require.main === module) {
+      console.log('operation:', operation, JSON.stringify(options));
+    }
 
     if (operation === 'list') {
 
