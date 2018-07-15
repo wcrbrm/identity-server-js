@@ -3,7 +3,7 @@
 const fs = require('fs');
 const { error } = require('./express-util');
 
-const getStorageJson = (options, response) => {
+const getStorageJson = (options, res) => {
   const path = options.storage + "/encrypted.storage";
   if (!fs.fileExistsSync(path)) {
     return err(res, 'Error: Storage Not Initialized');

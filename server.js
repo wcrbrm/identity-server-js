@@ -13,14 +13,15 @@ const root = '/api';
 
 app.get(`${root}/status`, require('./api/status')(options));
 
+// and the endpoint for creating storage, should go encrypted
+// for decoding only with the private key
+app.post(`${root}/storage`, require('./api/storage')(options));
+
 /*
 API of the installation
 
 // status should provide public key of the setup
 
-// and the endpoint for creating storage, should go encrypted
-// for decoding only with the private key
-app.post(`${root}/storage`, require('./api/install/storage'));
 
 // endpoint that is used for restoring
 // should accept publicKey

@@ -6,33 +6,37 @@ chai.use(require('chai-http'));
 require('./../services/storage.mock');
 const app = require('./../server');
 
+const expectedData = (err, res) => {
+  expect(err).to.be.null;
+  expect(res).to.have.status(200);
+  const { data } = res.body;
+  return data;
+};
+
 describe('/api/wallets', () => {
   it('should give list of wallets', (done) => {
-    chai
-      .request(app).get('/api/wallets')
+    chai.request(app).get('/api/wallets')
       .end((err, res) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        const { data } = res.body;
-        const { wallets } = data;
+        const { wallets } = expectedData(err, res);
         expect(Array.isArray(wallets)).to.be.true;
         done();
      });   
   });
 
   it('should create a wallet', (done) => {
-    chai
-      .request(app).post('/api/wallets')
+    chai.request(app).post('/api/wallets')
       .set('Content-Type', 'application/json')
       .send({ publicKey: '000000', privateKey: '111111', network: 'BTC' })
       .end((err, res) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        const { data } = res.body;
-        const { id } = data;
+        const data = expectedData(err, res);
+        const { id, privateKey } = data;
         expect(typeof id).to.equal("string");
+        expect(typeof privateKey).to.equal("undefined");
         done();
      });   
   });
+
+  // TODO: should read wallet information
+  // TODO: should delete wallet information
 
 });

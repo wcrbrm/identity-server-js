@@ -12,8 +12,8 @@ const requireWalletId = (req, res) => {
 
 const safeWalletInfo = (wallet) => {
   const info = { ...wallet };
-  unset(info.privateKey);
-  unset(info.keyStore);
+  delete info.privateKey;
+  delete info.keyStore;
   return info;
 };
 
@@ -65,12 +65,12 @@ module.exports = (operation, options) => {
         json.wallets.push(newWallet);
         try {
           saveStorageJson(options, json);
-          ok(res, newWallet);  
+          ok(res, safeWalletInfo(newWallet));  
         } catch (e) {
           error(res, "Error on save: " + e.toString());
         }
       } else {
-	error(res, "Error: Expected payload");
+	      error(res, "Error: Expected payload");
       }
     }
 
