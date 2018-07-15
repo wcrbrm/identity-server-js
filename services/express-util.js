@@ -10,6 +10,7 @@ const ok = (res, data) => {
 };
 
 const body = (req) => {
+  if (typeof req.body === 'object') return req.body;
   try {
     return JSON.parse(req.body);
   } catch (e) {
@@ -18,7 +19,7 @@ const body = (req) => {
 
 
 const error = (res, message) => {
-  console.log( (new Date()).toISOString(), message );
+  console.log( 'ERROR:' + message );
   return res.status(500).json({
     status: "error",
     time: (new Date()).getTime(),

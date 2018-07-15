@@ -7,5 +7,6 @@ const mockEmptyStorage = {
 };
 const modStorage = require('./storage');
 modStorage.getStorageJson = () => (mockEmptyStorage);
+modStorage.saveStorageJson = (options, json) => (false);
 
 module.exports = modStorage;
