@@ -2,7 +2,6 @@ const bitcoinJs = require('bitcoinjs-lib');
 const bip32 = require('bip32');
 const bip39 = require('bip39');
 const coinConstants = require('bip44-constants');
-const networkConfig = require('./../config/config').networkConfig;
 
 // creation of new wallet. See BIP39 / BIP44 specs
 // https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
@@ -68,26 +67,16 @@ const create = ({ seed, index, networkConfig }) => {
   return { publicKey, privateKey };
 };
 
-const walletPublicConfig = {
-  networkConfig,
-  publicKey: '1Z102012031203102301230120301'
-};
-
-const walletPrivateConfig = {
-  networkConfig,
-  publicKey: '1Z123123231231231231231231231',
-  privateKey: '5127637612368128371782371239382a37389939330'
-};
-
-
 // In bitcoin blockchain we store just one type of asset: BTC
 // (other blockchains are more advanced)
 const getAssets = ({ walletPublicConfig }) => {
   const publicKey = Buffer.from(walletPublicConfig.publicKey, 'hex');
   const publicKeyHash = bitcoinJs.crypto.hash160(publicKey);
-  const address = bitcoinJs.address.toBase58Check(publicKeyHash, bitcoinJs.networks.bitcoin.pubKeyHash);
-  
-  console.log(address);
+
+  // TODO: address generation: can use not only production (bitcoinJs.networks.bitcoin) network!
+  // const address = bitcoinJs.address.toBase58Check(publicKeyHash, bitcoinJs.networks.bitcoin.pubKeyHash);
+  // console.log(address);
+
   // value should be a balance here:
   return [
     { name: 'BTC', value: '0.000000' }
