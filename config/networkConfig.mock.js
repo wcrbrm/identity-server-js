@@ -6,7 +6,7 @@ module.exports = {
     name: 'Bitcoin',
     icon: '/networks/BTC.png',
     testnet: true, 
-    regtest: true,
-    local: 'http://localhost:18443'
+    networkId: 'REGTEST',
+    // rpcRoot: 'http://localhost:18443' // only if networkId is absent
   }
 }
