@@ -13,14 +13,15 @@ const root = '/api';
 
 app.get(`${root}/status`, require('./api/status')(options));
 
+// and the endpoint for creating storage, should go encrypted
+// for decoding only with the private key
+app.post(`${root}/storage`, require('./api/storage')(options));
+
 /*
 API of the installation
 
 // status should provide public key of the setup
 
-// and the endpoint for creating storage, should go encrypted
-// for decoding only with the private key
-app.post(`${root}/storage`, require('./api/install/storage'));
 
 // endpoint that is used for restoring
 // should accept publicKey
@@ -39,12 +40,14 @@ app.post(`${root}/settings`, require('./api/settings')());
 // may be it should be just always locked
 app.post(`${root}/lock`, require('./api/lock')());
 app.post(`${root}/unlock`, require('./api/unlock`)());
+*/
 
 // getting list of the wallets
-app.get(`${root}/wallets`, require('./api/wallets/list')());
-
-app.post(`${root}/wallets/create`, require('./api/wallets/create')());
-app.post(`${root}/wallets/import`, require('./api/wallets/import')());
+const modWallets = require('./api/wallets');
+app.get(`${root}/wallets`,  modWallets('list', options));
+app.post(`${root}/wallets`, modWallets('create', options));
+app.delete(`${root}/wallets/:id`, modWallets('delete', options));
+app.get(`${root}/wallets/:id`,    modWallets('info', options));
 
 
 // pairing could actually be useful only to remote connections
@@ -53,7 +56,6 @@ app.post(`${root}/wallets/import`, require('./api/wallets/import')());
 // pair validation is basically (remote IP address + browser)??
 // cannot be for keeping remote installatino
 
-*/
 
 // MAIN QUESTION: how to pair?
 // proposal 1. 
@@ -83,8 +85,11 @@ app.get('/', (req, res, next) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-const { host, port } = options;
-console.log("app listening on %s:%d ", host, port);
-app.listen(port, host);
+if (require.main === module) {
+  const { host, port } = options;
+  console.log("app listening on %s:%d ", host, port);
+  app.listen(port, host);
 
-
+} else {
+  module.exports = app;
+}

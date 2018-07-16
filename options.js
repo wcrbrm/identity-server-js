@@ -20,6 +20,6 @@ if (process.versions.hasOwnProperty('electron')) {
   const { verbose, cors } = program;
   const host = program.host || "127.0.0.1";
   const port = program.port || 7773;
-  const storage = program.storage || `${homedir}/.MasterWallet/encrypted.storage`;
+  const storage = program.storage || `${homedir}/.MasterWallet`;
   module.exports = { host, port, verbose, cors, storage };
 }
