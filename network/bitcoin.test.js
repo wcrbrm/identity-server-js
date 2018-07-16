@@ -2,6 +2,7 @@ const should = require('chai').should();
 const bip39 = require('bip39');
 const bip32 = require('bip32');
 const bitcoin = require('./../network/bitcoin');
+const bitcoinJs = require('bitcoinjs-lib');
 const networkConfig = require('./../config/config').networkConfig;
 
 describe("Bitcoin functions test", () => {
@@ -12,10 +13,13 @@ describe("Bitcoin functions test", () => {
     const index = 0;
 
     const res = bitcoin.create({ seed, index, networkConfig });
-    //console.log(res);
+
+    const keyPair = bitcoinJs.ECPair.fromWIF(res.privateKey, bitcoinJs.networks.bitcoin);
     res.should.be.a('object');
     res.should.have.property('privateKey');
     res.should.have.property('publicKey');
+    res.privateKey.should.equal(keyPair.toWIF());
+    res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));
     done();
   });
 
