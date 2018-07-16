@@ -20,12 +20,13 @@ const body = (req) => {
 
 const error = (res, message, reason) => {
   console.log( 'ERROR:' + message );
-  return res.status(500).json({
+  res.status(500).json({
     status: "error",
     time: (new Date()).getTime(),
     error: message,
     reason
   });
+  return false;
 };
 
 module.exports = { ok, error, body };
