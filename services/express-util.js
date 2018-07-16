@@ -18,12 +18,13 @@ const body = (req) => {
 };
 
 
-const error = (res, message) => {
+const error = (res, message, reason) => {
   console.log( 'ERROR:' + message );
   return res.status(500).json({
     status: "error",
     time: (new Date()).getTime(),
-    error: message
+    error: message,
+    reason
   });
 };
 

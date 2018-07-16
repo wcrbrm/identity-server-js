@@ -5,23 +5,23 @@ const { error } = require('./express-util');
 
 const getStorageJson = (options, res) => {
   const path = options.storage + "/encrypted.storage";
-  if (!fs.fileExistsSync(path)) {
-    return err(res, 'Error: Storage Not Initialized');
+  if (!fs.existsSync(path)) {
+    return error(res, 'Error: Storage Not Initialized', 'first_run');
   }
   try {
     const json = JSON.parse(fs.readFileSync(path));
     if (!json.format) {
-      return err(res, "Error: Storage file is missing format");
+      return error(res, "Error: Storage file is missing format");
     }
     if (!json.seed) {
-      return err(res, "Error: Storage file is missing seed");
+      return error(res, "Error: Storage file is missing seed");
     }
     if (!json.wallets) {
-      return err(res, "Error: Storage file is missing wallets section");
+      return error(res, "Error: Storage file is missing wallets section");
     }
     return json;
   } catch (e) {
-    return err(res, "Error: Storage file cannot be parsed");
+    return error(res, "Error: Storage file cannot be parsed");
   }
 };
 
