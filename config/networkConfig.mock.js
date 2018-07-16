@@ -1,11 +1,12 @@
 module.exports = {
-  networkConfig: {
+  BTC: {
     // USE THIS KIND OF MOCK SO FAR.
     // Closer to production, we will use 
     value: 'BTC', 
     name: 'Bitcoin',
     icon: '/networks/BTC.png',
     testnet: true, 
-    local: 'http://localhost:18333'
+    networkId: 'REGTEST',
+    // rpcRoot: 'http://localhost:18443' // only if networkId is absent
   }
 }
