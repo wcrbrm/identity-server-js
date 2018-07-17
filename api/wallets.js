@@ -1,6 +1,6 @@
 const sha1 = require('js-sha1');
 const { getStorageJson, saveStorageJson } = require('./../services/storage');
-const { error, ok, body } = require("./../services/express-util");
+const { error, ok, body } = require("./../services/express-util")('wallets');
 
 const requireWalletId = (req, res) => {
   if (!req.params.id) {

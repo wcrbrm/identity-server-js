@@ -1,7 +1,5 @@
-'use strict';
-
 const fs = require('fs');
-const { error } = require('./express-util');
+const { error } = require('./express-util')('storage');
 
 const getStorageJson = (options, res) => {
   const path = options.storage + "/encrypted.storage";

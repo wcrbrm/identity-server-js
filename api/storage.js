@@ -1,5 +1,6 @@
+const debug = require('debug')("api/storage");
 const { saveStorageJson } = require('./../services/storage');
-const { ok, body, error } = require('./../services/express-util');
+const { ok, body, error } = require('./../services/express-util')('api/storage');
 
 const validateStorageJson = (res, json) => {
   if (!json.format) {
