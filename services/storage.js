@@ -11,6 +11,9 @@ const getStorageJson = (options, res) => {
     if (!json.format) {
       return error(res, "Error: Storage file is missing format");
     }
+    if (!json.pinCode) {
+      return error(res, "Error: Storage file is missing pinCode");
+    }
     if (!json.seed) {
       return error(res, "Error: Storage file is missing seed");
     }
@@ -23,14 +26,21 @@ const getStorageJson = (options, res) => {
   }
 };
 
+const ensureExists = dir => {
+  if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir);
+  }
+};
+
+
 const saveStorageJson = (options, json) => {
   const updated = (new Date()).toISOString();
   const wallets = json.wallets || [];
   const obj = { ...json, updated, wallets };
 
+  ensureExists(options.storage);
   const path = options.storage + "/encrypted.storage";
   fs.writeFileSync(path, JSON.stringify(obj, null, 2));
-
 };
 
 module.exports = {
