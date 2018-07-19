@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "mocha -w */*.test.js",
-    "start": "cross-env DEBUG=* nodemon server.js --cors",
+    "start": "cross-env DEBUG=*,-follow-redirects nodemon server.js --cors",
     "all": "npm-run-all --parallel start test"
   },
   "keywords": [],
@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@cityofzion/neo-js": "^0.8.1",
+    "axios": "^0.18.0",
     "bip32": "^0.1.0",
     "bip39": "^2.5.0",
     "bip44-constants": "^5.0.0",

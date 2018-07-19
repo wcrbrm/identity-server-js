@@ -92,6 +92,10 @@ app.get('/', (req, res, next) => {
 });
 
 if (require.main === module) {
+  const load = require('./services/coinmarketcap').load;
+  load();
+  setInterval(load, 1000 * 60 * 5);
+
   const { host, port } = options;
   console.log("app listening on %s:%d ", host, port);
   app.listen(port, host);
