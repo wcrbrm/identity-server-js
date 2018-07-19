@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "mocha -w */*.test.js",
-    "start": "cross-env DEBUG=* nodemon server.js --cors"
+    "start": "cross-env DEBUG=* nodemon server.js --cors",
+    "all": "npm-run-all --parallel start test"
   },
   "keywords": [],
   "author": "Web Cerebrium <webcerebrium@gmail.com> (https://webcerebrium.com/)",

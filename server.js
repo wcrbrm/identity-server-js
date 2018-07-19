@@ -50,6 +50,12 @@ app.delete(`${root}/wallets/:id`, modWallets('delete', options));
 app.get(`${root}/wallets/:id`,    modWallets('info', options));
 
 
+const modNetworks = require('./api/networks');
+app.get(`${root}/networks/:networkId/terms`,  modNetworks('terms', options));
+app.get(`${root}/networks/:networkId/status`,  modNetworks('status', options));
+app.get(`${root}/networks/`, modNetworks('list', options));
+
+
 // pairing could actually be useful only to remote connections
 // remote access tab can be a part of installation wizard or a part of the settings?
 
