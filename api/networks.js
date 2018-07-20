@@ -1,7 +1,5 @@
 const fs = require('fs');
-const sha1 = require('js-sha1');
 const debug = require('debug')("api/network/terms");
-const { getStorageJson, saveStorageJson } = require('./../services/storage');
 const { error, ok, body } = require("./../services/express-util")('networks');
 
 module.exports = (operation, options) => {

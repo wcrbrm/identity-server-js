@@ -53,7 +53,10 @@ app.get(`${root}/wallets/:id`,    modWallets('info', options));
 const modNetworks = require('./api/networks');
 app.get(`${root}/networks/:networkId/terms`,  modNetworks('terms', options));
 app.get(`${root}/networks/:networkId/status`,  modNetworks('status', options));
-app.get(`${root}/networks/`, modNetworks('list', options));
+app.get(`${root}/networks`, modNetworks('list', options));
+
+const modExchanges = require('./api/exchanges');
+app.get(`${root}/exchanges`, modExchanges('list', options));
 
 
 // pairing could actually be useful only to remote connections
