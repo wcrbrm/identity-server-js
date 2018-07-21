@@ -10,7 +10,13 @@ module.exports = (operation, options) => {
     if (operation === 'list') {
       const config = require('./../config/exchanges');
       if (!config) return;
-      ok(res, { networks: config.Exchanges });
+      // ok(res, { exchanges: config.Exchanges });
+
+      // but we will show only modules that are attached
+      const modules = Object.keys(require('./../exchanges/index'));
+      const exchanges = config.Exchanges.filter(n => (modules.indexOf(n.value) !== -1));
+      ok(res, { exchanges });
+
     }
 
     next();

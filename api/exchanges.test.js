@@ -6,17 +6,16 @@ chai.use(require('chai-http'));
 require('./../services/storage.mock');
 const app = require('./../server');
 
-describe('/api/networks', () => {
+describe('/api/exchanges', () => {
     it('endpoint should work', (done) => {
       chai
-        .request(app).get('/api/networks')
+        .request(app).get('/api/exchanges')
         .end((err, res) => {
           expect(err).to.be.null;
           expect(res).to.have.status(200);
 
-          const modules = require('./../network/index');
-
-          const len = res.body.data.networks.length;
+          const modules = require('./../exchanges/index');
+          const len = res.body.data.exchanges.length;
           expect(len).to.equal(Object.keys(modules).length);
           done();
        });   
