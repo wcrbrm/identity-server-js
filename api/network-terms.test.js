@@ -8,13 +8,20 @@ const app = require('./../server');
 
 // mocking config
 const networkConfigs = require('./../config/networks.js');
-networkConfigs.Networks = [
-  { value: 'EOS', name: 'EOS', terms: true },
-  { value: 'NOTERM', name: 'Chain without terms' },
-  { value: 'XYZ', name: 'XYZ chain, without terms file', terms: true }
-];
 
 describe('/api/network/XXX/terms', () => {
+  before(() => {
+    networkConfigs._Networks = networkConfigs.Networks;
+    networkConfigs.Networks = [
+      { value: 'EOS', name: 'EOS', terms: true },
+      { value: 'NOTERM', name: 'Chain without terms' },
+      { value: 'XYZ', name: 'XYZ chain, without terms file', terms: true }
+    ];
+  });
+  after(() => {
+    networkConfigs.Networks = networkConfigs._Networks;
+  });
+
   it('EOS should have terms', (done) => {
     chai
       .request(app).get('/api/networks/EOS/terms')

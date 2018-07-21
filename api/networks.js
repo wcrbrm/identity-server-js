@@ -11,7 +11,14 @@ module.exports = (operation, options) => {
     if (operation === 'list') {
       const config = require('./../config/networks');
       if (!config) return;
-      ok(res, { networks: config.Networks });
+
+      // dummy version was the following:
+      // ok(res, { networks: config.Networks });
+      
+      // but we will show only modules that are attached
+      const modules = Object.keys(require('./../network/index'));
+      const networks = config.Networks.filter(n => (modules.indexOf(n.value) !== -1));
+      ok(res, { networks });
 
     } if (operation === 'terms') {
       const config = require('./../config/networks');
