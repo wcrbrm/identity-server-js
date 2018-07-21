@@ -11,18 +11,19 @@ const create = ({ seed, index, network, hex = false }) => {
   // Get bip32RootKey from seed:
   const bip32RootKey = bitcoinJs.HDNode.fromSeedHex(seed); //.toBase58();
   //console.log(bip32RootKey);
-  
+ 
+  if (!coinConstants[network]) throw new Error('Coin Type cannout be defined from network ' + network);
+
   // Get derivation path
   const purpose = 44;
   const coin = coinConstants[network] - bitcoinJs.HDNode.HIGHEST_BIT;
-  const change = 0;
+  const account = 0;
 
   let path = "m/";
   path += purpose + "'/";
   path += coin + "'/";
-  path += index + "'/";
-  path += change;
-  //console.log(path);
+  path += account + "'/";
+  path += index;
   
   // Get bip32ExtendedKey (derive from path)
   let bip32ExtendedKey = bip32RootKey;
@@ -38,15 +39,12 @@ const create = ({ seed, index, network, hex = false }) => {
     const invalidDerivationPath = hardened && !isPriv;
     if (invalidDerivationPath) {
         bip32ExtendedKey = null;
-    }
-    else if (hardened) {
+    } else if (hardened) {
         bip32ExtendedKey = bip32ExtendedKey.deriveHardened(index);
-    }
-    else {
+    } else {
         bip32ExtendedKey = bip32ExtendedKey.derive(index);
     }
   }
-  //console.log(bip32ExtendedPrivKey.toBase58());
 
   // Get private and public key for a certain index 
   const key = bip32ExtendedKey.derive(index);
@@ -65,13 +63,14 @@ const create = ({ seed, index, network, hex = false }) => {
     const hexAddress = addressBuffer.toString('hex');
     const checksumAddress = toChecksumAddress(hexAddress);
     return {
+       path,
        address: ethUtil.addHexPrefix(checksumAddress),
        privateKey: ethUtil.addHexPrefix(privkey),
        publicKey: ethUtil.addHexPrefix(publicKey)
     };
   }
 
-  return { address, publicKey, privateKey };
+  return { path, address, publicKey, privateKey };
 };
 
 module.exports = {

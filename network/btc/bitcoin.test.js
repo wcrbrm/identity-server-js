@@ -35,22 +35,28 @@ describe("Bitcoin functions test", async (d) => {
   // });
 
   it('Add to HD wallet', () => {
-    const mnemonic = 'urban twice tomorrow bicycle build web text budget inside exhaust intact snap';
+    const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
     const seed = bip39.mnemonicToSeed(mnemonic);
-    const index = 0;
+    const index = 2;
 
     const res = bitcoin.create({ seed, index, networkConfig });
     // checking valid results
     res.should.be.a('object');
+    res.should.have.property('path');
+    res.should.have.property('address');
     res.should.have.property('privateKey');
     res.should.have.property('publicKey');
 
     // checking whether pairs match
     // WARNING: 1) it uses production mainnet (bitcoinJs.networks.bitcoin) instead of looking at networkConfig
-    // TODO: 2) compare result private key and public key with a real value from ian coleman tool
     const keyPair = bitcoinJs.ECPair.fromWIF(res.privateKey, bitcoinJs.networks.bitcoin);
     res.privateKey.should.equal(keyPair.toWIF());
     res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));
+
+// TODO: there should be match!!!
+//     res.address.should.equal('18FaaXixF9zW2oguEfGeNDiLikKGuh6Pk9');
+//     res.publicKey.should.equal('03000132102428229c3ba4e5e28f29e6ebb468522690f17f4372782d193ff2fe0f');
+//     res.privateKey.should.equal('L38Nd33xJffVpkLjDGiqvGqJBt5rW8Qe8xdCYRcSgxoBQBpZGUuG');
   });
  
 //   console.log('isAvailable=', isAvailable);

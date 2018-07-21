@@ -23,8 +23,10 @@ describe("Ethereum network", () => {
     const seed = bip39.mnemonicToSeed(mnemonic);
     const index = 0;
     const res = await modEthereum.create({ seed, index, networkConfig });
+    res.should.have.property('path');
     res.should.have.property('address');
     res.should.have.property('privateKey');
+    // res.path.should.equal("m/44'/60'/0'/0/0");
     res.address.should.equal('0xe17ED9eD45fFAeAbf01970f7C05Ca1bcD15Fd241');
     res.privateKey.should.equal('0xbe91a8e265788f2314502f16976eefd64831539503fb11432d91196e1b01267b');
   });
