@@ -16,7 +16,6 @@ const walletPrivateConfig = {
 
 describe("Ethereum network", () => {
   it('Add to HD-wallet', async () => {
-
     const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
     // root key: xprv9s21ZrQH143K2eorBS1xakyr8q8cutw1tQfrkdDRAR7KA4zXEZp9SdoJtYozQ4aXpQFovWiPM4driRSN8ppVW3yWX3D7qYV3JCEV95XbE1X
     // extended private key: xprv9ywEWCE3XXtntZuVxHXSnC8pArKFrVZwcH9BavX1HG2FndZFoevggwaCHUfVg6GrkE6vQKg774Y1zN7AxEZ1Xu6kEziKkvgPcLjRv8Roh8P
@@ -24,12 +23,10 @@ describe("Ethereum network", () => {
     const seed = bip39.mnemonicToSeed(mnemonic);
     const index = 0;
     const res = await modEthereum.create({ seed, index, networkConfig });
-/*  res.should.have.property('address');
+    res.should.have.property('address');
     res.should.have.property('privateKey');
-
     res.address.should.equal('0xe17ED9eD45fFAeAbf01970f7C05Ca1bcD15Fd241');
     res.privateKey.should.equal('0xbe91a8e265788f2314502f16976eefd64831539503fb11432d91196e1b01267b');
-*/
   });
 
   // it('Get assets by public key', () => {

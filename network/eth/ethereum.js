@@ -1,8 +1,7 @@
 const Web3 = require("web3");
 
-
 const create = async ({ seed, index, networkConfig }) => {
-
+  return require('./../../services/hdwallet').create({ seed, index, network: 'ETH', hex: true });
 };
 
 const createRandom = async ({ networkConfig }) => {
