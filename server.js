@@ -50,6 +50,15 @@ app.delete(`${root}/wallets/:id`, modWallets('delete', options));
 app.get(`${root}/wallets/:id`,    modWallets('info', options));
 
 
+const modNetworks = require('./api/networks');
+app.get(`${root}/networks/:networkId/terms`,  modNetworks('terms', options));
+app.get(`${root}/networks/:networkId/status`,  modNetworks('status', options));
+app.get(`${root}/networks`, modNetworks('list', options));
+
+const modExchanges = require('./api/exchanges');
+app.get(`${root}/exchanges`, modExchanges('list', options));
+
+
 // pairing could actually be useful only to remote connections
 // remote access tab can be a part of installation wizard or a part of the settings?
 
@@ -86,6 +95,10 @@ app.get('/', (req, res, next) => {
 });
 
 if (require.main === module) {
+  const load = require('./services/coinmarketcap').load;
+  load();
+  setInterval(load, 1000 * 60 * 5);
+
   const { host, port } = options;
   console.log("app listening on %s:%d ", host, port);
   app.listen(port, host);
