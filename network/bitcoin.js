@@ -2,6 +2,8 @@ const bitcoinJs = require('bitcoinjs-lib');
 const bip32 = require('bip32');
 const bip39 = require('bip39');
 const coinConstants = require('bip44-constants');
+const btc = require('./btcQuery');
+const utils = require('./bitcoin.utils');
 
 // creation of new wallet. See BIP39 / BIP44 specs
 // https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
@@ -67,20 +69,20 @@ const create = ({ seed, index, networkConfig }) => {
   return { publicKey, privateKey };
 };
 
+
+
 // In bitcoin blockchain we store just one type of asset: BTC
 // (other blockchains are more advanced)
-const getAssets = ({ walletPublicConfig }) => {
-  const publicKey = Buffer.from(walletPublicConfig.publicKey, 'hex');
-  const publicKeyHash = bitcoinJs.crypto.hash160(publicKey);
-
-  // TODO: address generation: can use not only production (bitcoinJs.networks.bitcoin) network!
-  // const address = bitcoinJs.address.toBase58Check(publicKeyHash, bitcoinJs.networks.bitcoin.pubKeyHash);
-  // console.log(address);
-
+const getAssets = async ({ walletPublicConfig }) => {
+  const address = utils.getAddressFromPubKey({ walletPublicConfig });
+  const unspent = await btc.query({ 
+    method: 'listunspent', 
+    params: [0, 9999999, [address]], 
+    config: walletPublicConfig.networkConfig
+  });
+  const balance = unspent.reduce((amount, tx) => amount + tx.amount, 0);
   // value should be a balance here:
-  return [
-    { name: 'BTC', value: '0.000000' }
-  ];
+  return { name: 'BTC', value: balance };
 };
 
 const sendTransaction = ({ asset = 'BTC', amount, to, walletPrivateConfig }) => {

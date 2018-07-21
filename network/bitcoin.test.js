@@ -4,12 +4,15 @@ const bip32 = require('bip32');
 const bitcoin = require('./../network/bitcoin');
 const bitcoinJs = require('bitcoinjs-lib');
 const networkConfig = require('./../config/networkConfig.mock').BTC;
+const btc = require('./btcQuery');
+const utils = require('./bitcoin.utils');
 
-console.log(networkConfig);
+//console.log(networkConfig);
 
 const walletPublicConfig = {
   networkConfig,
-  publicKey: '1Z102012031203102301230120301'
+  // publicKey: '031f446b3142bc7d8fce1f592b5eaa17dcb4c201dbd7fbd311be4efd7184873374' //mainnet
+  publicKey: '02cf52dfc4a7ed9b44239f26bb2c8b09421d76e568a15042d184f4a2b5da4e82d7' //testnet
 };
 
 const walletPrivateConfig = {
@@ -33,11 +36,28 @@ describe("Bitcoin functions test", () => {
     res.should.have.property('privateKey');
     res.should.have.property('publicKey');
     res.privateKey.should.equal(keyPair.toWIF());
-    res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));
-    done();
+    res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));;
   });
 
-  it('Get assets by public key', () => {
-    const res = bitcoin.getAssets({ walletPublicConfig });
+  it.only('Get assets by public key', async () => {
+    const { publicKey, networkConfig } = walletPublicConfig;
+    // Import public key into current wallet
+    await btc.query({ method: 'importpubkey', params: [publicKey], config: networkConfig });
+    // Make sure, address has 0 balance
+    const initBalance = await bitcoin.getAssets({ walletPublicConfig });
+    // Send sertain amount of funds to this address
+    const address = await utils.getAddressFromPubKey({ walletPublicConfig });
+    const amount = 123;
+    await btc.query({ method: 'sendtoaddress', params: [ address, amount ], config: networkConfig });
+    // If we are in regtest mode, generate new blocks
+    await btc.query({ method: 'generate', params: [ 6 ], config: networkConfig });
+    // Compare results
+    const balance = await bitcoin.getAssets({ walletPublicConfig });
+    //console.log(amount, address, initBalance, balance);
+    balance.value.should.equal(initBalance.value + amount);
   });
+
+  // it.only('Send transaction', () => {
+  //   const res = bitcoin.sendTransaction({});
+  // });
 });

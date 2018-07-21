@@ -8,5 +8,9 @@ module.exports = {
     testnet: true, 
     networkId: 'REGTEST',
     // rpcRoot: 'http://localhost:18443' // only if networkId is absent
+    rpcAuth: {
+      username: 'me',
+      password: 'mypassword'
+    }
   }
 }

@@ -11,6 +11,7 @@
   "author": "Web Cerebrium <webcerebrium@gmail.com> (https://webcerebrium.com/)",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
     "bip32": "^0.1.0",
     "bip39": "^2.5.0",
     "bip44-constants": "^5.0.0",
