@@ -2,8 +2,8 @@ const bitcoinJs = require('bitcoinjs-lib');
 const bip32 = require('bip32');
 const bip39 = require('bip39');
 const coinConstants = require('bip44-constants');
-const btc = require('./btcQuery');
-const utils = require('./bitcoin.utils');
+const btc = require('./bitcoin-query');
+const utils = require('./bitcoin-utils');
 
 // creation of new wallet. See BIP39 / BIP44 specs
 // https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki

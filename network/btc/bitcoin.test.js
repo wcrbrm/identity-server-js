@@ -1,11 +1,11 @@
 const should = require('chai').should();
 const bip39 = require('bip39');
 const bip32 = require('bip32');
-const bitcoin = require('./../network/bitcoin');
+const bitcoin = require('./bitcoin');
 const bitcoinJs = require('bitcoinjs-lib');
-const networkConfig = require('./../config/networkConfig.mock').BTC;
-const btc = require('./btcQuery');
-const utils = require('./bitcoin.utils');
+const networkConfig = require('./../../config/networkConfig.mock').BTC;
+const btc = require('./bitcoin-query');
+const utils = require('./bitcoin-utils');
 
 const walletPublicConfig = {
   networkConfig,
@@ -19,32 +19,38 @@ const walletPrivateConfig = {
   privateKey: '5127637612368128371782371239382a37389939330'
 };
 
-
-
 describe("Bitcoin functions test", async (d) => {
 
+  let isRegTestAvailable = null;
   beforeEach(async function() {
     const title = this.currentTest.title;
-    if (title !== 'Create wallet') {
-       const isRegTestAvailable = await btc.isRegTestRunning();
+    if (title !== 'Add to HD wallet' && title !== 'Create Random Wallet') {
+       if (isRegTestAvailable === null) isRegTestAvailable = await btc.isRegTestRunning();
        if (!isRegTestAvailable) { this.skip(); }
     }
   });
 
-  it('Create wallet', () => {
+  // it('Create Random Wallet', () => {
+  ///  const res = bitcoin.createRandom({ networkConfig });
+  // });
+
+  it('Add to HD wallet', () => {
     const mnemonic = 'urban twice tomorrow bicycle build web text budget inside exhaust intact snap';
     const seed = bip39.mnemonicToSeed(mnemonic);
     const index = 0;
 
     const res = bitcoin.create({ seed, index, networkConfig });
-
-    const keyPair = bitcoinJs.ECPair.fromWIF(res.privateKey, bitcoinJs.networks.bitcoin);
+    // checking valid results
     res.should.be.a('object');
     res.should.have.property('privateKey');
     res.should.have.property('publicKey');
+
+    // checking whether pairs match
+    // WARNING: 1) it uses production mainnet (bitcoinJs.networks.bitcoin) instead of looking at networkConfig
+    // TODO: 2) compare result private key and public key with a real value from ian coleman tool
+    const keyPair = bitcoinJs.ECPair.fromWIF(res.privateKey, bitcoinJs.networks.bitcoin);
     res.privateKey.should.equal(keyPair.toWIF());
     res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));
-    // TODO: where is comparison of the result?
   });
  
 //   console.log('isAvailable=', isAvailable);
@@ -67,6 +73,8 @@ describe("Bitcoin functions test", async (d) => {
   });
 
   it('Send transaction', () => {
-    const res = bitcoin.sendTransaction({});
+     const res = bitcoin.sendTransaction({});
+     // send, balance
   });
+
 });
