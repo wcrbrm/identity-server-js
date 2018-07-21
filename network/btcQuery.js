@@ -15,7 +15,7 @@ exports.query = ({ method, params, config }) => {
         reject(response);
       }
     }).catch(error => {
-      resolve(error.response.data.error);
+      reject(error.response.data.error);
     });
   });
 }

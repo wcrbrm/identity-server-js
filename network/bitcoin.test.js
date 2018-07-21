@@ -17,9 +17,9 @@ const walletPublicConfig = {
 
 const walletPrivateConfig = {
   networkConfig,
-  publicKey: '1Z123123231231231231231231231',
-  privateKey: '5127637612368128371782371239382a37389939330'
-};
+  publicKey: '0376884f5a9fe3a90cb3deeec73d2bb114dc893a191c10ed4ae68c57b184d5a799',
+  privateKey: 'cRaQuDraY4asHwbw2FhxwvQQet3mFwhCMF4j8qNwH7JnYfktT9RB'
+}; // #4 of given mnemonic
 
 
 describe("Bitcoin functions test", () => {
@@ -39,9 +39,9 @@ describe("Bitcoin functions test", () => {
     res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));;
   });
 
-  it.only('Get assets by public key', async () => {
+  it('Get assets by public key', async () => {
     const { publicKey, networkConfig } = walletPublicConfig;
-    // Import public key into current wallet
+    // Import public key into current wallet, so that we can check the balance, but cannot spend it
     await btc.query({ method: 'importpubkey', params: [publicKey], config: networkConfig });
     // Make sure, address has 0 balance
     const initBalance = await bitcoin.getAssets({ walletPublicConfig });
@@ -57,7 +57,29 @@ describe("Bitcoin functions test", () => {
     balance.value.should.equal(initBalance.value + amount);
   });
 
-  // it.only('Send transaction', () => {
-  //   const res = bitcoin.sendTransaction({});
-  // });
+  it.only('Send transaction', async () => {
+    const { privateKey, publicKey, networkConfig } = walletPrivateConfig;
+    // Import private key into wallet, so that we could spend assets
+    await btc.query({ method: 'importprivkey', params: [privateKey], config: networkConfig });
+    const amount = 123;
+    const fee = 0.0001;
+    const from = utils.getAddressFromPubKey({ walletPublicConfig: { publicKey, networkConfig } });
+    const to = 'mo8mao8M1VEgFs4QgyY49bSGX1dta42gbR'; // #1 of given mnemonic
+    const change = await btc.query({ method: 'getrawchangeaddress', config: networkConfig });
+    // Give money to sender:
+    await btc.query({ method: 'sendtoaddress', params: [ from, 1000 ], config: networkConfig });
+    // If we are in regtest mode, generate new blocks
+    await btc.query({ method: 'generate', params: [ 6 ], config: networkConfig });
+
+    const tx = await bitcoin.sendTransaction({ 
+      asset: 'BTC', 
+      amount,
+      fee,
+      to,
+      change,
+      walletPrivateConfig 
+    });
+    const txDetails = await btc.query({ method: 'gettransaction', params: [tx], config: networkConfig });
+    txDetails.amount.should.equal(-(amount));
+  });
 });

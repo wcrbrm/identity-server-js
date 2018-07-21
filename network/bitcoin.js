@@ -85,9 +85,44 @@ const getAssets = async ({ walletPublicConfig }) => {
   return { name: 'BTC', value: balance };
 };
 
-const sendTransaction = ({ asset = 'BTC', amount, to, walletPrivateConfig }) => {
-  return '0x000000000000000000000000000000000000'; 
+const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletPrivateConfig }) => {
+  const { publicKey, networkConfig } = walletPrivateConfig;
+  const walletPublicConfig = { publicKey, networkConfig };
+  // List transaction of the address
+  const from = utils.getAddressFromPubKey({ walletPublicConfig });
+  const unspentTransactions = await btc.query({ 
+    method: 'listunspent',
+    params: [0, 9999999, [from]], 
+    config: networkConfig
+  });
+
+  const transactionsToSpend = utils.getTxsToSpend({ unspentTransactions, amount });
+  const txInputs = utils.generateTxInputs({ transactionsToSpend });
+  const txOutputs = utils.generateTxOutputs({ transactionsToSpend, amount, fee, to, change });
+  //console.log(transactionsToSpend, txInputs, txOutputs);  
+
+  const rawTransaction = await btc.query({ method: 'createrawtransaction', params: [
+    txInputs,
+    txOutputs
+  ], config: networkConfig });
+  //console.log(rawTransaction);
+  
+  const signedTransaction = await btc.query({
+    method: 'signrawtransaction',
+    params: [ rawTransaction, null, [ walletPrivateConfig.privateKey ] ],
+    config: networkConfig
+  });
+  //console.log(signedTransaction);
+
+  const sentTransaction = await btc.query({ 
+    method: 'sendrawtransaction',
+    params: [signedTransaction.hex], 
+    config: networkConfig 
+  });
+  //console.log(sentTransaction);
+
   // should return transaction hash if succeed. Or throw exception if not
+  return sentTransaction; 
 };
 
 // get list of pending transactions
