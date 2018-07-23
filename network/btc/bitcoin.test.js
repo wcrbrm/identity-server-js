@@ -34,7 +34,7 @@ describe("Bitcoin functions test", async (d) => {
   ///  const res = bitcoin.createRandom({ networkConfig });
   // });
 
-  it('Add to HD wallet', () => {
+  it.only('Add to HD wallet', () => {
     const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
     const seed = bip39.mnemonicToSeed(mnemonic);
     const index = 2;
@@ -53,10 +53,10 @@ describe("Bitcoin functions test", async (d) => {
     res.privateKey.should.equal(keyPair.toWIF());
     res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));
 
-// TODO: there should be match!!!
-//     res.address.should.equal('18FaaXixF9zW2oguEfGeNDiLikKGuh6Pk9');
-//     res.publicKey.should.equal('03000132102428229c3ba4e5e28f29e6ebb468522690f17f4372782d193ff2fe0f');
-//     res.privateKey.should.equal('L38Nd33xJffVpkLjDGiqvGqJBt5rW8Qe8xdCYRcSgxoBQBpZGUuG');
+    // There should be match!!!
+    res.address.should.equal('18FaaXixF9zW2oguEfGeNDiLikKGuh6Pk9');
+    res.publicKey.should.equal('03000132102428229c3ba4e5e28f29e6ebb468522690f17f4372782d193ff2fe0f');
+    res.privateKey.should.equal('L38Nd33xJffVpkLjDGiqvGqJBt5rW8Qe8xdCYRcSgxoBQBpZGUuG');
   });
  
 //   console.log('isAvailable=', isAvailable);
@@ -78,7 +78,7 @@ describe("Bitcoin functions test", async (d) => {
     balance.value.should.equal(initBalance.value + amount);
   });
 
-  it.only('Send transaction', async () => {
+  it('Send transaction', async () => {
     const { privateKey, publicKey, networkConfig } = walletPrivateConfig;
     // Import private key into wallet, so that we could spend assets
     await btc.query({ method: 'importprivkey', params: [privateKey], config: networkConfig });

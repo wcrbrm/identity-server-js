@@ -15,15 +15,17 @@ const create = ({ seed, index, network, hex = false }) => {
   if (!coinConstants[network]) throw new Error('Coin Type cannout be defined from network ' + network);
 
   // Get derivation path
+  // m / purpose' / coin_type' / account' / change / address_index
   const purpose = 44;
   const coin = coinConstants[network] - bitcoinJs.HDNode.HIGHEST_BIT;
   const account = 0;
+  const change = 0;
 
   let path = "m/";
   path += purpose + "'/";
   path += coin + "'/";
   path += account + "'/";
-  path += index;
+  path += change;
   
   // Get bip32ExtendedKey (derive from path)
   let bip32ExtendedKey = bip32RootKey;
@@ -70,6 +72,7 @@ const create = ({ seed, index, network, hex = false }) => {
     };
   }
 
+  path += '/' + index;
   return { path, address, publicKey, privateKey };
 };
 
