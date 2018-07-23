@@ -25,7 +25,7 @@ describe("Bitcoin functions test", async (d) => {
   beforeEach(async function() {
     const title = this.currentTest.title;
     if (title !== 'Add to HD wallet' && title !== 'Create Random Wallet') {
-       if (isRegTestAvailable === null) isRegTestAvailable = await btc.isRegTestRunning();
+       if (isRegTestAvailable === null) isRegTestAvailable = await btc.isRegTestRunning({ config: networkConfig });
        if (!isRegTestAvailable) { this.skip(); }
     }
   });
@@ -34,7 +34,7 @@ describe("Bitcoin functions test", async (d) => {
   ///  const res = bitcoin.createRandom({ networkConfig });
   // });
 
-  it.only('Add to HD wallet', () => {
+  it('Add to HD wallet', () => {
     const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
     const seed = bip39.mnemonicToSeed(mnemonic);
     const index = 2;
@@ -78,14 +78,14 @@ describe("Bitcoin functions test", async (d) => {
     balance.value.should.equal(initBalance.value + amount);
   });
 
-  it('Send transaction', async () => {
+  it.only('Send transaction', async () => {
     const { privateKey, publicKey, networkConfig } = walletPrivateConfig;
     // Import private key into wallet, so that we could spend assets
     await btc.query({ method: 'importprivkey', params: [privateKey], config: networkConfig });
-    const amount = 123;
+    const amount = 1.23;
     const fee = 0.0001;
     const from = utils.getAddressFromPubKey({ walletPublicConfig: { publicKey, networkConfig } });
-    const to = 'mo8mao8M1VEgFs4QgyY49bSGX1dta42gbR'; // #1 of given mnemonic
+    const to = 'mo8mao8M1VEgFs4QgyY49bSGX1dta42gbR'; // #1 of given mnemonic in Testnet mode
     const change = await btc.query({ method: 'getrawchangeaddress', config: networkConfig });
     // Give money to sender:
     await btc.query({ method: 'sendtoaddress', params: [ from, 1000 ], config: networkConfig });

@@ -35,8 +35,9 @@ const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletP
     params: [0, 9999999, [from]], 
     config: networkConfig
   });
+  //console.log(unspentTransactions);
 
-  const transactionsToSpend = utils.getTxsToSpend({ unspentTransactions, amount });
+  const transactionsToSpend = utils.getTxsToSpend({ unspentTransactions, amount: (amount + fee) });
   const txInputs = utils.generateTxInputs({ transactionsToSpend });
   const txOutputs = utils.generateTxOutputs({ transactionsToSpend, amount, fee, to, change });
   //console.log(transactionsToSpend, txInputs, txOutputs);  

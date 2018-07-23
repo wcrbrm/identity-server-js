@@ -40,7 +40,7 @@ const generateTxOutputs = ({ transactionsToSpend, amount, fee, to, change }) => 
   const txsSum = transactionsToSpend.reduce((acc, tx) => acc + tx.amount, 0);
   const rawTxOutputs = {
     [to]: amount,
-    [change]: txsSum - amount - fee
+    [change]: (txsSum - amount - fee).toFixed(8)
   };
   return rawTxOutputs;
 };

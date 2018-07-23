@@ -1,26 +1,5 @@
 const axios = require('axios');
 
-// exports.query = ({ method, params, config }) => {
-//   return new Promise((resolve, reject) => {
-//     axios({
-//       url: '/',
-//       baseURL: baseUrlFromConfig(config),
-//       method: 'post',
-//       auth: authFromConfig(config),
-//       headers: { 'content-type': 'text/plain' },
-//       data: JSON.stringify({ method, params })
-//     }).then(response => {
-//       if (response.data !== undefined && response.data.result !== undefined) {
-//         resolve(response.data.result);
-//       } else {
-//         reject(response);
-//       }
-//     }).catch(error => {
-//       reject(error.response.data.error);
-//     });
-//   });
-// }
-
 const baseUrlFromConfig = (config) => {
   // TODO: more cases should be handled
   return config.networkId === 'REGTEST' ? 'http://localhost:18443' : config.rpcRoot;
@@ -43,6 +22,8 @@ const query = ({ method, params, config }) => (
     if (response.data && response.data.result) {
       return response.data.result;
     }
+  }).catch(error => {
+    throw error.response.data.error
   })
 );
 
@@ -56,7 +37,7 @@ const getBlockChainInfo = async ({ config }) => {
   }
 };
 
-const isRegTestRunning = () => (getBlockChainInfo({ config: { networkId: 'REGTEST' }}));
+const isRegTestRunning = ({ config }) => (getBlockChainInfo({ config }));
 
 
 module.exports = {
