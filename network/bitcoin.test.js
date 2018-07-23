@@ -7,8 +7,6 @@ const networkConfig = require('./../config/networkConfig.mock').BTC;
 const btc = require('./btcQuery');
 const utils = require('./bitcoin.utils');
 
-//console.log(networkConfig);
-
 const walletPublicConfig = {
   networkConfig,
   // publicKey: '031f446b3142bc7d8fce1f592b5eaa17dcb4c201dbd7fbd311be4efd7184873374' //mainnet
@@ -22,9 +20,18 @@ const walletPrivateConfig = {
 }; // #4 of given mnemonic
 
 
-describe("Bitcoin functions test", () => {
+
+describe("Bitcoin functions test", async (d) => {
+
+  beforeEach(async function() {
+    const title = this.currentTest.title;
+    if (title !== 'Create wallet') {
+       const isRegTestAvailable = await btc.isRegTestRunning();
+       if (!isRegTestAvailable) { this.skip(); }
+    }
+  });
+
   it('Create wallet', () => {
-    //const mnemonic = bip39.generateMnemonic();
     const mnemonic = 'urban twice tomorrow bicycle build web text budget inside exhaust intact snap';
     const seed = bip39.mnemonicToSeed(mnemonic);
     const index = 0;
@@ -36,9 +43,11 @@ describe("Bitcoin functions test", () => {
     res.should.have.property('privateKey');
     res.should.have.property('publicKey');
     res.privateKey.should.equal(keyPair.toWIF());
-    res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));;
+    res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));
+    // TODO: where is comparison of the result?
   });
-
+ 
+//   console.log('isAvailable=', isAvailable);
   it('Get assets by public key', async () => {
     const { publicKey, networkConfig } = walletPublicConfig;
     // Import public key into current wallet, so that we can check the balance, but cannot spend it
