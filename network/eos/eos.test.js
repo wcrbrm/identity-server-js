@@ -1,5 +1,5 @@
 const should = require('chai').should();
-// const bip39 = require('bip39');
+const bip39 = require('bip39');
 const eosModule = require('./eos');
 const networkConfig = {  value: 'EOS', name: 'EOS', testnet: true, rpcRoot: 'http://localhost:8888' };
 
@@ -21,7 +21,21 @@ describe("EOS network", () => {
     // const seed = bip39.mnemonicToSeed(mnemonic);
     const seed = '';
     const index = 0;
+    const res = await eosModule.createRandom({ seed, index, networkConfig });
+    res.should.have.property('privateKey');
+    res.should.have.property('publicKey');
+  });
+
+  it('Add to HD wallet', async () => {
+    const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
+    const seed = bip39.mnemonicToSeed(mnemonic);
+    const index = 2;
+
     const res = await eosModule.create({ seed, index, networkConfig });
+    // checking valid results
+    res.should.be.a('object');
+    res.should.have.property('path');
+    res.should.have.property('address');
     res.should.have.property('privateKey');
     res.should.have.property('publicKey');
   });

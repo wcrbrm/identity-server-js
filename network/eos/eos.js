@@ -1,7 +1,18 @@
 const Eos = require("eosjs");
 
 const create = async ({ seed, index, networkConfig }) => {
+  return require('./../../services/hdwallet').create({ 
+    seed, index, network: 'EOS', prefix: 'EOS'
+  });
+};
 
+const isValidAddress = ({ address, networkConfig }) => {
+  const hasNicePrefix = address.substring(0, 3) === 'EOS';
+  const valid = hasNicePrefix;
+  return { valid };
+};
+
+const createRandom = async ({ seed, index, networkConfig }) => {
   const privateKey = await Eos.modules.ecc.randomKey();
   if (!privateKey) throw new Error('Private Key was not generated for EOS');
   const publicKey = Eos.modules.ecc.privateToPublic(privateKey);
@@ -50,6 +61,8 @@ const getTransactionDetails = ({ walletPublicConfig, txHash }) => {
 
 module.exports = {
   create,
+  createRandom,
+  isValidAddress,
   getAssets,
   sendTransaction,
   getPending,
