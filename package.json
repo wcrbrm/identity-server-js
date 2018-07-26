@@ -7,9 +7,9 @@
     "test": "mocha -w --timeout=20000 network/**/*.test.js api/*.test.js",
     "start": "cross-env DEBUG=*,-follow-redirects nodemon server.js --cors",
     "all": "npm-run-all --parallel start test",
-    "ethereum:start" : "ganache-cli",
-    "eos:start" : "nodeos -e -p eosio --contracts-console --http-server-address=\"0.0.0.0:8888\" --access-control-allow-origin \"*\" --access-control-allow-headers \"*\" --access-control-allow-credentials true --plugin eosio::history_api_plugin --plugin eosio::chain_api_plugin --http-validate-host=false --verbose-http-errors 2>&1 | grep -v produce_block",
-    "eos:reset" : "rm -rf ~/.local/share/eosio/nodeos"
+    "ethereum:start": "ganache-cli",
+    "eos:start": "nodeos -e -p eosio --contracts-console --http-server-address=\"0.0.0.0:8888\" --access-control-allow-origin \"*\" --access-control-allow-headers \"*\" --access-control-allow-credentials true --plugin eosio::history_api_plugin --plugin eosio::chain_api_plugin --http-validate-host=false --verbose-http-errors 2>&1 | grep -v produce_block",
+    "eos:reset": "rm -rf ~/.local/share/eosio/nodeos"
   },
   "keywords": [],
   "author": "Web Cerebrium <webcerebrium@gmail.com> (https://webcerebrium.com/)",
@@ -34,7 +34,7 @@
     "msgpack5": "^4.2.0",
     "node-machine-id": "^1.1.10",
     "sjcl": "^1.0.7",
-    "web3": "^1.0.0-beta.34"
+    "web3": "^0.20.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
