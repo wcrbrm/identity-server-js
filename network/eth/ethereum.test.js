@@ -5,6 +5,7 @@ const networkConfig = {
   value: 'ETH', name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545' 
 };
 const { getWeb3Client, isNetworkRunning } = require('./ethereum-networkhelper');
+const { createRandomAccount, creditAccount } = require('./ethereum-genesis');
 
 const walletPublicConfig = {
   networkConfig,
@@ -45,6 +46,11 @@ describe("Ethereum network", () => {
   });
 
   it('Get assets by public key', () => {
+    const web3 = getWeb3Client(networkConfig);
+    const { address } = createRandomAccount({ web3 });
+    console.log('crediting address', address);
+    creditAccount({ web3, address, value: 1000000000000000 });
+
   //  const res = eosModule.getAssets({ walletPublicConfig });
      // const web3client = getWeb3Client(walletPublicConfig.networkConfig); 
      // console.log('wallet: ', web3client.eth.getBalance(web3client.eth.accounts[0]).toString());
