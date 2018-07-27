@@ -1,30 +1,35 @@
 const Web3 = require("web3");
+const { getWeb3Client } = require('./ethereum-networkhelper');
 
 const create = async ({ seed, index, networkConfig }) => {
   return require('./../../services/hdwallet').create({ seed, index, network: 'ETH', hex: true });
 };
 
 const createRandom = async ({ networkConfig }) => {
-  const web3 = new Web3('http://localhost:8545');
+  const web3 = getWeb3Client(networkConfig);
   const { privateKey, address } = web3.eth.accounts.create();
   if (!privateKey) throw new Error('Private Key was not generated for ETH');
   if (address.indexOf('0x') !== 0) throw new Error('Address should start with 0x');
   return { address, privateKey };
 };
 
-// In bitcoin blockchain we store just one type of asset: BTC
-// (other blockchains are more advanced)
-const getAssets = ({ walletPublicConfig }) => {
-  // const publicKey = Buffer.from(walletPublicConfig.publicKey, 'hex');
-  // const publicKeyHash = bitcoinJs.crypto.hash160(publicKey);
 
-  // TODO: address generation: can use not only production (bitcoinJs.networks.bitcoin) network!
-  // const address = bitcoinJs.address.toBase58Check(publicKeyHash, bitcoinJs.networks.bitcoin.pubKeyHash);
-  // console.log(address);
+const getEth = ({ web3, address }) => {
+  return new Promise((resolve, reject) => {
+    web3.eth.getBalance(address, (error, response) => {
+      if (error) reject(error);
+      resolve(web3.fromWei(response.toNumber(), "ether"));
+    });
+  });
+};
 
-  // value should be a balance here:
+const getAssets = async ({ walletPublicConfig }) => {
+  
+  // 1) getting ETH balance here:
+  const { address, networkConfig } = walletPublicConfig;
+  const web3 = getWeb3Client(networkConfig);
   return [
-    { name: 'EOS', value: '0.000000' }
+    { name: 'ETH', value: await getEth({ web3, address }) }
   ];
 };
 

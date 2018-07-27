@@ -45,15 +45,16 @@ describe("Ethereum network", () => {
     res.privateKey.should.equal('0xbe91a8e265788f2314502f16976eefd64831539503fb11432d91196e1b01267b');
   });
 
-  it('Get assets by public key', () => {
+  it('Get ETH balance', async () => {
     const web3 = getWeb3Client(networkConfig);
     const { address } = createRandomAccount({ web3 });
-    console.log('crediting address', address);
-    creditAccount({ web3, address, value: 1000000000000000 });
-
-  //  const res = eosModule.getAssets({ walletPublicConfig });
-     // const web3client = getWeb3Client(walletPublicConfig.networkConfig); 
-     // console.log('wallet: ', web3client.eth.getBalance(web3client.eth.accounts[0]).toString());
-     // todo: credit our account with 5 ETH, check its balance
+    // console.log('crediting address', address);
+    const tx = await creditAccount({ web3, address, value: 10000000000000000 });
+    // console.log("result tx=", tx);
+    const walletPublicConfig = { networkConfig, address };
+    const res = await modEthereum.getAssets({ walletPublicConfig });
+    res.length.should.equal(1);
+    res[0].name.should.equal('ETH');
+    res[0].value.should.equal('0.01');
   });
 });

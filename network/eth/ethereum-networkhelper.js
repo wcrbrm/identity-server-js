@@ -9,7 +9,7 @@ const httpEndpointFromConfig = (config) => {
 
 const getWeb3Client = (config) => {
     const httpEndpoint = httpEndpointFromConfig(config);
-    console.log('http=', httpEndpoint);
+    // console.log('http=', httpEndpoint);
     const web3client = new Web3(new Web3.providers.HttpProvider(httpEndpoint));
     return web3client;
 };
