@@ -1,29 +1,10 @@
 const should = require('chai').should();
 const bip39 = require('bip39');
 const modEthereum = require('./ethereum');
-const Web3 = require('web3');
 const networkConfig = {
   value: 'ETH', name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545' 
 };
-
-const httpEndpointFromConfig = (config) => {
-  if (config.rpcRoot) {
-    return config.rpcRoot;
-  }
-  return 'http://127.0.0.1:8545';
-};
-
-const isNetworkRunning = async ({ config }) => {
-  try {
-    const httpEndpoint = httpEndpointFromConfig(config);
-    const web3client = new Web3(new Web3.providers.HttpProvider(httpEndpoint));
-    return web3client.isConnected();
-  } catch (e) {
-    if (e.code == 'ECONNREFUSED') return false;
-    console.log(e);
-    throw e;
-  }
-};
+const { getWeb3Client, isNetworkRunning } = require('./ethereum-networkhelper');
 
 const walletPublicConfig = {
   networkConfig,
@@ -65,8 +46,7 @@ describe("Ethereum network", () => {
 
   it('Get assets by public key', () => {
   //  const res = eosModule.getAssets({ walletPublicConfig });
-     const httpEndpoint = httpEndpointFromConfig(walletPublicConfig.networkConfig);
-     const web3client = new Web3(new Web3.providers.HttpProvider(httpEndpoint));
+     // const web3client = getWeb3Client(walletPublicConfig.networkConfig); 
      // console.log('wallet: ', web3client.eth.getBalance(web3client.eth.accounts[0]).toString());
      // todo: credit our account with 5 ETH, check its balance
   });
