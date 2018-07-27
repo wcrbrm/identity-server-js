@@ -1,8 +1,11 @@
 const Web3 = require("web3");
-const { getWeb3Client } = require('./ethereum-networkhelper');
+const network = 'ETH';
+
+const { getWeb3Client } = require('./ethereum-networkhelper')({ network });
 
 const create = async ({ seed, index, networkConfig }) => {
-  return require('./../../services/hdwallet').create({ seed, index, network: 'ETH', hex: true });
+  return require('./../../services/hdwallet')
+    .create({ seed, index, network, hex: true });
 };
 
 const createRandom = async ({ networkConfig }) => {
@@ -52,8 +55,6 @@ const getHistory = ({ walletPrivateConfig, start = 0, limit = 100 }) => {
 const getTransactionDetails = ({ walletPublicConfig, txHash }) => {
   return {};
 };
-
-
 
 module.exports = {
   create,
