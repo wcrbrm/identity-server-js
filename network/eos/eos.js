@@ -14,7 +14,7 @@ module.exports = ({ network = 'EOS', prefix = 'EOS' }) => {
     return { valid };
   };
 
-  const createRandom = async ({ seed, index, networkConfig }) => {
+  const createRandom = async () => {
     const privateKey = await Eos.modules.ecc.randomKey();
     if (!privateKey) throw new Error('Private Key was not generated for ' + network);
     const publicKey = Eos.modules.ecc.privateToPublic(privateKey);

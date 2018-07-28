@@ -4,6 +4,9 @@
 // 
 module.exports = ({ network = 'EOS' }) => {
     const Eos = require('eosjs');
+    const keyProvider = '5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3';
+    const eos = Eos({ keyProvider });
+    const modEos = require('./eos')({ network });
 
     const getRandomAccount = () => {
         const nLetters = 10;
@@ -14,8 +17,31 @@ module.exports = ({ network = 'EOS' }) => {
         )).join('');
     };
 
-    const createRandomAccount = () => {
-        console.log('randomAccount=', getRandomAccount());
+    const createRandomAccount = async () => {
+        const accountId = getRandomAccount();
+        const { publicKey, privateKey } = await modEos.createRandom();
+//         console.log('randomAccount=', accountId);
+        const trans = await eos.transaction(tr => {
+            tr.newaccount({
+                creator: 'eosio',
+                name: accountId,
+                owner: publicKey,
+                active: publicKey
+            });
+            tr.buyrambytes({
+                payer: 'eosio',
+                receiver: accountId,
+                bytes: 8192
+            });
+            tr.delegatebw({
+                from: 'eosio',
+                receiver: accountId,
+                stake_net_quantity: '10.0000 SYS',
+                stake_cpu_quantity: '10.0000 SYS',
+                transfer: 0
+            });
+        });
+        return trans;
     };
 
   return {
