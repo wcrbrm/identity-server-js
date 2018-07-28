@@ -1,29 +1,21 @@
 const should = require('chai').should();
-const bip39 = require('bip39');
 const Eos = require('eosjs');
-const eosModule = require('./eos');
+const network = 'EOS';
+const eosModule = require('./eos')({ network });
+
 const networkConfig = { 
-  value: 'EOS', name: 'EOS', testnet: true, rpcRoot: 'http://localhost:8888' 
+  value: network, name: network, testnet: true, rpcRoot: 'http://localhost:8888' 
 };
-const { isNetworkRunning } = require('./eos-networkhelper');
-
-const walletPublicConfig = {
-  networkConfig,
-  publicKey: '5JPoydBMicsSBbDHqWA2Z6Qwqxdp8zunXKAyajR1MtSqYesE5Ln'
-};
-
-const walletPrivateConfig = {
-  networkConfig,
-  publicKey: 'EOS5CCcQXjv4TFh5feie7ZVQtAfBEFMhyWgSKCQFCfWsJ1FdRKiRp',
-  privateKey: '5JPoydBMicsSBbDHqWA2Z6Qwqxdp8zunXKAyajR1MtSqYesE5Ln'
-};
+const Genesis = require('./eos-genesis')({ network });
+const { isNetworkRunning } = require('./eos-networkhelper')({ network });
 
 describe("EOS network", () => {
 
   let isTestAvailable = null;
   beforeEach(async function() {
+    const noNetwork = ['Add to HD wallet', 'Create Random Wallet'];
     const title = this.currentTest.title;
-    if (title !== 'Add to HD wallet' && title !== 'Create Random Wallet') {
+    if (noNetwork.indexOf(title) !== -1) {
        if (isTestAvailable === null) isTestAvailable = await isNetworkRunning({ config: networkConfig });
        if (!isTestAvailable) { this.skip(); }
     }
@@ -41,6 +33,7 @@ describe("EOS network", () => {
 
   it('Add to HD wallet', async () => {
     const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
+    const bip39 = require('bip39');
     const seed = bip39.mnemonicToSeed(mnemonic);
     const index = 2;
 
@@ -53,9 +46,10 @@ describe("EOS network", () => {
     res.should.have.property('publicKey');
   });
 
-  it('Get assets by public key', async () => {
+  it('Get Balance', async () => {
     // const res = eosModule.getAssets({ walletPublicConfig });
     // console.log("getting assets");
+    Genesis.createRandomAccount();
   });
   
 });
