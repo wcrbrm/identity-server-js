@@ -9,6 +9,7 @@ module.exports = ({ network = 'EOS' }) => {
   };
     
   const isNetworkRunning = async ({ config }) => {
+    return false;
     try {
         const httpEndpoint = httpEndpointFromConfig(config);
         const eos = Eos({ httpEndpoint, verbose: false, debug: false, logger: {log: null, error: null} });

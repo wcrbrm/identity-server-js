@@ -1,5 +1,5 @@
 const should = require('chai').should();
-const Eos = require('eosjs');
+
 const network = 'EOS';
 const eosModule = require('./eos')({ network });
 
@@ -15,7 +15,7 @@ describe("EOS network", () => {
   beforeEach(async function() {
     const noNetwork = ['Add to HD wallet', 'Create Random Wallet'];
     const title = this.currentTest.title;
-    if (noNetwork.indexOf(title) !== -1) {
+    if (noNetwork.indexOf(title) === -1) {
        if (isTestAvailable === null) isTestAvailable = await isNetworkRunning({ config: networkConfig });
        if (!isTestAvailable) { this.skip(); }
     }

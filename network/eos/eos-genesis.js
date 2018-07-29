@@ -5,7 +5,6 @@
 module.exports = ({ network = 'EOS' }) => {
     const Eos = require('eosjs');
     const keyProvider = '5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3';
-    const eos = Eos({ keyProvider });
     const modEos = require('./eos')({ network });
 
     const getRandomAccount = () => {
@@ -20,6 +19,8 @@ module.exports = ({ network = 'EOS' }) => {
     const createRandomAccount = async () => {
         const accountId = getRandomAccount();
         const { publicKey, privateKey } = await modEos.createRandom();
+
+        const eos = Eos({ keyProvider });
 //         console.log('randomAccount=', accountId);
         const trans = await eos.transaction(tr => {
             tr.newaccount({
