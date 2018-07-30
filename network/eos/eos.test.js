@@ -15,6 +15,7 @@ describe("EOS network", () => {
   beforeEach(async function() {
     const noNetwork = ['Add to HD wallet', 'Create Random Wallet'];
     const title = this.currentTest.title;
+    // console.log('currentTest', this.currentTest, noNetwork.indexOf(title));
     if (noNetwork.indexOf(title) === -1) {
        if (isTestAvailable === null) isTestAvailable = await isNetworkRunning({ config: networkConfig });
        if (!isTestAvailable) { this.skip(); }
@@ -47,9 +48,18 @@ describe("EOS network", () => {
   });
 
   it('Get Balance', async () => {
+    const acc = await Genesis.createRandomAccount();
+    acc.should.be.a('object');
+    acc.should.have.property('accountId');
+    acc.should.have.property('privateKey');
+    acc.should.have.property('publicKey');
+    acc.should.have.property('tx');
+    acc.tx.should.have.property('transaction_id');
+    acc.accountId.length.should.equal(12);
+
+    // { tx, accountId, publicKey, privateKey }
     // const res = eosModule.getAssets({ walletPublicConfig });
     // console.log("getting assets");
-    Genesis.createRandomAccount();
   });
   
 });

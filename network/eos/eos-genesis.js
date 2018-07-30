@@ -22,7 +22,7 @@ module.exports = ({ network = 'EOS' }) => {
 
         const eos = Eos({ keyProvider });
 //         console.log('randomAccount=', accountId);
-        const trans = await eos.transaction(tr => {
+        const tx = await eos.transaction(tr => {
             tr.newaccount({
                 creator: 'eosio',
                 name: accountId,
@@ -42,7 +42,7 @@ module.exports = ({ network = 'EOS' }) => {
                 transfer: 0
             });
         });
-        return trans;
+        return { tx, accountId, publicKey, privateKey };
     };
 
   return {
