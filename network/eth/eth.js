@@ -4,7 +4,7 @@ module.exports = ({ network = 'ETH' }) => {
 
   const create = async ({ seed, index, networkConfig }) => {
     return require('./../../services/hdwallet')
-      .create({ ...networkConfig, seed, index, hex: true });
+      .create({ ...networkConfig, network, seed, index, hex: true });
   };
 
   const createRandom = async ({ networkConfig }) => {
@@ -15,6 +15,14 @@ module.exports = ({ network = 'ETH' }) => {
     return { address, privateKey };
   };
 
+  const isValidAddress = ({ address, networkConfig }) => {
+    const prefix = '0x';
+    const hasNicePrefix = address.substring(0, prefix.length) === prefix;
+    const isCorrectLength = address.length === 40 + prefix.length;
+    const valid = hasNicePrefix && isCorrectLength;
+    const checksum = valid && require('./../../services/eip55').toChecksumAddress(address) === address;
+    return { valid, checksum };
+  };
 
   const getEth = ({ web3, address }) => {
     return new Promise((resolve, reject) => {
@@ -57,6 +65,7 @@ module.exports = ({ network = 'ETH' }) => {
 
   return {
     create,
+    isValidAddress,
     getAssets,
     sendTransaction,
     getPending,

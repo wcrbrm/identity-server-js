@@ -18,7 +18,10 @@ describe("Ethereum network", () => {
     let skipped = false;
 
     // tests that doesn't need network to be running
-    const notInNetwork = ['Add to HD wallet', 'Create Random Wallet'];
+    const notInNetwork = [
+      'Add to HD wallet', 'Create Random Wallet', 
+      'Address Validation (Checksum)', 'Address Validation'
+    ];
     // tests that need etherscan api to be available too
     const withEtherscan = ['Get Assets Balance', 'Send Assets'];
 
@@ -63,6 +66,22 @@ describe("Ethereum network", () => {
   });
 
   it.skip('Send ETH', async () => {});
+
+  it('Address Validation (Checksum)', async () => {
+    const address = '0x939c4eb44c9ffd7f63c108ecd93013e02d23bb26';
+    const res = modEthereum.isValidAddress({ address });
+    res.should.be.a('object');
+    res.valid.should.equal(true);
+    res.checksum.should.equal(false);
+  });
+
+  it('Address Validation', async () => {
+    const address = '0xe17ED9eD45fFAeAbf01970f7C05Ca1bcD15Fd241';
+    const res = modEthereum.isValidAddress({ address });
+    res.should.be.a('object');
+    res.valid.should.equal(true);
+    res.checksum.should.equal(true);
+  });
 
   it('Get Assets Balance', async () => {
     // create
