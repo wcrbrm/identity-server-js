@@ -1,5 +1,5 @@
 const should = require('chai').should();
-const modEthereum = require('./ethereum');
+const modEthereum = require('./eth');
 const network = 'ETH';
 const networkConfig = {
   value: network, name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545' 
