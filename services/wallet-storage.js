@@ -15,11 +15,13 @@ function WalletStorage(json) {
 
   this.nextIndex = function(network) {
     if (!this.json.wallets) return 0;
+    const debug = require('debug')('wallet-storage.next-index');
     return this.json.wallets
       .filter(w => (w && w.network === network))
-      .reduce((accumulator, currentValue) => (
-        Math.max(accumulator, currentValue)
-      ), -1) + 1;
+      .reduce((accumulator, w) => {
+        debug("accumulator=", accumulator, "index=", w.index);
+        return Math.max(accumulator, w.index)
+      }, -1) + 1;
   };
 
   this.getNetworkModule = function(networkConfig) {
@@ -60,7 +62,7 @@ function WalletStorage(json) {
     // validate network
     const wallet = await modNetwork.create({ seed, index, networkConfig });
     const id = sha1(JSON.stringify(wallet) + '-' + (new Date()).toISOString());
-    return { name, ...networkConfig, ...wallet, id };
+    return { name, index, ...networkConfig, ...wallet, id };
   };
 };
 
