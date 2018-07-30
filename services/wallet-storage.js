@@ -16,7 +16,7 @@ function WalletStorage(json) {
   this.nextIndex = function(network) {
     if (!this.json.wallets) return 0;
     return this.json.wallets
-      .filter(w => w.network === network)
+      .filter(w => (w && w.network === network))
       .reduce((accumulator, currentValue) => (
         Math.max(accumulator, currentValue)
       ), -1) + 1;
@@ -36,29 +36,31 @@ function WalletStorage(json) {
     if (!fs.existsSync(`${modPath}.js`)) {
       return error(this.res, `Network module is missing (${modPath})`);
     }
+    const debug = require('debug')("wallet-storage.getNetworkModule");
+    debug(`Module ${modPath} ${JSON.stringify(networkConfig)}`);
+
     return require(modPath)(networkConfig);
   };
 
-  this.generate = async function (networkConfig) {
+  this.generate = async function (name, networkConfig) {
+    if (!name) return error(this.res, 'Name is missing', 'missing_name');
+
     const debug = require('debug')("wallet-storage.generate");
+    debug(`Generating ${JSON.stringify(networkConfig)}`);
 
     const seed = this.seed;
     if (!seed) return error(this.res, 'Seed is missing', 'invalid_seed');
     const modNetwork = this.getNetworkModule(networkConfig);
     if (!modNetwork) return false;
 
-    const network = modNetwork.network;
+    const network = networkConfig.network;
     const index = this.nextIndex(network) || 0;
     debug(`Generating seed=${seed} network=${network} index=${index}`);
 
-    try {
-      // validate network
-      const wallet = await modNetwork.create({ seed, index, networkConfig });
-      const id = sha1(JSON.stringify(wallet) + '-' + (new Date()).toISOString());
-      return { ...wallet, id };
-    } catch (e) {
-      return error(this.res, e.toString() );
-    }
+    // validate network
+    const wallet = await modNetwork.create({ seed, index, networkConfig });
+    const id = sha1(JSON.stringify(wallet) + '-' + (new Date()).toISOString());
+    return { name, ...networkConfig, ...wallet, id };
   };
 };
 

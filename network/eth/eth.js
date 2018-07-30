@@ -1,10 +1,10 @@
 module.exports = ({ network = 'ETH' }) => {
-  const Web3 = require("web3");
+
   const { getWeb3Client } = require('./ethereum-networkhelper')({ network });
 
   const create = async ({ seed, index, networkConfig }) => {
     return require('./../../services/hdwallet')
-      .create({ seed, index, network, hex: true });
+      .create({ ...networkConfig, seed, index, hex: true });
   };
 
   const createRandom = async ({ networkConfig }) => {
@@ -15,7 +15,7 @@ module.exports = ({ network = 'ETH' }) => {
     return { address, privateKey };
   };
 
-  
+
   const getEth = ({ web3, address }) => {
     return new Promise((resolve, reject) => {
       web3.eth.getBalance(address, (error, response) => {
@@ -24,9 +24,9 @@ module.exports = ({ network = 'ETH' }) => {
       });
     });
   };
-  
+
   const getAssets = async ({ walletPublicConfig }) => {
-    
+
     // 1) getting ETH balance here:
     const { address, networkConfig } = walletPublicConfig;
     const web3 = getWeb3Client(networkConfig);
@@ -34,27 +34,27 @@ module.exports = ({ network = 'ETH' }) => {
       { name: 'ETH', value: await getEth({ web3, address }) }
     ];
   };
-  
+
   const sendTransaction = ({ asset = 'BTC', amount, to, walletPrivateConfig }) => {
-    return '0x000000000000000000000000000000000000'; 
+    return '0x000000000000000000000000000000000000';
     // should return transaction hash if succeed. Or throw exception if not
   };
-  
+
   // get list of pending transactions
   const getPending = ({ walletPublicConfig }) => {
     return [];
   };
-  
+
   // get list of past transactions. could paging be better?
   const getHistory = ({ walletPrivateConfig, start = 0, limit = 100 }) => {
     return [];
   };
-  
+
   // get transaction details
   const getTransactionDetails = ({ walletPublicConfig, txHash }) => {
     return {};
   };
-  
+
   return {
     create,
     getAssets,

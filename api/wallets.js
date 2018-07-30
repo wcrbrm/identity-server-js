@@ -55,13 +55,16 @@ module.exports = (operation, options) => {
       return ok(res, { operation: "deleted", length: wallets.length });
 
     } else if (operation === 'generate') {
-      const { network, networkId, testnet } = req.body;
+      const { name, network, networkId, testnet } = req.body;
       const json = getStorageJson(options, res);
       if (!json) return;
 
       const walletStorage = new WalletStorage(json);
       walletStorage.responseStream(res);
-      walletStorage.generate({ network, networkId, testnet }).then(newWallet => {
+      const debug = require('debug')('wallets.generate');
+
+      walletStorage.generate(name, { network, networkId, testnet }).then(newWallet => {
+        debug('newWallet=', newWallet);
         if (!newWallet) return;
         json.wallets.push(newWallet);
         try {
