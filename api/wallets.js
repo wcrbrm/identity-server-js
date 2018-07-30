@@ -1,5 +1,6 @@
 const sha1 = require('js-sha1');
 const { getStorageJson, saveStorageJson } = require('./../services/storage');
+const WalletStorage = require('./../services/wallet-storage');
 const { error, ok, body } = require("./../services/express-util")('wallets');
 
 const requireWalletId = (req, res) => {
@@ -28,7 +29,7 @@ module.exports = (operation, options) => {
       const json = getStorageJson(options, res);
       if (!json) return;
       ok(res, { wallets: json.wallets });
-    
+
     } else if (operation === 'info') {
 
       const id = requireWalletId(req, res);
@@ -41,9 +42,9 @@ module.exports = (operation, options) => {
       } else {
         error(res, "Wallet Was Not Found by its ID");
       }
-      
+
     } else if (operation === 'delete') {
-    
+
       const id = requireWalletId(req, res);
       if (!id) return;
       const json = getStorageJson(options, res);
@@ -51,9 +52,28 @@ module.exports = (operation, options) => {
       const wallets = json.wallets.filter(w => (w.id !== id));
       const jsonUpdated = { ...json, wallets };
       saveStorageJson(options, jsonUpdated);
-      ok(res, { operation: "deleted", length: wallets.length });
+      return ok(res, { operation: "deleted", length: wallets.length });
 
-    } else if (operation === 'create') {
+    } else if (operation === 'generate') {
+      const { network, networkId, testnet } = req.body;
+      const json = getStorageJson(options, res);
+      if (!json) return;
+
+      const walletStorage = new WalletStorage(json);
+      walletStorage.responseStream(res);
+      walletStorage.generate({ network, networkId, testnet }).then(newWallet => {
+        if (!newWallet) return;
+        json.wallets.push(newWallet);
+        try {
+          saveStorageJson(options, json);
+          ok(res, safeWalletInfo(newWallet));
+        } catch (e) {
+          error(res, "Error on generating wallet: " + e.toString());
+        }
+      }).catch(e => (error(res, e.toString())));
+      return;
+
+    } else if (operation === 'append') {
 
       const json = getStorageJson(options, res);
       if (!json) return;
@@ -65,13 +85,14 @@ module.exports = (operation, options) => {
         json.wallets.push(newWallet);
         try {
           saveStorageJson(options, json);
-          ok(res, safeWalletInfo(newWallet));  
+          ok(res, safeWalletInfo(newWallet));
         } catch (e) {
           error(res, "Error on save: " + e.toString());
         }
       } else {
 	      error(res, "Error: Expected payload");
       }
+      return;
     }
 
     next();

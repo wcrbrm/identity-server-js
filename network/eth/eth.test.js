@@ -1,8 +1,8 @@
 const should = require('chai').should();
-const modEthereum = require('./eth');
 const network = 'ETH';
+const modEthereum = require('./eth')({ network });
 const networkConfig = {
-  value: network, name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545' 
+  value: network, name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545'
 };
 const ethNetwork = require('./ethereum-networkhelper')({ network });
 const { getWeb3Client, isNetworkRunning, isEtherscanRunning } = ethNetwork;
@@ -65,19 +65,19 @@ describe("Ethereum network", () => {
   it.skip('Send ETH', async () => {});
 
   it('Get Assets Balance', async () => {
-    // create 
+    // create
     const web3 = getWeb3Client(networkConfig);
 
     const symbol = 'MYTOKEN';
     const supply = 10000;
     const decimals = 3;
-    
+
     Genesis.createTokenContract({ web3, symbol, supply, decimals });
     const { address } = createRandomAccount({ web3 });
-    
+
     const from = web3.eth.accounts[0];
     Genesis.transferTokens = ({ web3, symbol, from, to: address, value: 3 })
-    
+
     const walletPublicConfig = { networkConfig, address };
     const res = await modEthereum.getAssets({ walletPublicConfig });
     console.log(res);
