@@ -45,6 +45,8 @@ describe("EOS network", () => {
     res.should.not.have.property('address');
     res.should.have.property('privateKey');
     res.should.have.property('publicKey');
+    res.publicKey.substring(0,3).should.equal('EOS');
+    res.publicKey.length.should.be.above(4);
   });
 
   it('Get Balance', async () => {
@@ -56,7 +58,7 @@ describe("EOS network", () => {
     acc.should.have.property('tx');
     acc.tx.should.have.property('transaction_id');
     acc.accountId.length.should.equal(12);
-
+    
     // { tx, accountId, publicKey, privateKey }
     // const res = eosModule.getAssets({ walletPublicConfig });
     // console.log("getting assets");

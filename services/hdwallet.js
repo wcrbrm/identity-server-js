@@ -1,13 +1,25 @@
 const bitcoinJs = require('bitcoinjs-lib');
 // const bip32 = require('bip32');
-const bip39 = require('bip39');
 const coinConstants = require('bip44-constants');
 const ethUtil = require('ethereumjs-util');
 const { toChecksumAddress } = require('./eip55');
+const bs58 = require('bs58');
+const ecurve = require('ecurve');
+const secp256k1 = ecurve.getCurveByName('secp256k1');
 
+// see more:
+// https://github.com/webdigi/EOS-Offline-Private-key-check/blob/master/ecc.js
 const rmUndefined = obj => (JSON.parse(JSON.stringify(obj)));
 
-const create = ({ seed, index, network, hex = false, multiAddress = false }) => {
+const eosPublicKey = (privKeyBuffer) => {
+  const Q = secp256k1.G.multiply(privKeyBuffer);
+  const pub_buf = Q.getEncoded(Q.compressed);
+  const checksum = Buffer.from(''); // ripemd160(pub_buf);
+  const addy = Buffer.concat([pub_buf, checksum.slice(0, 4)]);
+  return bs58.encode(addy);
+};
+
+const create = ({ seed, index, network, hex = false, prefix = '', multiAddress = false }) => {
   // network?
 
   // Get bip32RootKey from seed:
@@ -58,7 +70,9 @@ const create = ({ seed, index, network, hex = false, multiAddress = false }) => 
   // get privkey
   const privateKey = keyPair.toWIF();
   // get pubkey
-  const publicKey = keyPair.getPublicKeyBuffer().toString('hex');
+  const publicKey = (prefix ? prefix : '' ) + 
+    (multiAddress ? eosPublicKey(keyPair.d) :
+    (keyPair.getPublicKeyBuffer().toString('hex')));
 
   if (hex) {
     // multiaddress is not an option for blockchains with HEX address representation
@@ -80,5 +94,6 @@ const create = ({ seed, index, network, hex = false, multiAddress = false }) => 
 };
 
 module.exports = {
+  eosPublicKey,
   create
 };
