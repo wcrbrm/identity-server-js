@@ -15,6 +15,7 @@ const safeWalletInfo = (wallet) => {
   const info = { ...wallet };
   delete info.privateKey;
   delete info.keyStore;
+  delete info.path;
   return info;
 };
 
@@ -28,7 +29,10 @@ module.exports = (operation, options) => {
 
       const json = getStorageJson(options, res);
       if (!json) return;
-      ok(res, { wallets: json.wallets });
+
+      const wallets = (json.wallets || [])
+      .filter(w => (typeof w === 'object' && (w.network || w.exchange))).map(w => (safeWalletInfo(w)));
+      ok(res, { wallets });
 
     } else if (operation === 'info') {
 
