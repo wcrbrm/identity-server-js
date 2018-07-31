@@ -4,7 +4,7 @@ module.exports = ({ network = 'EOS', prefix = 'EOS' }) => {
 
   const create = async ({ seed, index, networkConfig }) => {
     return require('./../../services/hdwallet').create({ 
-      ...networkConfig, seed, index, network, prefix
+      ...networkConfig, seed, index, network, prefix, multiAddress: true
     });
   };
 

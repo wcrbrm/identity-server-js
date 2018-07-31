@@ -5,7 +5,9 @@ const coinConstants = require('bip44-constants');
 const ethUtil = require('ethereumjs-util');
 const { toChecksumAddress } = require('./eip55');
 
-const create = ({ seed, index, network, hex = false }) => {
+const rmUndefined = obj => (JSON.parse(JSON.stringify(obj)));
+
+const create = ({ seed, index, network, hex = false, multiAddress = false }) => {
   // network?
 
   // Get bip32RootKey from seed:
@@ -52,13 +54,14 @@ const create = ({ seed, index, network, hex = false }) => {
   const key = bip32ExtendedKey.derive(index);
   const keyPair = key.keyPair;
   // get address
-  const address = keyPair.getAddress().toString();
+  const address = multiAddress ? undefined : keyPair.getAddress().toString();
   // get privkey
   const privateKey = keyPair.toWIF();
   // get pubkey
   const publicKey = keyPair.getPublicKeyBuffer().toString('hex');
 
   if (hex) {
+    // multiaddress is not an option for blockchains with HEX address representation
     const privKeyBuffer = keyPair.d.toBuffer(32);
     const privkey = privKeyBuffer.toString('hex');
     const addressBuffer = ethUtil.privateToAddress(privKeyBuffer);
@@ -73,7 +76,7 @@ const create = ({ seed, index, network, hex = false }) => {
   }
 
   path += '/' + index;
-  return { path, address, publicKey, privateKey };
+  return rmUndefined({ path, address, publicKey, privateKey });
 };
 
 module.exports = {

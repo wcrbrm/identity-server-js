@@ -42,7 +42,7 @@ describe("EOS network", () => {
     // checking valid results
     res.should.be.a('object');
     res.should.have.property('path');
-    res.should.have.property('address');
+    res.should.not.have.property('address');
     res.should.have.property('privateKey');
     res.should.have.property('publicKey');
   });

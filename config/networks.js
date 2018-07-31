@@ -26,7 +26,8 @@ const Networks = [
   //   disabled: true
   // },
   {
-    value: 'EOS', name: 'EOS', terms: true, icon: '/networks/EOS.png',
+    value: 'EOS', name: 'EOS', terms: true, icon: '/networks/EOS.png', 
+    multiAccount: true,
     local: 'http://localhost:8888',
     testnets: [
       { value: 'jungle', name: 'Jungle TestNet', explorer: 'http://dev.cryptolions.io/' },
