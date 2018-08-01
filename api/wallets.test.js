@@ -39,7 +39,7 @@ describe('/api/wallets', () => {
   it('should generate and  wallet to a storage', (done) => {
     chai.request(app).post('/api/wallets/generate')
       .set('Content-Type', 'application/json')
-      .send({ network: 'ETH', networkId: "", testnet: false })
+      .send({ name: "Default ETH Wallet", network: 'ETH', networkId: "", testnet: false })
       .end((err, res) => {
         const data = expectedData(err, res);
         const { id, privateKey } = data;

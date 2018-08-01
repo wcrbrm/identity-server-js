@@ -4,6 +4,10 @@
   "description": "Masterwallet - Identity Server (NodeJS)",
   "main": "server.js",
   "scripts": {
+    "test:min": "mocha -w --reporter=min --timeout=20000 network/**/*.test.js api/*.test.js",
+    "test:eos": "mocha -w --timeout=20000 network/eos/*.test.js",
+    "test:eth": "mocha -w --timeout=20000 network/eth/*.test.js",
+    "test:btc": "mocha -w --timeout=20000 network/btc/*.test.js",
     "test": "mocha -w --timeout=20000 network/**/*.test.js api/*.test.js",
     "start": "cross-env DEBUG=*,-follow-redirects nodemon server.js --cors",
     "all": "npm-run-all --parallel start test",
