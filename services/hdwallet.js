@@ -3,20 +3,19 @@ const bitcoinJs = require('bitcoinjs-lib');
 const coinConstants = require('bip44-constants');
 const ethUtil = require('ethereumjs-util');
 const { toChecksumAddress } = require('./eip55');
-const bs58 = require('bs58');
-const ecurve = require('ecurve');
-const secp256k1 = ecurve.getCurveByName('secp256k1');
+const { PrivateKey } = require('eosjs-ecc');
 
 // see more:
 // https://github.com/webdigi/EOS-Offline-Private-key-check/blob/master/ecc.js
 const rmUndefined = obj => (JSON.parse(JSON.stringify(obj)));
 
-const eosPublicKey = (privKeyBuffer) => {
-  const Q = secp256k1.G.multiply(privKeyBuffer);
-  const pub_buf = Q.getEncoded(Q.compressed);
-  const checksum = Buffer.from(''); // ripemd160(pub_buf);
-  const addy = Buffer.concat([pub_buf, checksum.slice(0, 4)]);
-  return bs58.encode(addy);
+const eosPublicKey = (privKey, prefix = '') => {
+  const removePrefix = (s, p) => ((s.indexOf(p) === 0) ? (s.substring(p.length)) : s);
+  const addPrefix = (s, p) => ((s.indexOf(p) === 0) ? s : (p + s));
+  const privKeyObj = PrivateKey.fromBuffer(privKey);
+  const pubKeyEos = privKeyObj.toPublic().toString();
+  const pubKey = prefix ? addPrefix(removePrefix(pubKeyEos, 'EOS'), prefix) : pubKeyEos;
+  return pubKey;
 };
 
 const create = ({ seed, index, network, hex = false, prefix = '', multiAddress = false }) => {
@@ -25,7 +24,7 @@ const create = ({ seed, index, network, hex = false, prefix = '', multiAddress =
   // Get bip32RootKey from seed:
   const bip32RootKey = bitcoinJs.HDNode.fromSeedHex(seed); //.toBase58();
   //console.log(bip32RootKey);
- 
+
   if (!coinConstants[network]) throw new Error('Coin Type cannout be defined from network ' + network);
 
   // Get derivation path
@@ -40,7 +39,7 @@ const create = ({ seed, index, network, hex = false, prefix = '', multiAddress =
   path += coin + "'/";
   path += account + "'/";
   path += change;
-  
+
   // Get bip32ExtendedKey (derive from path)
   let bip32ExtendedKey = bip32RootKey;
   const pathBits = path.split("/");
@@ -62,7 +61,7 @@ const create = ({ seed, index, network, hex = false, prefix = '', multiAddress =
     }
   }
 
-  // Get private and public key for a certain index 
+  // Get private and public key for a certain index
   const key = bip32ExtendedKey.derive(index);
   const keyPair = key.keyPair;
   // get address
@@ -70,9 +69,9 @@ const create = ({ seed, index, network, hex = false, prefix = '', multiAddress =
   // get privkey
   const privateKey = keyPair.toWIF();
   // get pubkey
-  const publicKey = (prefix ? prefix : '' ) + 
-    (multiAddress ? eosPublicKey(keyPair.d) :
-    (keyPair.getPublicKeyBuffer().toString('hex')));
+  const publicKey =
+    (multiAddress ? eosPublicKey(PrivateKey.fromString(privateKey).toBuffer(), prefix) :
+    ((prefix ? prefix : '' ) + (keyPair.getPublicKeyBuffer().toString('hex'))));
 
   if (hex) {
     // multiaddress is not an option for blockchains with HEX address representation

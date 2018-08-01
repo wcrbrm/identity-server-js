@@ -1,10 +1,10 @@
-const should = require('chai').should();
+require('chai').should();
 
 const network = 'EOS';
 const eosModule = require('./eos')({ network });
 
-const networkConfig = { 
-  value: network, name: network, testnet: true, rpcRoot: 'http://localhost:8888' 
+const networkConfig = {
+  value: network, name: network, testnet: true, rpcRoot: 'http://localhost:8888'
 };
 const Genesis = require('./eos-genesis')({ network });
 const { isNetworkRunning } = require('./eos-networkhelper')({ network });
@@ -13,13 +13,25 @@ describe("EOS network", () => {
 
   let isTestAvailable = null;
   beforeEach(async function() {
-    const noNetwork = ['Add to HD wallet', 'Create Random Wallet'];
+    const noNetwork = ['Add to HD wallet', 'Create Random Wallet', 'Public from Private'];
     const title = this.currentTest.title;
     // console.log('currentTest', this.currentTest, noNetwork.indexOf(title));
     if (noNetwork.indexOf(title) === -1) {
        if (isTestAvailable === null) isTestAvailable = await isNetworkRunning({ config: networkConfig });
        if (!isTestAvailable) { this.skip(); }
     }
+  });
+
+  it.only('Public from Private', () => {
+    const { PrivateKey } = require('eosjs-ecc');
+    const public = 'EOS5r5VnY2znQv6ANYPNThVCYHmbvePqhJAmfspknuUuigMgCWwMZ';
+    const priv1 = PrivateKey.fromString('KzBxdjeous1k93auf2yHaPnW2svH7BGFd8szbQ5o7Yc59Hsx7wr4');
+    priv1.toPublic().toString().should.equal(public);
+
+    const hdWallet = require('./../../services/hdwallet');
+    priv1.toBuffer().length.should.equal(32);
+    hdWallet.eosPublicKey(priv1.toBuffer(), 'EOS').should.equal(public);
+    hdWallet.eosPublicKey(priv1.toBuffer(), '').should.equal(public);
   });
 
   it('Create Random Wallet', async () => {
@@ -58,10 +70,10 @@ describe("EOS network", () => {
     acc.should.have.property('tx');
     acc.tx.should.have.property('transaction_id');
     acc.accountId.length.should.equal(12);
-    
+
     // { tx, accountId, publicKey, privateKey }
     // const res = eosModule.getAssets({ walletPublicConfig });
     // console.log("getting assets");
   });
-  
+
 });
