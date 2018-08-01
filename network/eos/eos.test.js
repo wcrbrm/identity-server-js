@@ -22,7 +22,7 @@ describe("EOS network", () => {
     }
   });
 
-  it.only('Public from Private', () => {
+  it('Public from Private', () => {
     const { PrivateKey } = require('eosjs-ecc');
     const public = 'EOS5r5VnY2znQv6ANYPNThVCYHmbvePqhJAmfspknuUuigMgCWwMZ';
     const priv1 = PrivateKey.fromString('KzBxdjeous1k93auf2yHaPnW2svH7BGFd8szbQ5o7Yc59Hsx7wr4');

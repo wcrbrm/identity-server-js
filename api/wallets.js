@@ -1,6 +1,7 @@
 const sha1 = require('js-sha1');
 const { getStorageJson, saveStorageJson } = require('./../services/storage');
 const WalletStorage = require('./../services/wallet-storage');
+const WalletInfo = require('./../services/wallet-info');
 const { error, ok, body } = require("./../services/express-util")('wallets');
 
 const requireWalletId = (req, res) => {
@@ -42,7 +43,13 @@ module.exports = (operation, options) => {
       if (!json) return;
       const walletsMatch = json.wallets.filter(w => (w.id === id));
       if (walletsMatch) {
-        ok(res, safeWalletInfo(walletsMatch[0]));
+        const walletInfo = new WalletInfo(safeWalletInfo(walletsMatch[0]));
+        walletInfo.responseStream(res);
+        const debug = require('debug')('wallets.info');
+        debug("fetching wallet info=" + JSON.stringify(walletInfo));
+        walletInfo.fetch().then(wallet => {
+          ok(res, wallet);
+        });
       } else {
         error(res, "Wallet Was Not Found by its ID");
       }
