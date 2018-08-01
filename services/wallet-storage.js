@@ -57,12 +57,12 @@ function WalletStorage(json) {
 
     const network = networkConfig.network;
     const index = this.nextIndex(network) || 0;
-    debug(`Generating seed=${seed} network=${network} index=${index}`);
+    debug(`Creating wallet '${name}' from seed=${seed} network=${network} index=${index}`);
 
     // validate network
     const wallet = await modNetwork.create({ seed, index, networkConfig });
     const id = sha1(JSON.stringify(wallet) + '-' + (new Date()).toISOString());
-    return { name, index, ...networkConfig, ...wallet, id };
+    return { ...networkConfig, ...wallet, id, index, name };
   };
 };
 

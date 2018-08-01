@@ -66,7 +66,7 @@ module.exports = (operation, options) => {
       const walletStorage = new WalletStorage(json);
       walletStorage.responseStream(res);
       const debug = require('debug')('wallets.generate');
-
+      debug("generating wallet name=", name);
       walletStorage.generate(name, { network, networkId, testnet }).then(newWallet => {
         debug('newWallet=', newWallet);
         if (!newWallet) return;
