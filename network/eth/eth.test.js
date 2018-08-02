@@ -1,9 +1,7 @@
 const should = require('chai').should();
 const network = 'ETH';
 const modEthereum = require('./eth')({ network });
-const networkConfig = {
-  value: network, name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545'
-};
+const networkConfig = { value: network, name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545' };
 const ethNetwork = require('./ethereum-networkhelper')({ network });
 const { getWeb3Client, isNetworkRunning, isEtherscanRunning } = ethNetwork;
 const Genesis = require('./ethereum-genesis')({ network });
@@ -19,11 +17,11 @@ describe("Ethereum network", () => {
 
     // tests that doesn't need network to be running
     const notInNetwork = [
-      'Add to HD wallet', 'Create Random Wallet', 
+      'Add to HD wallet', 'Create Random Wallet',
       'Address Validation (Checksum)', 'Address Validation'
     ];
     // tests that need etherscan api to be available too
-    const withEtherscan = ['Get Assets Balance', 'Send Assets'];
+    const withEtherscan = ['_Get Assets Balance', 'Send Assets'];
 
     if (notInNetwork.indexOf(title) === -1) {
       if (isTestAvailable === null) isTestAvailable = await isNetworkRunning({ config: networkConfig });
@@ -83,23 +81,22 @@ describe("Ethereum network", () => {
     res.checksum.should.equal(true);
   });
 
-  it('Get Assets Balance', async () => {
-    // create
+  it.only('Get Assets Balance', async () => {
     const web3 = getWeb3Client(networkConfig);
 
-    const symbol = 'MYTOKEN';
-    const supply = 10000;
-    const decimals = 3;
-
-    Genesis.createTokenContract({ web3, symbol, supply, decimals });
-    const { address } = createRandomAccount({ web3 });
-
+    const fs = require('fs');
+    const jsonPath = "./../erc20-contract/build/contracts/MyToken.json";
+    const json = JSON.parse(fs.readFileSync(jsonPath));
+    const { contractName, abi, bytecode } = json;
+    const contractAddress = await Genesis.createTokenContract({ web3, contractName, abi, bytecode });
+    // console.log("contract", contractName, ", address=", contractAddress);
+    const { address } = Genesis.createRandomAccount({ web3 });
     const from = web3.eth.accounts[0];
-    Genesis.transferTokens = ({ web3, symbol, from, to: address, value: 3 })
+    await Genesis.transferTokens({ web3, contractAddress, abi, from, to: address, value: 3 });
 
-    const walletPublicConfig = { networkConfig, address };
-    const res = await modEthereum.getAssets({ walletPublicConfig });
-    console.log(res);
+    // const walletPublicConfig = { networkConfig, address };
+    // const res = await modEthereum.getAssets({ walletPublicConfig });
+    // console.log(res);
     // res.length.should.equal(1);
   });
 
