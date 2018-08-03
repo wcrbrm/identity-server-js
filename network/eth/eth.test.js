@@ -81,11 +81,11 @@ describe("Ethereum network", () => {
     res.checksum.should.equal(true);
   });
 
-  it.only('Get Assets Balance', async () => {
+  it('Get Assets Balance', async () => {
     const web3 = getWeb3Client(networkConfig);
 
     const fs = require('fs');
-    const jsonPath = "./../erc20-contract/build/contracts/MyToken.json";
+    const jsonPath = __dirname + "/MyToken.json";
     const json = JSON.parse(fs.readFileSync(jsonPath));
     const { contractName, abi, bytecode } = json;
     const contractAddress = await Genesis.createTokenContract({ web3, contractName, abi, bytecode });
