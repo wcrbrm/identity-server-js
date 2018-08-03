@@ -91,8 +91,9 @@ describe("Ethereum network", () => {
     const contractAddress = await Genesis.createTokenContract({ web3, contractName, abi, bytecode });
     // console.log("contract", contractName, ", address=", contractAddress);
     const { address } = Genesis.createRandomAccount({ web3 });
-    const from = web3.eth.accounts[0];
-    await Genesis.transferTokens({ web3, contractAddress, abi, from, to: address, value: 3 });
+    const receipt = await Genesis.creditTokens({ web3, contractAddress, abi, to: address, tokens: 3000000 });
+
+    console.log(receipt);
 
     // const walletPublicConfig = { networkConfig, address };
     // const res = await modEthereum.getAssets({ walletPublicConfig });

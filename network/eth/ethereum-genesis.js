@@ -36,12 +36,12 @@ module.exports = ({ network = 'ETH' }) => {
         const code = bytecode;
         // Create Contract proxy class
         const theContract = web3.eth.contract(abi);
-        console.log("Deploying the contract " + contractName);
+        debug("Deploying the contract " + contractName);
 
-        const contract = theContract.new({ from: web3.eth.accounts[0], gas: 9999999, data: code});
-        console.log("CONTRACT=", Object.keys(contract));
+        const contract = theContract.new({ from: web3.eth.accounts[0], gas: 1999999, data: code});
+        debug("CONTRACT=", Object.keys(contract));
         // Transaction has entered to geth memory pool
-        console.log("Contract is being deployed tx=" + contract.transactionHash);
+        debug("Contract is being deployed tx=" + contract.transactionHash);
 
         const receipt = web3.eth.getTransactionReceipt(contract.transactionHash);
         debug("Your contract has been deployed at " + receipt.contractAddress);
@@ -50,21 +50,31 @@ module.exports = ({ network = 'ETH' }) => {
     });
   };
 
-  const transferTokens = ({ web3, contractAddress, abi, from, to, value }) => {
-    console.log('Transferring from=', from, 'to=', to, 'value=', value, 'contractAddress=', contractAddress);
-    console.log(abi.filter(f => (f.name === 'transfer')));
-
-    const theContract = web3.eth.contract(abi);
-    console.log(Object.keys(theContract.eth));
-
-    // for web3@1.x.x:
-    // tx = { value: '0x0', from: from, to: Contract._address, data: Contract.methods.transfer(to, 1000).encodeABI()}
+  // NOTE: this is valid transfer only for test environment.
+  // Real environment should sign it differently
+  const creditTokens = ({ web3, contractAddress, abi, to, tokens }) => {
+    const debug = createDebug('eth.creditTokens');
+    return new Promise((resolve, reject) => {
+      try {
+        const contractAbi = web3.eth.contract(abi);
+        const theContract = contractAbi.at(contractAddress);
+        const data = theContract.transfer.getData(to, tokens);
+        web3.eth.sendTransaction({
+          to: contractAddress, from: web3.eth.accounts[0], data
+        },  (err, txHash) => {
+          if (err) { return reject(err); }
+          debug("txHash=", txHash);
+          const receipt = web3.eth.getTransactionReceipt(txHash);
+          resolve(receipt);
+        });
+      } catch (e) { reject(e); }
+    });
   };
 
   return {
     createRandomAccount,
     creditAccount,
     createTokenContract,
-    transferTokens
+    creditTokens
   };
 };
