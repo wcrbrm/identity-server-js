@@ -57,9 +57,10 @@ describe("Ethereum network", () => {
     const tx = await Genesis.creditAccount({ web3, address, value: 10000000000000000 });
     // console.log("result tx=", tx);
     const walletPublicConfig = { networkConfig, address };
-    const res = await modEthereum.getAssets({ walletPublicConfig });
+    const res = await modEthereum.getBalance({ walletPublicConfig });
     res.length.should.equal(1);
-    res[0].name.should.equal('ETH');
+    res[0].symbol.should.equal('ETH');
+    res[0].name.should.equal('Ethereum');
     res[0].value.should.equal('0.01');
   });
 
@@ -93,12 +94,12 @@ describe("Ethereum network", () => {
     const { address } = Genesis.createRandomAccount({ web3 });
     const receipt = await Genesis.creditTokens({ web3, contractAddress, abi, to: address, tokens: 3000000 });
 
-    console.log(receipt);
-
-    // const walletPublicConfig = { networkConfig, address };
+    // console.log(receipt);
+    const walletPublicConfig = { networkConfig, address };
     // const res = await modEthereum.getAssets({ walletPublicConfig });
     // console.log(res);
-    // res.length.should.equal(1);
+    // const myToken = res.filter(asset => (asset.symbol === 'MY'));
+    // myToken.length.should.equal(1, 'MY-token records');
   });
 
   it.skip('Send Assets', async () => {});

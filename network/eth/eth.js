@@ -1,6 +1,6 @@
 module.exports = ({ network = 'ETH' }) => {
 
-  const { getWeb3Client } = require('./ethereum-networkhelper')({ network });
+  const { getWeb3Client, getEtherscanClient } = require('./ethereum-networkhelper')({ network });
 
   const create = async ({ seed, index, networkConfig }) => {
     return require('./../../services/hdwallet')
@@ -33,14 +33,34 @@ module.exports = ({ network = 'ETH' }) => {
     });
   };
 
-  const getAssets = async ({ walletPublicConfig }) => {
-
-    // 1) getting ETH balance here:
+  const getBalance = async ({ walletPublicConfig }) => {
     const { address, networkConfig } = walletPublicConfig;
     const web3 = getWeb3Client(networkConfig);
-    return [
-      { name: 'ETH', value: await getEth({ web3, address }) }
-    ];
+    if (!web3.isConnected())
+       throw new Error('Cannot connect to the network');
+    return [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }) }];
+  };
+
+  const getAssetsList = async ({ walletPublicConfig }) => {
+    // Getting ETH balance here:
+    const { address, networkConfig } = walletPublicConfig;
+    const web3 = getWeb3Client(networkConfig);
+    if (!web3.isConnected())
+       throw new Error('Cannot connect to the network');
+
+    const assets = [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }) }];
+    // const etherscan = getEtherscanClient(networkConfig);
+    // const contracts = etherscan.getDistinctContracts(address);
+    // contracts.forEach(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
+      // assets.push({ 
+      //   symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal, 
+      //   contract: contractAddress
+      // });
+    // });
+    return assets;
+  };
+
+  const getAssetValue = async ({ walletPublicConfig, contractAddress }) => {
   };
 
   const sendTransaction = ({ asset = 'BTC', amount, to, walletPrivateConfig }) => {
@@ -66,7 +86,9 @@ module.exports = ({ network = 'ETH' }) => {
   return {
     create,
     isValidAddress,
-    getAssets,
+    getBalance,       // quick getter what is in the wallet
+    getAssetsList,    // full retrieval of assets list
+    getAssetValue,   // getting asset value
     sendTransaction,
     getPending,
     getHistory,
