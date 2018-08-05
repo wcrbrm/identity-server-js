@@ -84,6 +84,30 @@ describe("Ethereum network", () => {
     res.valid.should.equal(true);
     res.checksum.should.equal(true);
   });
+  
+  it('Invalid Address Validation', async () => {
+    const address = 'e17ED9eD45fFAeAbf01970f7C05Ca1bcD15Fd241';
+    const res = modEthereum.isValidAddress({ address });
+    res.should.be.a('object');
+    res.valid.should.equal(false);
+    res.error.should.be.a('string');
+  });
+
+  it('Valid Primary Key Validation', async () => {
+    const validPk = '57313bbe4a12900498ad234381289134698573d7003ec33843dd580bb9158b3c';
+    const invalidPk = '0x57313bbe4a12900498ad234381289134698573d7003ec33843dd580bb9158b3c';
+    const res = modEthereum.isValidPrimaryKey({ primaryKey: validPk });
+    res.should.be.a('object');
+    res.valid.should.equal(true);
+  });
+
+  it('Invalid Primary Key Validation', async () => {
+    const invalidPk = '0x57313bbe4a12900498ad234381289134698573d7003ec33843dd580bb9158b3c';
+    const res = modEthereum.isValidPrimaryKey({ primaryKey: invalidPk });
+    res.should.be.a('object');
+    res.valid.should.equal(false);
+    res.error.should.be.a('string');
+  });
 
   it('Get Assets Balance', async () => {
     const web3 = getWeb3Client(networkConfig);

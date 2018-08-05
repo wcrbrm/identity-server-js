@@ -15,13 +15,38 @@ module.exports = ({ network = 'ETH' }) => {
     return { address, privateKey };
   };
 
-  const isValidAddress = ({ address, networkConfig }) => {
+  const isValidAddress = ({ address }) => {
     const prefix = '0x';
     const hasNicePrefix = address.substring(0, prefix.length) === prefix;
-    const isCorrectLength = address.length === 40 + prefix.length;
+    const isCorrectLength = address.length === (40 + prefix.length);
     const valid = hasNicePrefix && isCorrectLength;
     const checksum = valid && require('./../../services/eip55').toChecksumAddress(address) === address;
-    return { valid, checksum };
+    const res = { valid, checksum };
+    if (!valid) {
+      // try to give suggestion
+      if (address.length === 40 && !hasNicePrefix) {
+        res.error = 'Missing 0x in the beginning?';
+      }
+      // TODO: validate all other hex chars
+    }
+    return res;
+  };
+
+  // primary key is same for all configs
+  const isValidPrimaryKey = ({ primaryKey }) => {
+    const prefix = '0x';
+    const hasZeroXPrefix = primaryKey.substring(0, prefix.length) === prefix;
+    const isCorrectLength = primaryKey.length === 64;
+    const valid = isCorrectLength && !hasZeroXPrefix;
+    const res = { valid };
+    if (!valid) {
+      // try to give suggestion
+      if (primaryKey.length === 66 && hasZeroXPrefix) {
+        res.error = 'Primary key should not have 0x in the beginning';
+      }
+      // TODO: validate all other hex chars
+    }
+    return res;
   };
 
   const getEth = ({ web3, address }) => {
@@ -86,6 +111,7 @@ module.exports = ({ network = 'ETH' }) => {
   return {
     create,
     isValidAddress,
+    isValidPrimaryKey,
     getBalance,       // quick getter what is in the wallet
     getAssetsList,    // full retrieval of assets list
     getAssetValue,   // getting asset value
