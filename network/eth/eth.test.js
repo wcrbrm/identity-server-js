@@ -1,7 +1,10 @@
 const should = require('chai').should();
 const network = 'ETH';
 const modEthereum = require('./eth')({ network });
-const networkConfig = { value: network, name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545' };
+const networkConfig = { 
+  value: network, name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545',
+  api: 'http://127.0.0.1:9911'
+};
 const ethNetwork = require('./ethereum-networkhelper')({ network });
 const { getWeb3Client, isNetworkRunning, isEtherscanRunning } = ethNetwork;
 const Genesis = require('./ethereum-genesis')({ network });
