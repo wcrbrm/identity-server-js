@@ -1,7 +1,7 @@
 const should = require('chai').should();
 const network = 'ETH';
 const modEthereum = require('./eth')({ network });
-const networkConfig = { 
+const networkConfig = {
   value: network, name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545',
   api: 'http://127.0.0.1:9911'
 };
@@ -84,7 +84,7 @@ describe("Ethereum network", () => {
     res.valid.should.equal(true);
     res.checksum.should.equal(true);
   });
-  
+
   it('Invalid Address Validation', async () => {
     const address = 'e17ED9eD45fFAeAbf01970f7C05Ca1bcD15Fd241';
     const res = modEthereum.isValidAddress({ address });
@@ -123,10 +123,11 @@ describe("Ethereum network", () => {
 
     // console.log(receipt);
     const walletPublicConfig = { networkConfig, address };
-    // const res = await modEthereum.getAssets({ walletPublicConfig });
-    // console.log(res);
-    // const myToken = res.filter(asset => (asset.symbol === 'MY'));
-    // myToken.length.should.equal(1, 'MY-token records');
+    const res = await modEthereum.getAssetsList({ walletPublicConfig });
+
+    console.log('getting assets list', res);
+    const myToken = res.filter(asset => (asset.symbol === 'MY'));
+    myToken.length.should.equal(1, 'MY-token records');
   });
 
   it.skip('Send Assets', async () => {});

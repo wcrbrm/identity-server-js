@@ -76,18 +76,22 @@ module.exports = ({ network = 'ETH' }) => {
     // Getting ETH balance here:
     const { address, networkConfig } = walletPublicConfig;
     const web3 = getWeb3Client(networkConfig);
-    if (!web3.isConnected())
+    if (!web3.isConnected()) {
        throw new Error('Cannot connect to the network');
+    }
 
     const assets = [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }) }];
-    // const etherscan = getEtherscanClient(networkConfig);
-    // const contracts = etherscan.getDistinctContracts(address);
-    // contracts.forEach(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
-      // assets.push({
-      //   symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal,
-      //   contract: contractAddress
-      // });
-    // });
+    const etherscan = getEtherscanClient(networkConfig);
+    const contracts = etherscan.getTokenContracts(address);
+    if (contracts) {
+      console.log('address:' + address + ', contracts: ' + JSON.stringify(contracts));
+      contracts.forEach(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
+         assets.push({
+           symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal,
+           contract: contractAddress
+         });
+      });
+    }
     return assets;
   };
 
