@@ -24,7 +24,7 @@ describe("Ethereum network", () => {
       'Address Validation (Checksum)', 'Address Validation'
     ];
     // tests that need etherscan api to be available too
-    const withEtherscan = ['_Get Assets Balance', 'Send Assets'];
+    const withEtherscan = ['Get Assets Balance', 'Send Assets'];
 
     if (notInNetwork.indexOf(title) === -1) {
       if (isTestAvailable === null) isTestAvailable = await isNetworkRunning({ config: networkConfig });

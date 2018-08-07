@@ -38,10 +38,17 @@ module.exports = ({ network = 'ETH' }) => {
     const rootUrl = etherscanEndpointFromConfig(config);
 
     const isConnected = async () => {
-      const url = `${rpcUrl}/api?module=account`;
-      console.log('url=', url);
-      const result = await axios.get(url)
-      console.log('isConnected', result);
+      const url = `${rootUrl}/api?module=account`;
+      try {
+        const result = await axios.get(url)
+        return true;
+      } catch(e) {
+        if (e.request && e.request.statusText) {
+          const { code } = e.request.statusText;
+          if (code === 'ECONNREFUSED') return false;
+        }
+        throw e;
+      }
     };
 
     const getTokenContracts = async (address) => {
@@ -57,9 +64,8 @@ module.exports = ({ network = 'ETH' }) => {
 
   const isEtherscanRunning = async ({ config }) => {
     try {
-      console.log('check isEtherscanRunning...');
+      // console.log('check isEtherscanRunning...');
       const client = getEtherscanClient(config);
-
       return client.isConnected();
     } catch (e) {
       if (e.code == 'ECONNREFUSED') return false;
