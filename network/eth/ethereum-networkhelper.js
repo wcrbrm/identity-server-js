@@ -36,6 +36,7 @@ module.exports = ({ network = 'ETH' }) => {
 
   const getEtherscanClient = (config) => {
     const rootUrl = etherscanEndpointFromConfig(config);
+    const withApiKey = (url)=> url; // should be detailed for production, based on config
 
     const isConnected = async () => {
       const url = `${rootUrl}/api?module=account`;
@@ -43,18 +44,37 @@ module.exports = ({ network = 'ETH' }) => {
         const result = await axios.get(url)
         return true;
       } catch(e) {
+        if (e.code == 'ECONNREFUSED') return false;
         if (e.request && e.request.statusText) {
           const { code } = e.request.statusText;
           if (code === 'ECONNREFUSED') return false;
         }
         throw e;
       }
+      return false;
     };
 
     const getTokenContracts = async (address) => {
       // return token contracts that inter
       // { contractAddress, tokenSymbol, tokenName, tokenDecimal }
-      return [];
+      // &to=${address}
+      const url = withApiKey(`${rootUrl}/api?module=account&action=tokentx&startblock=0&endblock=99999999&limit=10000`);
+      // console.log('URL=', url);
+      const response = await axios.get(url);
+      const { data } = response;
+      const { result, status } = data;
+      if (parseInt(status, 10) !== 1) throw new Error('Etherscan response error: ' + result);
+      
+      const r = result
+        .filter(f => (f.to === address))
+        .map(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => (
+          {contractAddress, tokenSymbol, tokenName, tokenDecimal }
+        ))
+        .reduce( (accum, current) => {
+          if (!accum.find(r => (r.contractAddress === current.contractAddress))) { accum.push(current); }
+          return accum;
+        }, []);
+      return r;
     };
     return {
       isConnected,
@@ -63,15 +83,8 @@ module.exports = ({ network = 'ETH' }) => {
   }
 
   const isEtherscanRunning = async ({ config }) => {
-    try {
-      // console.log('check isEtherscanRunning...');
-      const client = getEtherscanClient(config);
-      return client.isConnected();
-    } catch (e) {
-      if (e.code == 'ECONNREFUSED') return false;
-      console.log(e);
-      throw e;
-    }
+    const client = getEtherscanClient(config);
+    return client.isConnected();
   };
 
   return {

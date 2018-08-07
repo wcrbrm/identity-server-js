@@ -82,9 +82,9 @@ module.exports = ({ network = 'ETH' }) => {
 
     const assets = [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }) }];
     const etherscan = getEtherscanClient(networkConfig);
-    const contracts = etherscan.getTokenContracts(address);
+    const contracts = await etherscan.getTokenContracts(address);
     if (contracts) {
-      console.log('address:' + address + ', contracts: ' + JSON.stringify(contracts));
+      // console.log('address:' + address + ', contracts: ' + JSON.stringify(contracts));
       contracts.forEach(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
          assets.push({
            symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal,

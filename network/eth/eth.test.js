@@ -9,6 +9,8 @@ const ethNetwork = require('./ethereum-networkhelper')({ network });
 const { getWeb3Client, isNetworkRunning, isEtherscanRunning } = ethNetwork;
 const Genesis = require('./ethereum-genesis')({ network });
 
+const sleep = ms => (new Promise(resolve => { setTimeout(resolve, ms); }));
+
 describe("Ethereum network", () => {
 
   let isTestAvailable = null;
@@ -121,11 +123,14 @@ describe("Ethereum network", () => {
     const { address } = Genesis.createRandomAccount({ web3 });
     const receipt = await Genesis.creditTokens({ web3, contractAddress, abi, to: address, tokens: 3000000 });
 
+    // let is record and be saved in etherscan
+    await sleep(2600);
+
     // console.log(receipt);
     const walletPublicConfig = { networkConfig, address };
     const res = await modEthereum.getAssetsList({ walletPublicConfig });
 
-    console.log('getting assets list', res);
+    // console.log('getting assets list', res);
     const myToken = res.filter(asset => (asset.symbol === 'MY'));
     myToken.length.should.equal(1, 'MY-token records');
   });
