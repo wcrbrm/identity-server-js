@@ -26,8 +26,11 @@ module.exports = ({ network = 'ETH' }) => {
       // try to give suggestion
       if (address.length === 40 && !hasNicePrefix) {
         res.error = 'Missing 0x in the beginning?';
+      } else if (!isCorrectLength) {
+        res.error = 'Too few characters';
+      } else if (!address.match(/^0x[0-9A-Fa-f]{40}$/g)) {
+        res.error = 'Address should be 40 chars of 0x-hexadecimal';
       }
-      // TODO: validate all other hex chars
     }
     return res;
   };
@@ -43,8 +46,11 @@ module.exports = ({ network = 'ETH' }) => {
       // try to give suggestion
       if (primaryKey.length === 66 && hasZeroXPrefix) {
         res.error = 'Primary key should not have 0x in the beginning';
+      } else if (!isCorrectLength) {
+        res.error = 'Too few characters';
+      } else if (!address.match(/^[0-9A-Fa-f]{64}$/g)) {
+        res.error = 'Private key should be 64 chars of hexadecimal';
       }
-      // TODO: validate all other hex chars
     }
     return res;
   };
@@ -77,8 +83,8 @@ module.exports = ({ network = 'ETH' }) => {
     // const etherscan = getEtherscanClient(networkConfig);
     // const contracts = etherscan.getDistinctContracts(address);
     // contracts.forEach(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
-      // assets.push({ 
-      //   symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal, 
+      // assets.push({
+      //   symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal,
       //   contract: contractAddress
       // });
     // });
