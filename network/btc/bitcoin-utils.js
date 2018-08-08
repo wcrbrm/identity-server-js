@@ -16,12 +16,9 @@ const getTxsToSpend = ({ unspentTransactions, amount }) => {
   const transactionsToUse = unspentTransactions.sort((tx1, tx2) => (
     tx2.confirmations - tx1.confirmations
   )).filter(tx => {
-    if (tx.vout === 0) {
-      const oldSum = sum;
-      sum += tx.amount;
-      return oldSum <= amount;
-    }
-    return false;
+    const oldSum = sum;
+    sum += tx.amount;
+    return oldSum <= amount;
   });
   return transactionsToUse;
 };
@@ -40,7 +37,7 @@ const generateTxOutputs = ({ transactionsToSpend, amount, fee, to, change }) => 
   const txsSum = transactionsToSpend.reduce((acc, tx) => acc + tx.amount, 0);
   const rawTxOutputs = {
     [to]: amount,
-    [change]: (txsSum - amount - fee).toFixed(8)
+    [change]: parseFloat((txsSum - amount - fee).toFixed(8))
   };
   return rawTxOutputs;
 };

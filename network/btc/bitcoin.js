@@ -67,8 +67,17 @@ const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletP
 };
 
 // get list of pending transactions
-const getPending = ({ walletPublicConfig }) => {
-  return [];
+const getPending = async ({ walletPublicConfig }) => {
+  // Get address from publicKey
+  const address = utils.getAddressFromPubKey({ walletPublicConfig });
+  // Query listunspent 0 0 address
+  const pendingUnspent = await btc.query({ 
+    method: 'listunspent', 
+    params: [0, 0, [address]], 
+    config: walletPublicConfig.networkConfig
+  });
+  
+  return pendingUnspent || [];
 };
 
 // get list of past transactions. could paging be better?

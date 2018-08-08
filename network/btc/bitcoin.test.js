@@ -15,8 +15,10 @@ const walletPublicConfig = {
 
 const walletPrivateConfig = {
   networkConfig,
-  publicKey: '0376884f5a9fe3a90cb3deeec73d2bb114dc893a191c10ed4ae68c57b184d5a799',
-  privateKey: 'cRaQuDraY4asHwbw2FhxwvQQet3mFwhCMF4j8qNwH7JnYfktT9RB'
+  //publicKey: '0376884f5a9fe3a90cb3deeec73d2bb114dc893a191c10ed4ae68c57b184d5a799',
+  //privateKey: 'cRaQuDraY4asHwbw2FhxwvQQet3mFwhCMF4j8qNwH7JnYfktT9RB'
+  publicKey: '03eb7ca0882e737299e48c54e86d01db887a7cb2f572c68ac70cb778547d5912f3',
+  privateKey: 'cRKFefAwRJcVBFaAG9bLyScHRW3MtBqqYNjGJkJtB9SXgicoFfyf'
 }; // #4 of given mnemonic
 
 describe("Bitcoin functions test", async (d) => {
@@ -82,13 +84,14 @@ describe("Bitcoin functions test", async (d) => {
     const { privateKey, publicKey, networkConfig } = walletPrivateConfig;
     // Import private key into wallet, so that we could spend assets
     await btc.query({ method: 'importprivkey', params: [privateKey], config: networkConfig });
-    const amount = 1.23;
+    const amount = 123;
     const fee = 0.0001;
+    // mzEJsQ2bPUSDb3VH9KWDiuR9DBmNHvZdS5
     const from = utils.getAddressFromPubKey({ walletPublicConfig: { publicKey, networkConfig } });
-    const to = 'mo8mao8M1VEgFs4QgyY49bSGX1dta42gbR'; // #1 of given mnemonic in Testnet mode
+    const to = 'mhRc2gqzDZa7m8uw1XfkmsLVsKeCMrtT3v'; // #1 of given mnemonic in Testnet mode
     const change = await btc.query({ method: 'getrawchangeaddress', config: networkConfig });
     // Give money to sender:
-    await btc.query({ method: 'sendtoaddress', params: [ from, 1000 ], config: networkConfig });
+    await btc.query({ method: 'sendtoaddress', params: [ from, amount + fee ], config: networkConfig });
     // If we are in regtest mode, generate new blocks
     await btc.query({ method: 'generate', params: [ 6 ], config: networkConfig });
 
@@ -102,6 +105,10 @@ describe("Bitcoin functions test", async (d) => {
     });
     const txDetails = await btc.query({ method: 'gettransaction', params: [tx], config: networkConfig });
     txDetails.amount.should.equal(-(amount));
+  });
+
+  it('Get pending transactions by public key', async () => {
+    await bitcoin.getPending({ walletPublicConfig });
   });
 
 });
