@@ -20,10 +20,10 @@ describe('/api/wallets', () => {
         const { wallets } = expectedData(err, res);
         expect(Array.isArray(wallets)).to.be.true;
         done();
-     });   
+     });
   });
 
-  it('should create a wallet', (done) => {
+  it('should append a wallet to a storage', (done) => {
     chai.request(app).post('/api/wallets')
       .set('Content-Type', 'application/json')
       .send({ publicKey: '000000', privateKey: '111111', network: 'BTC' })
@@ -33,10 +33,24 @@ describe('/api/wallets', () => {
         expect(typeof id).to.equal("string");
         expect(typeof privateKey).to.equal("undefined");
         done();
-     });   
+     });
   });
 
-  // TODO: should read wallet information
+  it('should generate and  wallet to a storage', (done) => {
+    chai.request(app).post('/api/wallets/generate')
+      .set('Content-Type', 'application/json')
+      .send({ name: "Default ETH Wallet", network: 'ETH', networkId: "", testnet: false })
+      .end((err, res) => {
+        const data = expectedData(err, res);
+        const { id, privateKey } = data;
+        expect(typeof id).to.equal("string");
+        expect(typeof privateKey).to.equal("undefined");
+        done();
+     });
+  });
+
+  // TODO: should read individual wallet information?
   // TODO: should delete wallet information
+
 
 });

@@ -23,7 +23,10 @@ const query = ({ method, params, config }) => (
       return response.data.result;
     }
   }).catch(error => {
-    throw error.response.data.error
+    if (error.response)
+      throw error.response.data.error; // this is extremely weird
+    else 
+      throw error;
   })
 );
 

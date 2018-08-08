@@ -80,7 +80,7 @@ describe("Bitcoin functions test", async (d) => {
     balance.value.should.equal(initBalance.value + amount);
   });
 
-  it.only('Send transaction', async () => {
+  it('Send transaction', async () => {
     const { privateKey, publicKey, networkConfig } = walletPrivateConfig;
     // Import private key into wallet, so that we could spend assets
     await btc.query({ method: 'importprivkey', params: [privateKey], config: networkConfig });

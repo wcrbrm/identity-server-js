@@ -45,7 +45,8 @@ app.post(`${root}/unlock`, require('./api/unlock`)());
 // getting list of the wallets
 const modWallets = require('./api/wallets');
 app.get(`${root}/wallets`,  modWallets('list', options));
-app.post(`${root}/wallets`, modWallets('create', options));
+app.post(`${root}/wallets/generate`, modWallets('generate', options));
+app.post(`${root}/wallets`, modWallets('append', options));
 app.delete(`${root}/wallets/:id`, modWallets('delete', options));
 app.get(`${root}/wallets/:id`,    modWallets('info', options));
 
