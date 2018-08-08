@@ -1,5 +1,9 @@
 module.exports = ({ network = 'ETH' }) => {
 
+  const CryptoJS = require('crypto-js');
+  const EC = require('elliptic').ec;
+  const ec = new EC('secp256k1');
+
   const { getWeb3Client, getEtherscanClient } = require('./ethereum-networkhelper')({ network });
 
   const create = async ({ seed, index, networkConfig }) => {
@@ -9,9 +13,16 @@ module.exports = ({ network = 'ETH' }) => {
 
   const createRandom = async ({ networkConfig }) => {
     const web3 = getWeb3Client(networkConfig);
-    const { privateKey, address } = web3.eth.accounts.create();
+    const privateKey = web3.sha3((new Date().getTime()) + '' + Math.random());
     if (!privateKey) throw new Error('Private Key was not generated for ETH');
-    if (address.indexOf('0x') !== 0) throw new Error('Address should start with 0x');
+
+    const keyPair = ec.genKeyPair();
+    keyPair._importPrivate(privateKey, 'hex');
+    const compact = false;
+    const pubKey = keyPair.getPublic(compact, 'hex').slice(2);
+    const pubKeyWordArray = CryptoJS.enc.Hex.parse(pubKey);
+    const hash = CryptoJS.SHA3(pubKeyWordArray, { outputLength: 256 });
+    const address = '0x' + hash.toString(CryptoJS.enc.Hex).slice(24);
     return { address, privateKey };
   };
 
@@ -98,7 +109,12 @@ module.exports = ({ network = 'ETH' }) => {
   const getAssetValue = async ({ walletPublicConfig, contractAddress }) => {
   };
 
-  const sendTransaction = ({ asset = 'BTC', amount, to, walletPrivateConfig }) => {
+  const sendTransaction = async ({ asset = 'ETH', amount, to, walletPrivateConfig }) => {
+
+    if (asset === 'ETH') {
+    } else {
+    }
+
     return '0x000000000000000000000000000000000000';
     // should return transaction hash if succeed. Or throw exception if not
   };
@@ -119,7 +135,8 @@ module.exports = ({ network = 'ETH' }) => {
   };
 
   return {
-    create,
+    create,            // generate keypair for HD wallet
+    createRandom,      // generate random keypair
     isValidAddress,
     isValidPrimaryKey,
     getBalance,       // quick getter what is in the wallet
