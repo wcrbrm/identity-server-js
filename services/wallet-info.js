@@ -33,14 +33,16 @@ function WalletInfo(walletInfo) {
   };
 
   this.fetch = async function () {
-
-    // const debug = require('debug')("wallet-info.fetch");
-    const modNetwork = this.getNetworkModule(this.walletInfo);
+    const debug = require('debug')("wallet-info.fetch");
+    const modNetwork = this.getNetworkModule(this.json);
     if (!modNetwork) return false;
 
     // validate network
-    const assets = await modNetwork.getAssets();    
-    return { ...this.walletInfo, assets };
+    debug(`Getting balance from ${JSON.stringify(this.json)}`);
+    const networkConfig = this.json;
+    const { address } = this.json;
+    const balance = await modNetwork.getBalance({ walletPublicConfig: { address, networkConfig } });
+    return { ...this.walletInfo, balance };
   };
 };
 
