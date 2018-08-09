@@ -1,4 +1,5 @@
-const should = require('chai').should();
+require('chai').should();
+
 const network = 'ETH';
 const modEthereum = require('./eth')({ network });
 const networkConfig = {
@@ -69,8 +70,6 @@ describe("Ethereum network", () => {
     res[0].value.should.equal('0.01');
   });
 
-  it.skip('Send ETH', async () => {});
-
   it('Address Validation (Checksum)', async () => {
     const address = '0x939c4eb44c9ffd7f63c108ecd93013e02d23bb26';
     const res = modEthereum.isValidAddress({ address });
@@ -111,17 +110,24 @@ describe("Ethereum network", () => {
     res.error.should.be.a('string');
   });
 
-  it('Get Assets Balance', async () => {
-    const web3 = getWeb3Client(networkConfig);
-
+  const createMyTokenContract = async ({ web3 }) => {
     const fs = require('fs');
     const jsonPath = __dirname + "/MyToken.json";
     const json = JSON.parse(fs.readFileSync(jsonPath));
     const { contractName, abi, bytecode } = json;
     const contractAddress = await Genesis.createTokenContract({ web3, contractName, abi, bytecode });
-    // console.log("contract", contractName, ", address=", contractAddress);
+    return { contractAddress, abi };
+  }
+
+  it('Get Assets Balance', async () => {
+    const web3 = getWeb3Client(networkConfig);
+    const { contractAddress, abi } = await createMyTokenContract({ web3 });
     const { address } = Genesis.createRandomAccount({ web3 });
     const receipt = await Genesis.creditTokens({ web3, contractAddress, abi, to: address, tokens: 3000000 });
+    receipt.should.be.a('object');
+    receipt.transactionHash.should.be.a('string');
+    receipt.logs.should.be.a('array');
+    receipt.status.should.equal('0x1');
 
     // let is record and be saved in etherscan
     await sleep(2600);
@@ -135,8 +141,34 @@ describe("Ethereum network", () => {
     myToken.length.should.equal(1, 'MY-token records');
   });
 
-  it.skip('Send Assets', async () => {});
-  it.skip('Get Transaction History', async () => {});
-  it.skip('Get Pending Transaction', async () => {});
+  it('Send ETH', async () => {
+    const web3 = getWeb3Client(networkConfig);
+    const amount = 0.7e18;
+    const gasFee = 0.05e18;
+
+    // create random (src)  account#1 (address + privateKey), credit it.
+    const { address, privateKey } = await modEthereum.createRandom({ networkConfig });
+    const walletPrivateConfig = { networkConfig, address, privateKey };
+    Genesis.creditAccount({ web3, address, value: amount + gasFee });
+    const balanceOfSender = await modEthereum.getBalance({ walletPublicConfig: walletPrivateConfig });
+    // console.log('credited address=', address, ', balanceOfSender=', balanceOfSender);
+    balanceOfSender[0].should.be.a('object');
+    balanceOfSender[0].symbol.should.equal('ETH');
+    balanceOfSender[0].value.should.equal('0.75');
+
+    // create random (dest) account#2 (address)
+    const dest = await modEthereum.createRandom({ networkConfig });
+    // use modEthereum.sendTransaction to send the funds
+    // const res = await modEthereum.sendTransaction({ asset: 'ETH', to: dest.address, amount, walletPrivateConfig });
+    // const balanceOfDestination = await modEthereum.getBalance({ walletPublicConfig: { networkConfig, address: dest.address } });
+  });
+
+  it.skip('Send Assets', async () => {
+  });
+
+  it.skip('Get Transaction History', async () => {
+  });
+  it.skip('Get Pending Transaction', async () => {
+  });
 
 });

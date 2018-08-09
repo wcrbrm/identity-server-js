@@ -55,16 +55,14 @@ module.exports = ({ network = 'ETH' }) => {
     };
 
     const getTokenContracts = async (address) => {
-      // return token contracts that inter
-      // { contractAddress, tokenSymbol, tokenName, tokenDecimal }
-      // &to=${address}
-      const url = withApiKey(`${rootUrl}/api?module=account&action=tokentx&startblock=0&endblock=99999999&limit=10000`);
+      // return token contracts that was sending any token to that address
+      const url = withApiKey(`${rootUrl}/api?module=account&to=${address}&action=tokentx&startblock=0&endblock=99999999&limit=10000`);
       // console.log('URL=', url);
       const response = await axios.get(url);
       const { data } = response;
       const { result, status } = data;
       if (parseInt(status, 10) !== 1) throw new Error('Etherscan response error: ' + result);
-      
+
       const r = result
         .filter(f => (f.to === address))
         .map(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => (

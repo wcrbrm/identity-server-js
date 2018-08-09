@@ -38,7 +38,6 @@ app.post(`${root}/settings`, require('./api/settings')());
 // do we need lock and unlock endpoints at all?
 // at first sight it looks insecure
 // may be it should be just always locked
-app.post(`${root}/lock`, require('./api/lock')());
 app.post(`${root}/unlock`, require('./api/unlock`)());
 */
 
@@ -54,6 +53,8 @@ app.get(`${root}/wallets/:id`,    modWallets('info', options));
 const modNetworks = require('./api/networks');
 app.get(`${root}/networks/:networkId/terms`,  modNetworks('terms', options));
 app.get(`${root}/networks/:networkId/status`,  modNetworks('status', options));
+app.get(`${root}/networks/:networkId/address/:address`,  modNetworks('address', options));
+app.post(`${root}/networks/:networkId/address/:address`,  modNetworks('address', options));
 app.get(`${root}/networks`, modNetworks('list', options));
 
 const modExchanges = require('./api/exchanges');
@@ -68,7 +69,7 @@ app.get(`${root}/exchanges`, modExchanges('list', options));
 
 
 // MAIN QUESTION: how to pair?
-// proposal 1. 
+// proposal 1.
 
 
 // binding, on successfull installation it returns
