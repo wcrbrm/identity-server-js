@@ -15,6 +15,11 @@ const expectData = (err, res) => {
   return res.body.data;
 };
 
+const ethNetworkConfig = {
+  network: 'ETH',
+  testnet: false
+};
+
 describe('/api/networks', () => {
     it('endpoint should work', (done) => {
       chai
@@ -28,12 +33,14 @@ describe('/api/networks', () => {
           const len = res.body.data.networks.length;
           expect(len).to.equal(Object.keys(modules).length);
           done();
-       });   
+       });
     });
-    it('Address Validation (Checksum)', (done) => {
+    it('Networks API: Address Validation (Checksum)', (done) => {
       const address = '0x939c4eb44c9ffd7f63c108ecd93013e02d23bb26';
       chai
-        .request(app).get(`/api/networks/ETH/address/${address}`)
+        .request(app).post(`/api/networks/ETH/address/${address}`)
+        .set('Content-Type', 'application/json')
+        .send(ethNetworkConfig)
         .end((err, res) => {
           const { valid, checksum } = expectData(err, res);
           valid.should.equal(true);
@@ -41,10 +48,12 @@ describe('/api/networks', () => {
           done();
         });
     });
-    it('Address Validation', (done) => {
+    it('Networks API: Address Validation', (done) => {
       const address = '0xe17ED9eD45fFAeAbf01970f7C05Ca1bcD15Fd241';
       chai
-        .request(app).get(`/api/networks/ETH/address/${address}`)
+        .request(app).post(`/api/networks/ETH/address/${address}`)
+        .set('Content-Type', 'application/json')
+        .send(ethNetworkConfig)
         .end((err, res) => {
           const { valid, checksum } = expectData(err, res);
           valid.should.equal(true);
@@ -52,13 +61,14 @@ describe('/api/networks', () => {
           done();
         });
     });
-    it('Invalid Address Validation', (done) => {
+    it('Networks API: Invalid Address Validation', (done) => {
       const address = 'e17ED9eD45fFAeAbf01970f7C05Ca1bcD15Fd241';
       chai
-        .request(app).get(`/api/networks/ETH/address/${address}`)
+        .request(app).post(`/api/networks/ETH/address/${address}`)
+        .set('Content-Type', 'application/json')
+        .send(ethNetworkConfig)
         .end((err, res) => {
           const { valid, error } = expectData(err, res);
-          console.log(res.body);
           valid.should.equal(false);
           error.should.be.a('string');
           done();

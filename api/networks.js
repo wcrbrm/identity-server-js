@@ -15,14 +15,14 @@ module.exports = (operation, options) => {
 
         // dummy version was the following:
         // ok(res, { networks: config.Networks });
-        
+
         // but we will show only modules that are attached
         const modules = Object.keys(require('./../network/index'));
         const networks = config.Networks.filter(n => (modules.indexOf(n.value) !== -1));
         return ok(res, { networks });
 
       } else if  (operation === 'address') {
-        
+
         const config = require('./../config/networks');
         if (!config) return;
         const networkId = req.params.networkId;
@@ -36,10 +36,11 @@ module.exports = (operation, options) => {
           return error(res, 'No module implemented for network ' + networkId);
         }
         if ((typeof module.isValidAddress) !== 'function') {
-          return error(res, 'isValidAddress is not implemented for ' + networkId 
-            + ', module=' + JSON.stringify(module));  
+          return error(res, 'isValidAddress is not implemented for ' + networkId
+            + ', module=' + JSON.stringify(module));
         }
-        const objResult = module.isValidAddress({ address });
+        const networkConfig = req.body || { network: networkId, testnet: false };
+        const objResult = module.isValidAddress({ address, networkConfig });
         return ok(res, { address, ...objResult });
 
       } else if (operation === 'terms') {
@@ -68,4 +69,3 @@ module.exports = (operation, options) => {
     }
   };
 };
-                                                                                 
