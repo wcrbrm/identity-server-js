@@ -3,7 +3,7 @@ module.exports = ({ network = 'ETH' }) => {
   const axios = require('axios');
   const debug = require('debug')('eth.networkhelper');
   const { Networks } = require('./../../config/networks');
-  const { testnets } = Networks.filter(f => (f.value === network))[0];
+  const { apiKeys, testnets } = Networks.filter(f => (f.value === network))[0];
 // console.log('testnets=', testnets);
 
   const httpEndpointFromConfig = (config) => {
@@ -63,10 +63,21 @@ module.exports = ({ network = 'ETH' }) => {
     return 'https://api.etherscan.io/';
   };
 
+  const withApiKey = (url) => {
+    if (!apiKeys || apiKeys.length === 0) {
+      throw new Error('Etherscan API Keys were not found');
+    }
+    const randomElement = arr => (arr[Math.floor(Math.random() * arr.length)]);
+    const apiKey = randomElement(apiKeys);
+    if (!apiKey) {
+      throw new Error('API Key could not be chosen for EtherScan');
+    }
+    return url + ( url.indexOf('?') !== -1 ?  '&' : '?') + 'apiKey=' + apiKey;
+  };
+
   const getEtherscanClient = (config) => {
     const rootUrl = etherscanEndpointFromConfig(config);
     debug('etherscan endpoint', rootUrl);
-    const withApiKey = (url)=> url; // should be detailed for production, based on config
 
     const isConnected = async () => {
       const url = `${rootUrl}/api?module=account`;

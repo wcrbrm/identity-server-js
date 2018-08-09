@@ -66,7 +66,7 @@ const Networks = [
         value: 42, name: 'Kovan',
         explorer: 'https://kovan.etherscan.io/',
         rpc: 'https://kovan.infura.io/56VWha01KDTpZ0kRTDCN',
-        api: 'https://api.etherscan.io'
+        api: 'https://api-kovan.etherscan.io'
       },
       // we don't have that network in INFURA services
       // {

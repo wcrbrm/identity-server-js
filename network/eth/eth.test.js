@@ -119,7 +119,8 @@ describe("Ethereum network", () => {
     return { contractAddress, abi };
   }
 
-  it('Get Assets Balance', async () => {
+  // skipping this - as it is usually very slow
+  it.skip('Get Assets Balance', async () => {
     const web3 = getWeb3Client(networkConfig);
     const { contractAddress, abi } = await createMyTokenContract({ web3 });
     const { address } = Genesis.createRandomAccount({ web3 });
