@@ -82,7 +82,7 @@ describe("Bitcoin functions test", async (d) => {
   //   balance.value.should.equal(initBalance.value + amount);
   // });
 
-  it.only('Get assets by public key', async () => {
+  it('Get assets by public key', async () => {
     const initBalance = await bitcoin.getAssets({ walletPublicConfig });
     const address = await utils.getAddressFromPubKey({ walletPublicConfig });
     const amount = 0.123;
