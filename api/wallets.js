@@ -12,6 +12,14 @@ const requireWalletId = (req, res) => {
   return req.params.id;
 };
 
+const requireAssetId = (req, res) => {
+  if (!req.params.assetId) {
+    error(res, "Error: Asset ID Expected, but not provided");
+    return false;
+  }
+  return req.params.assetId;
+};
+
 const safeWalletInfo = (wallet) => {
   const info = { ...wallet };
   delete info.privateKey;
@@ -46,19 +54,65 @@ module.exports = (operation, options) => {
         if (walletsMatch) {
           const debug = require('debug')('wallets.info');
           debug('wallets match:', JSON.stringify(walletsMatch[0]));
-          const walletInfo = new WalletInfo(safeWalletInfo(walletsMatch[0]));
-          walletInfo.responseStream(res);
-          walletInfo.fetch().then(wallet => {
-            debug("fetching wallet info=" + JSON.stringify(wallet));
-            ok(res, wallet);
-          }).catch(ee => {
-            error(res, ee.toString());
-          })
+          const wi = safeWalletInfo(walletsMatch[0]);
+          // walletInfo.responseStream(res);
+          // walletInfo.fetch().then(wallet => {
+          debug("wallet info=" + JSON.stringify(wi));
+          ok(res, wi);
         } else {
           error(res, "Wallet Was Not Found by its ID");
         }
         return;
+      } else if (operation === 'assetinfo') {
 
+        const id = requireWalletId(req, res);
+        if (!id) return;
+        const assetId = requireAssetId(req, res);
+        if (!assetId) return;
+        const json = getStorageJson(options, res);
+        if (!json) return;
+
+        const walletsMatch = json.wallets.filter(w => (w.id === id));
+        if (walletsMatch) {
+          const debug = require('debug')('wallets.assets');
+          debug('wallets match:', JSON.stringify(walletsMatch[0]));
+
+          walletInfo.responseStream(res);
+          walletInfo.fetchAsset(assetId).then(asset => {
+            debug("wallet info=" + JSON.stringify(asset));
+            ok(res, asset);
+          }).catch( we => {
+            error(res, we.toString());
+          });
+
+        } else {
+          error(res, "Wallet Was Not Found by its ID");
+        }
+
+        return;
+      } else if (operation === 'assets') {
+
+        const id = requireWalletId(req, res);
+        if (!id) return;
+        const json = getStorageJson(options, res);
+        if (!json) return;
+
+        const walletsMatch = json.wallets.filter(w => (w.id === id));
+        if (walletsMatch) {
+          const debug = require('debug')('wallets.assets');
+          debug('wallets match:', JSON.stringify(walletsMatch[0]));
+          walletInfo.responseStream(res);
+          walletInfo.fetch().then(assets => {
+            const wi = safeWalletInfo(assets);
+            debug("wallet info=" + JSON.stringify(wi));
+            ok(res, wi);
+          }).catch( we => {
+            error(res, we.toString());
+          });
+        } else {
+          error(res, "Wallet Was Not Found by its ID");
+        }
+        return;
       } else if (operation === 'delete') {
 
         const id = requireWalletId(req, res);

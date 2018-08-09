@@ -41,9 +41,27 @@ function WalletInfo(walletInfo) {
     debug(`Getting balance from ${JSON.stringify(this.json)}`);
     const networkConfig = this.json;
     const { address } = this.json;
+    if (typeof modNetwork.getBalance !== 'function') {
+      throw new Error('getAssetsList is not defined for this blockchain network');
+    }
     const balance = await modNetwork.getBalance({ walletPublicConfig: { address, networkConfig } });
     return { ...this.walletInfo, balance };
   };
+
+  this.fetchAssetsList = async function() {
+    const debug = require('debug')("wallet-info.fetch");
+    const modNetwork = this.getNetworkModule(this.json);
+    if (!modNetwork) return false;
+    debug(`Getting assets from ${JSON.stringify(this.json)}`);
+    const networkConfig = this.json;
+    const { address } = this.json;
+    if (typeof modNetwork.getAssetsList !== 'function') {
+      throw new Error('getAssetsList is not defined for this blockchain network');
+    }
+    const assets = await modNetwork.getAssetsList({ walletPublicConfig: { address, networkConfig } });
+    return { ...this.walletInfo, assets };
+  };
+
 };
 
 module.exports = WalletInfo;

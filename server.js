@@ -47,6 +47,8 @@ app.get(`${root}/wallets`,  modWallets('list', options));
 app.post(`${root}/wallets/generate`, modWallets('generate', options));
 app.post(`${root}/wallets`, modWallets('append', options));
 app.delete(`${root}/wallets/:id`, modWallets('delete', options));
+app.get(`${root}/wallets/:id/assets/:assetId`,  modWallets('assetinfo', options));
+app.get(`${root}/wallets/:id/assets`,    modWallets('assets', options));
 app.get(`${root}/wallets/:id`,    modWallets('info', options));
 
 
