@@ -26,11 +26,15 @@ const walletPrivateConfig = {
 describe("Bitcoin functions test", async (d) => {
 
   let isRegTestAvailable = null;
+  let isElectrumAvailable = null;
   beforeEach(async function() {
     const title = this.currentTest.title;
     if (title !== 'Add to HD wallet' && title !== 'Create Random Wallet') {
        if (isRegTestAvailable === null) isRegTestAvailable = await btc.isRegTestRunning({ config: networkConfig });
        if (!isRegTestAvailable) { this.skip(); }
+
+       if (isElectrumAvailable === null) isElectrumAvailable = await btc.isElectrumRunning({ config: networkConfig.electrum });
+       if (!isElectrumAvailable) { this.skip(); }
     }
   });
 

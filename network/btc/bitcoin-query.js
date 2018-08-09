@@ -1,4 +1,5 @@
 const axios = require('axios');
+const ElectrumClient = require('electrum-client');
 
 const baseUrlFromConfig = (config) => {
   // TODO: more cases should be handled
@@ -42,11 +43,23 @@ const getBlockChainInfo = async ({ config }) => {
 
 const isRegTestRunning = ({ config }) => (getBlockChainInfo({ config }));
 
+const isElectrumRunning = async ({ config }) => {
+  const { port, host, protocol } = config;
+  const ecl = new ElectrumClient(port, host, protocol);
+  try {
+    await ecl.connect();
+    return ecl.server_version();
+  } catch (e) {
+    if (e.code == 'ECONNREFUSED') return false;
+    throw e;
+  }
+};
 
 module.exports = {
   query,
   getBlockChainInfo,
   isRegTestRunning,
+  isElectrumRunning,
   baseUrlFromConfig,
   authFromConfig
 };
