@@ -1,8 +1,9 @@
 const should = require('chai').should();
 const bip39 = require('bip39');
 const bip32 = require('bip32');
-const bitcoin = require('./bitcoin');
 const bitcoinJs = require('bitcoinjs-lib');
+const ElectrumClient = require('electrum-client');
+const bitcoin = require('./bitcoin');
 const networkConfig = require('./../../config/networkConfig.mock').BTC;
 const btc = require('./bitcoin-query');
 const utils = require('./bitcoin-utils');
@@ -10,7 +11,8 @@ const utils = require('./bitcoin-utils');
 const walletPublicConfig = {
   networkConfig,
   // publicKey: '031f446b3142bc7d8fce1f592b5eaa17dcb4c201dbd7fbd311be4efd7184873374' //mainnet
-  publicKey: '02cf52dfc4a7ed9b44239f26bb2c8b09421d76e568a15042d184f4a2b5da4e82d7' //testnet
+  //publicKey: '02cf52dfc4a7ed9b44239f26bb2c8b09421d76e568a15042d184f4a2b5da4e82d7' //testnet
+  publicKey: '03eb7ca0882e737299e48c54e86d01db887a7cb2f572c68ac70cb778547d5912f3' //testnet
 };
 
 const walletPrivateConfig = {
@@ -62,22 +64,49 @@ describe("Bitcoin functions test", async (d) => {
   });
  
 //   console.log('isAvailable=', isAvailable);
-  it('Get assets by public key', async () => {
-    const { publicKey, networkConfig } = walletPublicConfig;
-    // Import public key into current wallet, so that we can check the balance, but cannot spend it
-    await btc.query({ method: 'importpubkey', params: [publicKey], config: networkConfig });
-    // Make sure, address has 0 balance
+  // it('Get assets by public key', async () => {
+  //   const { publicKey, networkConfig } = walletPublicConfig;
+  //   // Import public key into current wallet, so that we can check the balance, but cannot spend it
+  //   await btc.query({ method: 'importpubkey', params: [publicKey], config: networkConfig });
+  //   // Make sure, address has 0 balance
+  //   const initBalance = await bitcoin.getAssets({ walletPublicConfig });
+  //   // Send sertain amount of funds to this address
+  //   const address = await utils.getAddressFromPubKey({ walletPublicConfig });
+  //   const amount = 123;
+  //   await btc.query({ method: 'sendtoaddress', params: [ address, amount ], config: networkConfig });
+  //   // If we are in regtest mode, generate new blocks
+  //   await btc.query({ method: 'generate', params: [ 6 ], config: networkConfig });
+  //   // Compare results
+  //   const balance = await bitcoin.getAssets({ walletPublicConfig });
+  //   //console.log(amount, address, initBalance, balance);
+  //   balance.value.should.equal(initBalance.value + amount);
+  // });
+
+  it.only('Get assets by public key', async () => {
     const initBalance = await bitcoin.getAssets({ walletPublicConfig });
-    // Send sertain amount of funds to this address
     const address = await utils.getAddressFromPubKey({ walletPublicConfig });
-    const amount = 123;
-    await btc.query({ method: 'sendtoaddress', params: [ address, amount ], config: networkConfig });
-    // If we are in regtest mode, generate new blocks
-    await btc.query({ method: 'generate', params: [ 6 ], config: networkConfig });
-    // Compare results
-    const balance = await bitcoin.getAssets({ walletPublicConfig });
-    //console.log(amount, address, initBalance, balance);
-    balance.value.should.equal(initBalance.value + amount);
+    const amount = 0.123;
+    
+    // Wait for electrum update:
+    const sendToAddress = () => {
+      return new Promise(async (resolve, reject) => {
+        const { host, port, protocol } = walletPublicConfig.networkConfig.electrum;
+        const ecl = new ElectrumClient(port, host, protocol);
+        await ecl.connect();
+        ecl.subscribe.on('blockchain.address.subscribe', (e) => {
+          resolve(true);
+        });
+        await ecl.blockchainAddress_subscribe(address);
+        await btc.query({ method: 'sendtoaddress', params: [ address, amount ], config: networkConfig });
+      });
+    };
+
+    const sent = await sendToAddress();
+    if (sent) {
+      const balance = await bitcoin.getAssets({ walletPublicConfig });
+      //console.log(amount, address, initBalance, balance, utils.parse(initBalance.value + amount));
+      balance.value.should.equal(utils.parse(initBalance.value + amount));
+    }
   });
 
   it('Send transaction', async () => {

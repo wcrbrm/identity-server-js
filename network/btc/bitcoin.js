@@ -2,6 +2,7 @@ const bitcoinJs = require('bitcoinjs-lib');
 const bip32 = require('bip32');
 const bip39 = require('bip39');
 const coinConstants = require('bip44-constants');
+const ElectrumClient = require('electrum-client');
 const btc = require('./bitcoin-query');
 const utils = require('./bitcoin-utils');
 const base58 = require('./../../services/base58');
@@ -30,17 +31,36 @@ const isValidAddress = ({ address, networkConfig }) => {
 
 // In bitcoin blockchain we store just one type of asset: BTC
 // (other blockchains are more advanced)
+// const getAssets = async ({ walletPublicConfig }) => {
+//   const address = utils.getAddressFromPubKey({ walletPublicConfig });
+//   const unspent = await btc.query({ 
+//     method: 'listunspent', 
+//     params: [0, 9999999, [address]], 
+//     config: walletPublicConfig.networkConfig
+//   });
+//   const balance = unspent.reduce((amount, tx) => amount + tx.amount, 0);
+//   // value should be a balance here:
+//   return { name: 'BTC', value: balance };
+// };
+
 const getAssets = async ({ walletPublicConfig }) => {
   const address = utils.getAddressFromPubKey({ walletPublicConfig });
-  const unspent = await btc.query({ 
-    method: 'listunspent', 
-    params: [0, 9999999, [address]], 
-    config: walletPublicConfig.networkConfig
-  });
-  const balance = unspent.reduce((amount, tx) => amount + tx.amount, 0);
-  // value should be a balance here:
-  return { name: 'BTC', value: balance };
+  const { host, port, protocol } = walletPublicConfig.networkConfig.electrum;
+  const electrumClient = new ElectrumClient(port, host, protocol);
+  await electrumClient.connect();
+  const balance = await electrumClient.blockchainAddress_getBalance(address);
+  const value = utils.parse(
+                  utils.parseSatoshi(
+                    balance 
+                    && balance.confirmed !== undefined 
+                    && balance.unconfirmed !== undefined 
+                    ? balance.confirmed + balance.unconfirmed 
+                    : 0
+                  )
+                );
+  return { name: 'BTC', value };
 };
+
 
 const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletPrivateConfig }) => {
   const { publicKey, networkConfig } = walletPrivateConfig;

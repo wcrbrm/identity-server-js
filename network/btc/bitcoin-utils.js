@@ -42,10 +42,20 @@ const generateTxOutputs = ({ transactionsToSpend, amount, fee, to, change }) => 
   return rawTxOutputs;
 };
 
+const parse = (value) => {
+  return parseFloat(value.toFixed(8));
+}
+
+const parseSatoshi = (value) => {
+  return value / Math.pow(10, 8);
+}
+
 module.exports = {
   getNetwork,
   getAddressFromPubKey,
   getTxsToSpend,
   generateTxInputs,
-  generateTxOutputs
+  generateTxOutputs,
+  parse,
+  parseSatoshi
 }
