@@ -103,14 +103,31 @@ module.exports = ({ network = 'ETH' }) => {
       contracts.forEach(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
          assets.push({
            symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal,
-           contract: contractAddress
+           contractAddress
          });
       });
     }
     return assets;
   };
 
+  const getErc20Abi = () => {
+    const fs = require('fs');
+    const jsonPath = __dirname + "/MyToken.json";
+    const json = JSON.parse(fs.readFileSync(jsonPath));
+    const { abi } = json;
+    return abi;
+  };
+
   const getAssetValue = async ({ walletPublicConfig, contractAddress }) => {
+    const { address, networkConfig } = walletPublicConfig;
+    const web3 = getWeb3Client(networkConfig);
+    if (!web3.isConnected()) {
+       throw new Error('Cannot connect to the network');
+    }
+    const abi = getErc20Abi();
+    const contractAbi = web3.eth.contract(abi);
+    const theContract = contractAbi.at(contractAddress);
+    return theContract.balanceOf.getData(address);
   };
 
   const sendTransaction = async ({ asset = 'ETH', amount, to, walletPrivateConfig }) => {

@@ -62,6 +62,20 @@ function WalletInfo(walletInfo) {
     return { ...this.walletInfo, assets };
   };
 
+  this.fetchAssetsValue = async function(contractAddress) {
+    const debug = require('debug')("wallet-info.fetch");
+    const modNetwork = this.getNetworkModule(this.json);
+    if (!modNetwork) return false;
+    debug(`Getting assets from ${JSON.stringify(this.json)}`);
+    const networkConfig = this.json;
+    const { address } = this.json;
+    if (typeof modNetwork.getAssetValue !== 'function') {
+      throw new Error('getAssetValue is not defined for this blockchain network');
+    }
+    const asset = await modNetwork.getAssetValue({ walletPublicConfig: { address, networkConfig, contractAddress } });
+    return { ...this.walletInfo, contractAddress, asset };
+  };
+
 };
 
 module.exports = WalletInfo;
