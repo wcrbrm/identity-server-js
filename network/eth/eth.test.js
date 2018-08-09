@@ -130,7 +130,7 @@ describe("Ethereum network", () => {
     receipt.status.should.equal('0x1');
 
     // let is record and be saved in etherscan
-    await sleep(2600);
+    await sleep(3000);
 
     // console.log(receipt);
     const walletPublicConfig = { networkConfig, address };

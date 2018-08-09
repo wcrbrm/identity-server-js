@@ -1,6 +1,7 @@
 module.exports = ({ network = 'ETH' }) => {
   const Web3 = require("web3");
   const axios = require('axios');
+  const debug = require('debug')('eth.networkhelper');
   const { Networks } = require('./../../config/networks');
   const { testnets } = Networks.filter(f => (f.value === network))[0];
 // console.log('testnets=', testnets);
@@ -20,11 +21,12 @@ module.exports = ({ network = 'ETH' }) => {
         return config.rpcRoot;
       }
     }
-    return 'https://infura.io/56VWha01KDTpZ0kRTDCN';
+    return 'https://mainnet.infura.io/56VWha01KDTpZ0kRTDCN';
   };
 
   const getWeb3Client = (config) => {
     const httpEndpoint = httpEndpointFromConfig(config);
+    debug('web3 endpoint', httpEndpoint);
     const web3client = new Web3(new Web3.providers.HttpProvider(httpEndpoint));
     return web3client;
   };
@@ -42,14 +44,28 @@ module.exports = ({ network = 'ETH' }) => {
   };
 
   const etherscanEndpointFromConfig = (config) => {
-    if (config.api) {
-      return config.api;
+    if (config.testnet) {
+      if (config.api) {
+        return config.api;
+      }
+      if (config.networkId) {
+        const testNetDescriptor = testnets[config.networkId];
+        if (typeof testNetDescriptor === 'undefined') {
+          throw new Error('Ethereum Test Network is not defined');
+        }
+        if (!testNetDescriptor.api) {
+          throw new Error('Ethereum Test Network has no API root defined');
+        }
+        return testNetDescriptor.api;
+      }
+      return 'http://127.0.0.1:9911';
     }
-    return 'http://127.0.0.1:9911';
+    return 'https://api.etherscan.io/';
   };
 
   const getEtherscanClient = (config) => {
     const rootUrl = etherscanEndpointFromConfig(config);
+    debug('etherscan endpoint', rootUrl);
     const withApiKey = (url)=> url; // should be detailed for production, based on config
 
     const isConnected = async () => {

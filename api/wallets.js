@@ -55,8 +55,6 @@ module.exports = (operation, options) => {
           const debug = require('debug')('wallets.info');
           debug('wallets match:', JSON.stringify(walletsMatch[0]));
           const wi = safeWalletInfo(walletsMatch[0]);
-          // walletInfo.responseStream(res);
-          // walletInfo.fetch().then(wallet => {
           debug("wallet info=" + JSON.stringify(wi));
           ok(res, wi);
         } else {
@@ -74,9 +72,9 @@ module.exports = (operation, options) => {
 
         const walletsMatch = json.wallets.filter(w => (w.id === id));
         if (walletsMatch) {
-          const debug = require('debug')('wallets.assets');
+          const debug = require('debug')('wallets.assetinfo');
           debug('wallets match:', JSON.stringify(walletsMatch[0]));
-
+          const walletInfo = new WalletInfo(walletsMatch[0]);
           walletInfo.responseStream(res);
           walletInfo.fetchAsset(assetId).then(asset => {
             debug("wallet info=" + JSON.stringify(asset));
@@ -101,6 +99,7 @@ module.exports = (operation, options) => {
         if (walletsMatch) {
           const debug = require('debug')('wallets.assets');
           debug('wallets match:', JSON.stringify(walletsMatch[0]));
+          const walletInfo = new WalletInfo(walletsMatch[0]);
           walletInfo.responseStream(res);
           walletInfo.fetch().then(assets => {
             const wi = safeWalletInfo(assets);
