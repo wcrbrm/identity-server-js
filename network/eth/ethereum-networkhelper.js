@@ -1,12 +1,26 @@
 module.exports = ({ network = 'ETH' }) => {
   const Web3 = require("web3");
   const axios = require('axios');
+  const { Networks } = require('./../../config/networks');
+  const { testnets } = Networks.filter(f => (f.value === network))[0];
+// console.log('testnets=', testnets);
 
   const httpEndpointFromConfig = (config) => {
-    if (config.rpcRoot) {
-      return config.rpcRoot;
+    if (config.testnet) {
+      if (config.networkId) {
+        const testNetDescriptor = testnets[config.networkId];
+        if (typeof testNetDescriptor === 'undefined') {
+          throw new Error('Ethereum Test Network is not defined');
+        }
+        if (!testNetDescriptor.rpcRoot) {
+          throw new Error('Ethereum Test Network has no RPC root defined');
+        }
+        return testNetDescriptor.rpcRoot;
+      } else if (config.rpcRoot) {
+        return config.rpcRoot;
+      }
     }
-    return 'http://127.0.0.1:8545';
+    return 'https://infura.io/56VWha01KDTpZ0kRTDCN';
   };
 
   const getWeb3Client = (config) => {
