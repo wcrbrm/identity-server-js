@@ -118,6 +118,8 @@ module.exports = ({ network = 'ETH' }) => {
     return abi;
   };
 
+  const contractCache = {};
+
   const getAssetValue = async ({ walletPublicConfig, contractAddress }) => {
     if (!contractAddress) {
       throw new Error('Cannot get asset without contractAddress');
@@ -127,31 +129,43 @@ module.exports = ({ network = 'ETH' }) => {
     if (!web3.isConnected()) {
        throw new Error('Cannot connect to the network');
     }
+
+    if (!contractCache[contractAddress]) contractCache[contractAddress] = {};
+    const cachedContract = contractCache[contractAddress] || {};
+
     const abi = getErc20Abi();
     const contractAbi = web3.eth.contract(abi);
     const theContract = contractAbi.at(contractAddress);
     const debug = require('debug')('eth.getassetvalue');
     debug('contract at', contractAddress, JSON.stringify(Object.keys(theContract)));
     const balance = theContract.balanceOf.call(address);
-    const decimals = parseInt(theContract.decimals.call().toString(), 10);
-    debug('balance:', balance.toString(), 'decimals:', decimals);
+
+    let decimals = 18;
+    if (typeof cachedContract.decimals === 'undefined') {
+      decimals = parseInt(theContract.decimals.call().toString(), 10);
+      contractCache[contractAddress].decimals = decimals;
+    }
     const value = balance.toNumber() / Math.pow(10, decimals);
+    debug('balance:', balance.toString(), 'decimals:', decimals, 'value:', value);
     const asset = { value, decimals, contractAddress };
 
     try {
-      const symbol = theContract.symbol();
+      const symbol = cachedContract.symbol || theContract.symbol();
       if (symbol) {
         debug('token contract symbol:', symbol);
         asset.symbol = symbol;
+        contractCache[contractAddress].symbol = symbol;
       }
     } catch (e) {
       debug('token symbol extraction error', e.toString());
     }
+
     try {
-      const name = theContract.name();
+      const name = cachedContract.name || theContract.name();
       if (name) {
         debug('token contract name:', name);
         asset.name = name;
+        contractCache[contractAddress].name = name;
       }
     } catch (e) {
       debug('token name extraction error', e.toString());
