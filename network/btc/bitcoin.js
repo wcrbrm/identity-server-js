@@ -104,17 +104,78 @@ const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletP
 };
 
 // get list of pending transactions
+// const getPending = async ({ walletPublicConfig }) => {
+//   // Get address from publicKey
+//   const address = utils.getAddressFromPubKey({ walletPublicConfig });
+//   // Query listunspent 0 0 address
+//   const pendingUnspent = await btc.query({ 
+//     method: 'listunspent', 
+//     params: [0, 0, [address]], 
+//     config: walletPublicConfig.networkConfig
+//   });
+  
+//   return pendingUnspent || [];
+// };
+
 const getPending = async ({ walletPublicConfig }) => {
   // Get address from publicKey
   const address = utils.getAddressFromPubKey({ walletPublicConfig });
-  // Query listunspent 0 0 address
-  const pendingUnspent = await btc.query({ 
-    method: 'listunspent', 
-    params: [0, 0, [address]], 
-    config: walletPublicConfig.networkConfig
-  });
-  
-  return pendingUnspent || [];
+  const { host, port, protocol } = walletPublicConfig.networkConfig.electrum;
+  const electrumClient = new ElectrumClient(port, host, protocol);
+  await electrumClient.connect();
+  const mempool = await electrumClient.blockchainAddress_getMempool(address);
+  //console.log(mempool);
+
+  if (mempool && mempool.length > 0) {
+    const mempoolTransactions = mempool.map(async (m) => {
+      const network = utils.getNetwork({ networkConfig: walletPublicConfig.networkConfig });
+      // Transaction id:
+      const txid = m.tx_hash;
+      //console.log(txid);
+      // Transaction data hash:
+      const hex = await electrumClient.blockchainTransaction_get(txid);
+      // Transaction as Buffer:
+      const tx = bitcoinJs.Transaction.fromHex(hex);
+
+      // Sender:
+      // https://bitcoin.stackexchange.com/questions/28182/how-to-find-the-change-sender-address-given-a-txid
+      // Process transaction inputs:
+      const inputs = utils.decodeInput(tx);
+      const sender = [];
+      //console.log(inputs);
+      inputs.forEach(async (input) => {
+        const iTxid = input.txid;
+        const iN = input.n;
+        const iHex = await electrumClient.blockchainTransaction_get(iTxid);
+        const iTx = bitcoinJs.Transaction.fromHex(iHex);
+      
+        const outputs = utils.decodeOutput(iTx, network);
+        outputs.forEach(output => {
+          if (output.n === iN) {
+            sender.concat(output.scriptPubKey.addresses);
+          }
+        });
+      });
+
+      // Receiver:
+      // Process transaction outputs
+      const outputs = utils.decodeOutput(tx, network);
+      const receiver = {};
+      outputs.forEach(o => {
+        const address = o.scriptPubKey.addresses[0];
+        receiver[address] = o.value;
+      });
+
+      return {
+        txid,
+        sender,
+        receiver
+      };
+    });
+    return await Promise.all(mempoolTransactions);
+  } else {
+    return [];
+  }
 };
 
 // get list of past transactions. could paging be better?
