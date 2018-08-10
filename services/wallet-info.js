@@ -72,7 +72,7 @@ function WalletInfo(walletInfo) {
     if (typeof modNetwork.getAssetValue !== 'function') {
       throw new Error('getAssetValue is not defined for this blockchain network');
     }
-    const asset = await modNetwork.getAssetValue({ walletPublicConfig: { address, networkConfig, contractAddress } });
+    const asset = await modNetwork.getAssetValue({ walletPublicConfig: { address, networkConfig }, contractAddress });
     return { ...this.walletInfo, contractAddress, asset };
   };
 

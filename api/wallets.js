@@ -76,9 +76,9 @@ module.exports = (operation, options) => {
           debug('wallets match:', JSON.stringify(walletsMatch[0]));
           const walletInfo = new WalletInfo(walletsMatch[0]);
           walletInfo.responseStream(res);
-          walletInfo.fetchAsset(assetId).then(asset => {
-            debug("wallet info=" + JSON.stringify(asset));
-            ok(res, asset);
+          walletInfo.fetchAssetsValue(assetId).then(assetInfo => {
+            debug("wallet info=" + JSON.stringify(assetInfo));
+            ok(res, assetInfo);
           }).catch( we => {
             error(res, we.toString());
           });
