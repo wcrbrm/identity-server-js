@@ -44,8 +44,8 @@ function WalletInfo(walletInfo) {
     if (typeof modNetwork.getBalance !== 'function') {
       throw new Error('getAssetsList is not defined for this blockchain network');
     }
-    const balance = await modNetwork.getBalance({ walletPublicConfig: { address, networkConfig } });
-    return { ...this.walletInfo, balance };
+    const balances = await modNetwork.getBalance({ walletPublicConfig: { address, networkConfig } });
+    return { ...this.walletInfo, balances };
   };
 
   this.fetchAssetsList = async function() {

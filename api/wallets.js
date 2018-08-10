@@ -101,7 +101,7 @@ module.exports = (operation, options) => {
           debug('wallets match:', JSON.stringify(walletsMatch[0]));
           const walletInfo = new WalletInfo(walletsMatch[0]);
           walletInfo.responseStream(res);
-          walletInfo.fetch().then(assets => {
+          walletInfo.fetchAssetsList().then(assets => {
             const wi = safeWalletInfo(assets);
             debug("wallet info=" + JSON.stringify(wi));
             ok(res, wi);
