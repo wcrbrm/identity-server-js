@@ -11,9 +11,13 @@
     "test": "mocha -w --timeout=20000 network/**/*.test.js api/*.test.js",
     "start": "cross-env DEBUG=*,-follow-redirects nodemon server.js --cors",
     "all": "npm-run-all --parallel start test",
-    "eth:start": "ganache-cli -l 1999999",
-    "eos:start": "nodeos -e -p eosio --contracts-console --http-server-address=\"0.0.0.0:8888\" --access-control-allow-origin \"*\" --access-control-allow-headers \"*\" --access-control-allow-credentials true --plugin eosio::history_api_plugin --plugin eosio::chain_api_plugin --http-validate-host=false --verbose-http-errors 2>&1 | grep -v produce_block",
-    "eos:reset": "rm -rf ~/.local/share/eosio/nodeos"
+    "start:eth:testrpc": "ganache-cli -l 1999999",
+    "start:eth:etherscan": "cd ../etherscan-server && npm run start",
+    "start:eth:etherscan:delayed": "run-s delay start:eth:etherscan",
+    "delay": "npm-delay 2000",
+    "start:eth": "npm-run-all --parallel start:eth:testrpc start:eth:etherscan:delayed",
+    "start:eos": "nodeos -e -p eosio --contracts-console --http-server-address=\"0.0.0.0:8888\" --access-control-allow-origin \"*\" --access-control-allow-headers \"*\" --access-control-allow-credentials true --plugin eosio::history_api_plugin --plugin eosio::chain_api_plugin --http-validate-host=false --verbose-http-errors 2>&1 | grep -v produce_block",
+    "reset:eos": "rm -rf ~/.local/share/eosio/nodeos"
   },
   "keywords": [],
   "author": "Web Cerebrium <webcerebrium@gmail.com> (https://webcerebrium.com/)",
@@ -49,6 +53,7 @@
     "ganache-cli": "^6.1.6",
     "js-sha1": "^0.6.0",
     "mocha": "^5.2.0",
-    "nodemon": "^1.18.3"
+    "nodemon": "^1.18.3",
+    "npm-delay": "^1.0.4"
   }
 }

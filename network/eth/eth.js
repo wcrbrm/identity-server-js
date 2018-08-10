@@ -103,14 +103,60 @@ module.exports = ({ network = 'ETH' }) => {
       contracts.forEach(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
          assets.push({
            symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal,
-           contract: contractAddress
+           contractAddress
          });
       });
     }
     return assets;
   };
 
+  const getErc20Abi = () => {
+    const fs = require('fs');
+    const jsonPath = __dirname + "/MyToken.json";
+    const json = JSON.parse(fs.readFileSync(jsonPath));
+    const { abi } = json;
+    return abi;
+  };
+
   const getAssetValue = async ({ walletPublicConfig, contractAddress }) => {
+    if (!contractAddress) {
+      throw new Error('Cannot get asset without contractAddress');
+    }
+    const { address, networkConfig } = walletPublicConfig;
+    const web3 = getWeb3Client(networkConfig);
+    if (!web3.isConnected()) {
+       throw new Error('Cannot connect to the network');
+    }
+    const abi = getErc20Abi();
+    const contractAbi = web3.eth.contract(abi);
+    const theContract = contractAbi.at(contractAddress);
+    const debug = require('debug')('eth.getassetvalue');
+    debug('contract at', contractAddress, JSON.stringify(Object.keys(theContract)));
+    const balance = theContract.balanceOf.call(address);
+    const decimals = parseInt(theContract.decimals.call().toString(), 10);
+    debug('balance:', balance.toString(), 'decimals:', decimals);
+    const value = balance.toNumber() / Math.pow(10, decimals);
+    const asset = { value, decimals, contractAddress };
+
+    try {
+      const symbol = theContract.symbol();
+      if (symbol) {
+        debug('token contract symbol:', symbol);
+        asset.symbol = symbol;
+      }
+    } catch (e) {
+      debug('token symbol extraction error', e.toString());
+    }
+    try {
+      const name = theContract.name();
+      if (name) {
+        debug('token contract name:', name);
+        asset.name = name;
+      }
+    } catch (e) {
+      debug('token name extraction error', e.toString());
+    }
+    return asset;
   };
 
   const sendTransaction = async ({ asset = 'ETH', amount, to, walletPrivateConfig }) => {

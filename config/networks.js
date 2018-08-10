@@ -26,7 +26,7 @@ const Networks = [
   //   disabled: true
   // },
   {
-    value: 'EOS', name: 'EOS', terms: true, icon: '/networks/EOS.png', 
+    value: 'EOS', name: 'EOS', terms: true, icon: '/networks/EOS.png',
     multiAccount: true,
     local: 'http://localhost:8888',
     testnets: [
@@ -44,16 +44,37 @@ const Networks = [
     local: 'http://localhost:8545',
     api: 'http://localhost:9911',
     apiName: 'EtherScan API',
-    apiKey: [
+    apiKeys: [
       'J6I6DJSFE763ISRXWI5XCCX23NTTDTHFTM',
       'IZB9M5G3A9IFSB9H9V3BQWNE358HKQAXU9',
       '4RD2ZMMQ7SYD9JK6KQZSVCFK8RNATFIIDI'
     ],
     testnets: [
-      { value: 4, name: 'Rinkeby', explorer: 'https://rinkeby.etherscan.io/', api: 'https://api-rinkeby.etherscan.io' },
-      { value: 3, name: 'Ropsten', explorer: 'https://ropsten.etherscan.io/', api: 'https://api-ropsten.etherscan.io' },
-      { value: 42, name: 'Kovan', explorer: 'https://kovan.etherscan.io/', api: 'https://api.etherscan.io' },
-      { value: 0x62121, name: 'Tobalaba', explorer: 'https://tobalaba.etherscan.com/', api: 'https://api-tobalaba.etherscan.com' },
+      {
+        value: 4, name: 'Rinkeby',
+        explorer: 'https://rinkeby.etherscan.io/',
+        rpc: 'https://mainnet.infura.io/56VWha01KDTpZ0kRTDCN',
+        api: 'https://api-rinkeby.etherscan.io'
+      },
+      {
+        value: 3, name: 'Ropsten',
+        explorer: 'https://ropsten.etherscan.io/',
+        rpc: 'https://ropsten.infura.io/56VWha01KDTpZ0kRTDCN',
+        api: 'https://api-ropsten.etherscan.io'
+      },
+      {
+        value: 42, name: 'Kovan',
+        explorer: 'https://kovan.etherscan.io/',
+        rpc: 'https://kovan.infura.io/56VWha01KDTpZ0kRTDCN',
+        api: 'https://api-kovan.etherscan.io'
+      },
+      // we don't have that network in INFURA services
+      // {
+      //   value: 0x62121,
+      //   name: 'Tobalaba',
+      //   explorer: 'https://tobalaba.etherscan.com/',
+      //   api: 'https://api-tobalaba.etherscan.com'
+      // },
     ]
   },
   {
