@@ -73,7 +73,7 @@ module.exports = ({ network = 'ETH' }) => {
       }
 
       const r = result
-        .filter(f => (f.to === address))
+        .filter(f => (f.to.toLowerCase() === address.toLowerCase()))
         .map(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => (
           {contractAddress, tokenSymbol, tokenName, tokenDecimal }
         ))
