@@ -22,7 +22,7 @@ module.exports = ({ network = 'ETH' }) => {
       }
       return 'http://127.0.0.1:9911';
     }
-    return 'https://api.etherscan.io/';
+    return 'https://api.etherscan.io';
   };
 
   const withEtherscanApiKey = (url) => {
@@ -34,7 +34,8 @@ module.exports = ({ network = 'ETH' }) => {
     if (!apiKey) {
       throw new Error('API Key could not be chosen for EtherScan');
     }
-    return url + ( url.indexOf('?') !== -1 ?  '&' : '?') + 'apikey=' + apiKey;
+    debug("api key chosen", apiKey);
+    return url + ( url.indexOf('?') !== -1 ?  '&' : '?') + 'apiKey=' + apiKey;
   };
 
   const getEtherscanClient = (config) => {
@@ -58,12 +59,18 @@ module.exports = ({ network = 'ETH' }) => {
 
     const getTokenContracts = async (address) => {
       // return token contracts that was sending any token to that address
-      const url = withEtherscanApiKey(`${rootUrl}/api?module=account&to=${address}&action=tokentx&startblock=0&endblock=99999999&limit=10000`);
+      const url = withEtherscanApiKey(`${rootUrl}/api?module=account&action=tokentx&address=${address}&startblock=0&endblock=9999999&sort=desc`);
       debug('requesting', url);
       const response = await axios.get(url);
       const { data } = response;
-      const { result, status } = data;
-      if (parseInt(status, 10) !== 1) throw new Error('Etherscan response error: ' + result);
+      const { message, result, status } = data;
+      if (parseInt(status, 10) !== 1) {
+        debug("error", JSON.stringify(data));
+        if (message === 'No transactions found') {
+          return [];
+        }
+        throw new Error('Etherscan response error: ' + result);
+      }
 
       const r = result
         .filter(f => (f.to === address))
