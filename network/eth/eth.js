@@ -3,6 +3,7 @@ module.exports = ({ network = 'ETH' }) => {
   const CryptoJS = require('crypto-js');
   const EC = require('elliptic').ec;
   const ec = new EC('secp256k1');
+  const { getTicker } = require('./../../services/coinmarketcap');
 
   const { getWeb3Client, getEtherscanClient } = require('./ethereum-networkhelper')({ network });
 
@@ -84,7 +85,7 @@ module.exports = ({ network = 'ETH' }) => {
     const web3 = getWeb3Client(networkConfig);
     if (!web3.isConnected())
        throw new Error('Cannot connect to the network');
-    return [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }) }];
+    return [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }), cmc: getTicker('ETH') }];
   };
 
   const getAssetsList = async ({ walletPublicConfig }) => {
@@ -95,16 +96,21 @@ module.exports = ({ network = 'ETH' }) => {
        throw new Error('Cannot connect to the network');
     }
 
-    const assets = [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }) }];
+    const assets = [{
+      symbol: 'ETH',
+      name: 'Ethereum',
+      value: await getEth({ web3, address }),
+      cmc: getTicker('ETH')
+    }];
     const etherscan = getEtherscanClient(networkConfig);
     const contracts = await etherscan.getTokenContracts(address);
     if (contracts) {
       // console.log('address:' + address + ', contracts: ' + JSON.stringify(contracts));
       contracts.forEach(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
-         assets.push({
+        assets.push({
            symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal,
-           contractAddress
-         });
+           contractAddress, cmc: getTicker(tokenSymbol)
+        });
       });
     }
     return assets;
@@ -201,11 +207,11 @@ module.exports = ({ network = 'ETH' }) => {
   return {
     create,            // generate keypair for HD wallet
     createRandom,      // generate random keypair
-    isValidAddress,
-    isValidPrimaryKey,
-    getBalance,       // quick getter what is in the wallet
-    getAssetsList,    // full retrieval of assets list
-    getAssetValue,   // getting asset value
+    isValidAddress,    // to be used on wallet addition
+    isValidPrimaryKey, // to be used on wallet import
+    getBalance,        // quick getter what is in the wallet
+    getAssetsList,     // full retrieval of assets list
+    getAssetValue,     // getting asset value (from contract name)
     sendTransaction,
     getPending,
     getHistory,

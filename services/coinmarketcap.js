@@ -6,7 +6,7 @@ const debugV2 = createDebug('coinmarketcap.v2');
 const __SYMBOL_CACHE = {};
 
 const parseDataV1 = (data) => {
-  for (let i = 0; i < data.length; i++ ) {
+  for (let i = 0; i < data.length; i++) {
     const sym = data[i];
     if (sym && sym.symbol) __SYMBOL_CACHE[sym.symbol] = sym;
   }
@@ -23,7 +23,7 @@ const parseDataV2 = (data, offset, limit = 100) => {
 };
 
 const loadPage = (offset, limit = 100) => {
- // v2 will require paging
+  // v2 will require paging
 };
 
 const load = () => {
@@ -32,7 +32,7 @@ const load = () => {
       .then((response) => {
         if (response.data) {
           const { data } = response;
-	  parseDataV1(data);
+          parseDataV1(data);
           resolve(true);
         }
       })
