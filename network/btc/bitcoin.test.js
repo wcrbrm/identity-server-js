@@ -140,7 +140,7 @@ describe("Bitcoin functions test", async (d) => {
     txDetails.amount.should.equal(-(amount));
   });
 
-  it.only('Get pending transactions by public key', async () => {
+  it('Get pending transactions by public key', async () => {
     const pending = await bitcoin.getPending({ walletPublicConfig });
     console.log(pending);
     // Make incoming and outgoing transaction

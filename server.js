@@ -59,10 +59,6 @@ app.get(`${root}/networks/:networkId/address/:address`,  modNetworks('address', 
 app.post(`${root}/networks/:networkId/address/:address`,  modNetworks('address', options));
 app.get(`${root}/networks`, modNetworks('list', options));
 
-const modExchanges = require('./api/exchanges');
-app.get(`${root}/exchanges`, modExchanges('list', options));
-
-
 // pairing could actually be useful only to remote connections
 // remote access tab can be a part of installation wizard or a part of the settings?
 
