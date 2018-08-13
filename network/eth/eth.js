@@ -3,6 +3,7 @@ module.exports = ({ network = 'ETH' }) => {
   const CryptoJS = require('crypto-js');
   const EC = require('elliptic').ec;
   const ec = new EC('secp256k1');
+  const { getTicker } = require('./../../services/coinmarketcap');
 
   const { getWeb3Client, getEtherscanClient } = require('./ethereum-networkhelper')({ network });
 
@@ -49,19 +50,19 @@ module.exports = ({ network = 'ETH' }) => {
   };
 
   // primary key is same for all configs
-  const isValidPrimaryKey = ({ primaryKey }) => {
+  const isValidPrivateKey = ({ privateKey }) => {
     const prefix = '0x';
-    const hasZeroXPrefix = primaryKey.substring(0, prefix.length) === prefix;
-    const isCorrectLength = primaryKey.length === 64;
+    const hasZeroXPrefix = privateKey.substring(0, prefix.length) === prefix;
+    const isCorrectLength = privateKey.length === 64;
     const valid = isCorrectLength && !hasZeroXPrefix;
     const res = { valid };
     if (!valid) {
       // try to give suggestion
-      if (primaryKey.length === 66 && hasZeroXPrefix) {
-        res.error = 'Primary key should not have 0x in the beginning';
-      } else if (!isCorrectLength && primaryKey.length < 64) {
+      if (privateKey.length === 66 && hasZeroXPrefix) {
+        res.error = 'Private key should not have 0x in the beginning';
+      } else if (!isCorrectLength && privateKey.length < 64) {
         res.error = 'Too few characters';
-      } else if (!isCorrectLength && primaryKey.length > 64) {
+      } else if (!isCorrectLength && privateKey.length > 64) {
         res.error = 'Too many characters';
       } else if (!address.match(/^[0-9A-Fa-f]{64}$/g)) {
         res.error = 'Private key should be 64 chars of hexadecimal';
@@ -84,7 +85,7 @@ module.exports = ({ network = 'ETH' }) => {
     const web3 = getWeb3Client(networkConfig);
     if (!web3.isConnected())
        throw new Error('Cannot connect to the network');
-    return [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }) }];
+    return [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }), cmc: getTicker('ETH') }];
   };
 
   const getAssetsList = async ({ walletPublicConfig }) => {
@@ -95,16 +96,21 @@ module.exports = ({ network = 'ETH' }) => {
        throw new Error('Cannot connect to the network');
     }
 
-    const assets = [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }) }];
+    const assets = [{
+      symbol: 'ETH',
+      name: 'Ethereum',
+      value: await getEth({ web3, address }),
+      cmc: getTicker('ETH')
+    }];
     const etherscan = getEtherscanClient(networkConfig);
     const contracts = await etherscan.getTokenContracts(address);
     if (contracts) {
       // console.log('address:' + address + ', contracts: ' + JSON.stringify(contracts));
       contracts.forEach(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
-         assets.push({
+        assets.push({
            symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal,
-           contractAddress
-         });
+           contractAddress, cmc: getTicker(tokenSymbol)
+        });
       });
     }
     return assets;
@@ -118,6 +124,8 @@ module.exports = ({ network = 'ETH' }) => {
     return abi;
   };
 
+  const contractCache = {};
+
   const getAssetValue = async ({ walletPublicConfig, contractAddress }) => {
     if (!contractAddress) {
       throw new Error('Cannot get asset without contractAddress');
@@ -127,31 +135,43 @@ module.exports = ({ network = 'ETH' }) => {
     if (!web3.isConnected()) {
        throw new Error('Cannot connect to the network');
     }
+
+    if (!contractCache[contractAddress]) contractCache[contractAddress] = {};
+    const cachedContract = contractCache[contractAddress] || {};
+
     const abi = getErc20Abi();
     const contractAbi = web3.eth.contract(abi);
     const theContract = contractAbi.at(contractAddress);
     const debug = require('debug')('eth.getassetvalue');
     debug('contract at', contractAddress, JSON.stringify(Object.keys(theContract)));
     const balance = theContract.balanceOf.call(address);
-    const decimals = parseInt(theContract.decimals.call().toString(), 10);
-    debug('balance:', balance.toString(), 'decimals:', decimals);
+
+    let decimals = 18;
+    if (typeof cachedContract.decimals === 'undefined') {
+      decimals = parseInt(theContract.decimals.call().toString(), 10);
+      contractCache[contractAddress].decimals = decimals;
+    }
     const value = balance.toNumber() / Math.pow(10, decimals);
+    debug('balance:', balance.toString(), 'decimals:', decimals, 'value:', value);
     const asset = { value, decimals, contractAddress };
 
     try {
-      const symbol = theContract.symbol();
+      const symbol = cachedContract.symbol || theContract.symbol();
       if (symbol) {
         debug('token contract symbol:', symbol);
         asset.symbol = symbol;
+        contractCache[contractAddress].symbol = symbol;
       }
     } catch (e) {
       debug('token symbol extraction error', e.toString());
     }
+
     try {
-      const name = theContract.name();
+      const name = cachedContract.name || theContract.name();
       if (name) {
         debug('token contract name:', name);
         asset.name = name;
+        contractCache[contractAddress].name = name;
       }
     } catch (e) {
       debug('token name extraction error', e.toString());
@@ -187,11 +207,11 @@ module.exports = ({ network = 'ETH' }) => {
   return {
     create,            // generate keypair for HD wallet
     createRandom,      // generate random keypair
-    isValidAddress,
-    isValidPrimaryKey,
-    getBalance,       // quick getter what is in the wallet
-    getAssetsList,    // full retrieval of assets list
-    getAssetValue,   // getting asset value
+    isValidAddress,    // to be used on wallet addition
+    isValidPrivateKey, // to be used on wallet import
+    getBalance,        // quick getter what is in the wallet
+    getAssetsList,     // full retrieval of assets list
+    getAssetValue,     // getting asset value (from contract name)
     sendTransaction,
     getPending,
     getHistory,

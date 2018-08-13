@@ -73,6 +73,8 @@ const create = ({ seed, index, coin, hex = false, prefix = '', multiAddress = fa
     (multiAddress ? eosPublicKey(PrivateKey.fromString(privateKey).toBuffer(), prefix) :
     ((prefix ? prefix : '' ) + (keyPair.getPublicKeyBuffer().toString('hex'))));
 
+  path += '/' + index;
+
   if (hex) {
     // multiaddress is not an option for blockchains with HEX address representation
     const privKeyBuffer = keyPair.d.toBuffer(32);
@@ -87,8 +89,6 @@ const create = ({ seed, index, coin, hex = false, prefix = '', multiAddress = fa
        publicKey: ethUtil.addHexPrefix(publicKey)
     };
   }
-
-  path += '/' + index;
   return rmUndefined({ path, address, publicKey, privateKey });
 };
 

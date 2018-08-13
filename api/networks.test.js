@@ -28,10 +28,14 @@ describe('/api/networks', () => {
           expect(err).to.be.null;
           expect(res).to.have.status(200);
 
-          const modules = require('./../network/index');
+          const modulesNetworks = require('./../network/index');
+          const lenNetworks = res.body.data.networks.length;
+          expect(lenNetworks).to.equal(Object.keys(modulesNetworks).length);
 
-          const len = res.body.data.networks.length;
-          expect(len).to.equal(Object.keys(modules).length);
+          const modulesExchanges = require('./../exchanges/index');
+          const lenExchanges = res.body.data.exchanges.length;
+          expect(lenExchanges).to.equal(Object.keys(modulesExchanges).length);
+
           done();
        });
     });
