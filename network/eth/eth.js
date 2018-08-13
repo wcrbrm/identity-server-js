@@ -50,19 +50,19 @@ module.exports = ({ network = 'ETH' }) => {
   };
 
   // primary key is same for all configs
-  const isValidPrimaryKey = ({ primaryKey }) => {
+  const isValidPrivateKey = ({ privateKey }) => {
     const prefix = '0x';
-    const hasZeroXPrefix = primaryKey.substring(0, prefix.length) === prefix;
-    const isCorrectLength = primaryKey.length === 64;
+    const hasZeroXPrefix = privateKey.substring(0, prefix.length) === prefix;
+    const isCorrectLength = privateKey.length === 64;
     const valid = isCorrectLength && !hasZeroXPrefix;
     const res = { valid };
     if (!valid) {
       // try to give suggestion
-      if (primaryKey.length === 66 && hasZeroXPrefix) {
-        res.error = 'Primary key should not have 0x in the beginning';
-      } else if (!isCorrectLength && primaryKey.length < 64) {
+      if (privateKey.length === 66 && hasZeroXPrefix) {
+        res.error = 'Private key should not have 0x in the beginning';
+      } else if (!isCorrectLength && privateKey.length < 64) {
         res.error = 'Too few characters';
-      } else if (!isCorrectLength && primaryKey.length > 64) {
+      } else if (!isCorrectLength && privateKey.length > 64) {
         res.error = 'Too many characters';
       } else if (!address.match(/^[0-9A-Fa-f]{64}$/g)) {
         res.error = 'Private key should be 64 chars of hexadecimal';
@@ -208,7 +208,7 @@ module.exports = ({ network = 'ETH' }) => {
     create,            // generate keypair for HD wallet
     createRandom,      // generate random keypair
     isValidAddress,    // to be used on wallet addition
-    isValidPrimaryKey, // to be used on wallet import
+    isValidPrivateKey, // to be used on wallet import
     getBalance,        // quick getter what is in the wallet
     getAssetsList,     // full retrieval of assets list
     getAssetValue,     // getting asset value (from contract name)
