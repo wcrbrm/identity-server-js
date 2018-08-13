@@ -8,9 +8,12 @@ const getNetwork = ({ networkConfig }) => {
 const getAddressFromPubKey = ({ walletPublicConfig }) => {
   const { publicKey, networkConfig } = walletPublicConfig;
   const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-  return bitcoinJs.ECPair.fromPublicKeyBuffer(publicKeyBuffer, getNetwork({ networkConfig })).getAddress();
+  const network = getNetwork({ networkConfig });
+  return bitcoinJs.ECPair.fromPublicKeyBuffer(publicKeyBuffer, network).getAddress();
+  //return bitcoinJs.payments.p2pkh({ pubkey: publicKeyBuffer, network }).address; // v4+
 };
 
+// Bitcoin-core
 const getTxsToSpend = ({ unspentTransactions, amount }) => {
   let sum = 0;
   const transactionsToUse = unspentTransactions.sort((tx1, tx2) => (
@@ -21,6 +24,16 @@ const getTxsToSpend = ({ unspentTransactions, amount }) => {
     return oldSum <= amount;
   });
   return transactionsToUse;
+};
+
+// Electrum
+const getTxsToSpend2 = ({ unspent, amount }) => {
+  let sum = 0;
+  return unspent.filter(tx => {
+    const oldSum = sum;
+    sum += parseSatoshi(tx.value);
+    return oldSum <= amount;
+  });
 };
 
 const generateTxInputs = ({ transactionsToSpend }) => {
@@ -42,13 +55,11 @@ const generateTxOutputs = ({ transactionsToSpend, amount, fee, to, change }) => 
   return rawTxOutputs;
 };
 
-const parse = (value) => {
-  return parseFloat(value.toFixed(8));
-};
+const parse = (value) =>  parseFloat(value.toFixed(8));
 
-const parseSatoshi = (value) => {
-  return value / Math.pow(10, 8);
-};
+const parseSatoshi = value => value / Math.pow(10, 8);
+
+const toSatoshi = (value) => value * Math.pow(10, 8);
 
 // https://github.com/you21979/node-multisig-wallet/blob/master/lib/txdecoder.js:
 
@@ -101,10 +112,12 @@ module.exports = {
   getNetwork,
   getAddressFromPubKey,
   getTxsToSpend,
+  getTxsToSpend2,
   generateTxInputs,
   generateTxOutputs,
   parse,
   parseSatoshi,
+  toSatoshi,
   decodeInput,
   decodeOutput
 }

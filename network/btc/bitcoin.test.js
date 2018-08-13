@@ -8,6 +8,8 @@ const networkConfig = require('./../../config/networkConfig.mock').BTC;
 const btc = require('./bitcoin-query');
 const utils = require('./bitcoin-utils');
 
+const sleep = ms => (new Promise(resolve => { setTimeout(resolve, ms); }));
+
 const walletPublicConfig = {
   networkConfig,
   // publicKey: '031f446b3142bc7d8fce1f592b5eaa17dcb4c201dbd7fbd311be4efd7184873374' //mainnet
@@ -48,6 +50,7 @@ describe("Bitcoin functions test", async (d) => {
     const index = 2;
 
     const res = bitcoin.create({ seed, index, networkConfig });
+    //console.log(res);
     // checking valid results
     res.should.be.a('object');
     res.should.have.property('path');
@@ -57,7 +60,9 @@ describe("Bitcoin functions test", async (d) => {
 
     // checking whether pairs match
     // WARNING: 1) it uses production mainnet (bitcoinJs.networks.bitcoin) instead of looking at networkConfig
-    const keyPair = bitcoinJs.ECPair.fromWIF(res.privateKey, bitcoinJs.networks.bitcoin);
+    //const network = utils.getNetwork({ networkConfig });
+    const network = bitcoinJs.networks.bitcoin;
+    const keyPair = bitcoinJs.ECPair.fromWIF(res.privateKey, network);
     res.privateKey.should.equal(keyPair.toWIF());
     res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));
 
@@ -91,38 +96,68 @@ describe("Bitcoin functions test", async (d) => {
     const address = await utils.getAddressFromPubKey({ walletPublicConfig });
     const amount = 0.123;
     
-    // Wait for electrum update:
-    const sendToAddress = () => {
-      return new Promise(async (resolve, reject) => {
-        const { host, port, protocol } = walletPublicConfig.networkConfig.electrum;
-        const ecl = new ElectrumClient(port, host, protocol);
-        await ecl.connect();
-        ecl.subscribe.on('blockchain.address.subscribe', (e) => {
-          resolve(true);
-        });
-        await ecl.blockchainAddress_subscribe(address);
-        await btc.query({ method: 'sendtoaddress', params: [ address, amount ], config: networkConfig });
-      });
-    };
+    // // Wait for electrum update:
+    // const sendToAddress = () => {
+    //   return new Promise(async (resolve, reject) => {
+    //     const { host, port, protocol } = walletPublicConfig.networkConfig.electrum;
+    //     const ecl = new ElectrumClient(port, host, protocol);
+    //     await ecl.connect();
+    //     ecl.subscribe.on('blockchain.address.subscribe', (e) => {
+    //       resolve(true);
+    //     });
+    //     await ecl.blockchainAddress_subscribe(address);
+    //     await btc.query({ method: 'sendtoaddress', params: [ address, amount ], config: networkConfig });
+    //   });
+    // };
 
-    const sent = await sendToAddress();
-    if (sent) {
-      const balance = await bitcoin.getAssets({ walletPublicConfig });
-      //console.log(amount, address, initBalance, balance, utils.parse(initBalance.value + amount));
-      balance.value.should.equal(utils.parse(initBalance.value + amount));
-    }
+    // const sent = await sendToAddress();
+    // if (sent) {
+    //   const balance = await bitcoin.getAssets({ walletPublicConfig });
+    //   //console.log(amount, address, initBalance, balance, utils.parse(initBalance.value + amount));
+    //   balance.value.should.equal(utils.parse(initBalance.value + amount));
+    // }
+
+    await btc.query({ method: 'sendtoaddress', params: [ address, amount ], config: networkConfig });
+    await sleep(3000);
+    const balance = await bitcoin.getAssets({ walletPublicConfig });
+    balance.value.should.equal(utils.parse(initBalance.value + amount));
   });
+
+  // it('Send transaction', async () => {
+  //   const { privateKey, publicKey, networkConfig } = walletPrivateConfig;
+  //   // Import private key into wallet, so that we could spend assets
+  //   await btc.query({ method: 'importprivkey', params: [privateKey], config: networkConfig });
+  //   const amount = 123;
+  //   const fee = 0.0001;
+  //   // mzEJsQ2bPUSDb3VH9KWDiuR9DBmNHvZdS5
+  //   const from = utils.getAddressFromPubKey({ walletPublicConfig: { publicKey, networkConfig } });
+  //   const to = 'mhRc2gqzDZa7m8uw1XfkmsLVsKeCMrtT3v'; // #1 of given mnemonic in Testnet mode
+  //   const change = await btc.query({ method: 'getrawchangeaddress', config: networkConfig });
+  //   // Give money to sender:
+  //   await btc.query({ method: 'sendtoaddress', params: [ from, amount + fee ], config: networkConfig });
+  //   // If we are in regtest mode, generate new blocks
+  //   await btc.query({ method: 'generate', params: [ 6 ], config: networkConfig });
+
+  //   const tx = await bitcoin.sendTransaction({ 
+  //     asset: 'BTC', 
+  //     amount,
+  //     fee,
+  //     to,
+  //     change,
+  //     walletPrivateConfig 
+  //   });
+  //   const txDetails = await btc.query({ method: 'gettransaction', params: [tx], config: networkConfig });
+  //   txDetails.amount.should.equal(-(amount));
+  // });
 
   it('Send transaction', async () => {
     const { privateKey, publicKey, networkConfig } = walletPrivateConfig;
-    // Import private key into wallet, so that we could spend assets
-    await btc.query({ method: 'importprivkey', params: [privateKey], config: networkConfig });
-    const amount = 123;
+    const amount = 2;
     const fee = 0.0001;
     // mzEJsQ2bPUSDb3VH9KWDiuR9DBmNHvZdS5
     const from = utils.getAddressFromPubKey({ walletPublicConfig: { publicKey, networkConfig } });
     const to = 'mhRc2gqzDZa7m8uw1XfkmsLVsKeCMrtT3v'; // #1 of given mnemonic in Testnet mode
-    const change = await btc.query({ method: 'getrawchangeaddress', config: networkConfig });
+    const change = from;
     // Give money to sender:
     await btc.query({ method: 'sendtoaddress', params: [ from, amount + fee ], config: networkConfig });
     // If we are in regtest mode, generate new blocks
@@ -137,10 +172,11 @@ describe("Bitcoin functions test", async (d) => {
       walletPrivateConfig 
     });
     const txDetails = await btc.query({ method: 'gettransaction', params: [tx], config: networkConfig });
+    //console.log(txDetails);
     txDetails.amount.should.equal(-(amount));
   });
 
-  it.only('Get pending transactions by public key', async () => {
+  it('Get pending transactions by public key', async () => {
     const pending = await bitcoin.getPending({ walletPublicConfig });
     console.log(pending);
     // Make incoming and outgoing transaction

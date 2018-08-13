@@ -8,8 +8,11 @@ const utils = require('./bitcoin-utils');
 const base58 = require('./../../services/base58');
 
 const create = ({ seed, index, networkConfig }) => {
-  // TODO: selecting network correctly
-  return require('./../../services/hdwallet').create({ seed, index, network: 'BTC' });
+  const network = utils.getNetwork({ networkConfig });
+  // Testnet has no corresponding coin symbol:
+  //const coin =  networkConfig.testnet ? '' : networkConfig.value;
+  const coin = 'BTC';
+  return require('./../../services/hdwallet').create({ seed, index, network, coin });
 };
 
 const isValidAddress = ({ address, networkConfig }) => {
@@ -62,45 +65,77 @@ const getAssets = async ({ walletPublicConfig }) => {
 };
 
 
+// const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletPrivateConfig }) => {
+//   const { publicKey, networkConfig } = walletPrivateConfig;
+//   const walletPublicConfig = { publicKey, networkConfig };
+//   // List transaction of the address
+//   const from = utils.getAddressFromPubKey({ walletPublicConfig });
+//   const unspentTransactions = await btc.query({ 
+//     method: 'listunspent',
+//     params: [0, 9999999, [from]], 
+//     config: networkConfig
+//   });
+//   //console.log(unspentTransactions);
+
+//   const transactionsToSpend = utils.getTxsToSpend({ unspentTransactions, amount: (amount + fee) });
+//   const txInputs = utils.generateTxInputs({ transactionsToSpend });
+//   const txOutputs = utils.generateTxOutputs({ transactionsToSpend, amount, fee, to, change });
+//   //console.log(transactionsToSpend, txInputs, txOutputs);  
+
+//   const rawTransaction = await btc.query({ method: 'createrawtransaction', params: [
+//     txInputs,
+//     txOutputs
+//   ], config: networkConfig });
+//   //console.log(rawTransaction);
+  
+//   const signedTransaction = await btc.query({
+//     method: 'signrawtransaction',
+//     params: [ rawTransaction, null, [ walletPrivateConfig.privateKey ] ],
+//     config: networkConfig
+//   });
+//   //console.log(signedTransaction);
+
+//   const sentTransaction = await btc.query({ 
+//     method: 'sendrawtransaction',
+//     params: [signedTransaction.hex], 
+//     config: networkConfig 
+//   });
+//   //console.log(sentTransaction);
+
+//   // should return transaction hash if succeed. Or throw exception if not
+//   return sentTransaction; 
+// };
+
 const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletPrivateConfig }) => {
-  const { publicKey, networkConfig } = walletPrivateConfig;
+  const { privateKey, publicKey, networkConfig } = walletPrivateConfig;
   const walletPublicConfig = { publicKey, networkConfig };
+  const { host, port, protocol } = networkConfig.electrum;
+  const electrumClient = new ElectrumClient(port, host, protocol);
+  const network = utils.getNetwork({ networkConfig });
+  const builder = new bitcoinJs.TransactionBuilder(network);
+
+  await electrumClient.connect(); 
   // List transaction of the address
   const from = utils.getAddressFromPubKey({ walletPublicConfig });
-  const unspentTransactions = await btc.query({ 
-    method: 'listunspent',
-    params: [0, 9999999, [from]], 
-    config: networkConfig
-  });
-  //console.log(unspentTransactions);
-
-  const transactionsToSpend = utils.getTxsToSpend({ unspentTransactions, amount: (amount + fee) });
-  const txInputs = utils.generateTxInputs({ transactionsToSpend });
-  const txOutputs = utils.generateTxOutputs({ transactionsToSpend, amount, fee, to, change });
-  //console.log(transactionsToSpend, txInputs, txOutputs);  
-
-  const rawTransaction = await btc.query({ method: 'createrawtransaction', params: [
-    txInputs,
-    txOutputs
-  ], config: networkConfig });
-  //console.log(rawTransaction);
+  const unspent = await electrumClient.blockchainAddress_listunspent(from);
+  const toSpend = utils.getTxsToSpend2({ unspent, amount: (amount + fee) });
   
-  const signedTransaction = await btc.query({
-    method: 'signrawtransaction',
-    params: [ rawTransaction, null, [ walletPrivateConfig.privateKey ] ],
-    config: networkConfig
-  });
-  //console.log(signedTransaction);
+  toSpend.forEach((tx) => builder.addInput(tx.tx_hash, tx.tx_pos));
 
-  const sentTransaction = await btc.query({ 
-    method: 'sendrawtransaction',
-    params: [signedTransaction.hex], 
-    config: networkConfig 
-  });
-  //console.log(sentTransaction);
+  const sum = toSpend.reduce((sum, tx) => sum + tx.value, 0); // satoshi
+  builder.addOutput(to, utils.toSatoshi(amount));
+  builder.addOutput(change, (sum - utils.toSatoshi(amount) - utils.toSatoshi(fee)));
+
+  // Sign each transaction input
+  toSpend.forEach((tx, i) => builder.sign(i, bitcoinJs.ECPair.fromWIF(privateKey, network)));
+  
+  const transaction = builder.build();
+  const tx = transaction.toHex();
+
+  const sentTx = await electrumClient.blockchainTransaction_broadcast(tx);
 
   // should return transaction hash if succeed. Or throw exception if not
-  return sentTransaction; 
+  return sentTx; 
 };
 
 // get list of pending transactions
