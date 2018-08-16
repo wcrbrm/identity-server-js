@@ -71,11 +71,13 @@ module.exports = ({ network = 'ETH' }) => {
     return res;
   };
 
+  const niceFloat = x => (parseFloat(x).toFixed(6).replace(/0{1,5}$/, ''));
+
   const getEth = ({ web3, address }) => {
     return new Promise((resolve, reject) => {
       web3.eth.getBalance(address, (error, response) => {
         if (error) reject(error);
-        resolve(web3.fromWei(response.toNumber(), "ether"));
+        resolve(niceFloat(web3.fromWei(response.toNumber(), "ether")));
       });
     });
   };
