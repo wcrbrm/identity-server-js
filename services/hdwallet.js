@@ -18,25 +18,25 @@ const eosPublicKey = (privKey, prefix = '') => {
   return pubKey;
 };
 
-const create = ({ seed, index, coin, hex = false, prefix = '', multiAddress = false }) => {
+const create = ({ seed, index, network, hex = false, prefix = '', multiAddress = false }) => {
+  // network?
 
   // Get bip32RootKey from seed:
   const bip32RootKey = bitcoinJs.HDNode.fromSeedHex(seed); //.toBase58();
   //console.log(bip32RootKey);
 
-  if (coin && !coinConstants[coin]) throw new Error('Coin Type cannout be defined: ' + network);
-  
+  if (!coinConstants[network]) throw new Error('Coin Type cannout be defined from network ' + network);
+
   // Get derivation path
   // m / purpose' / coin_type' / account' / change / address_index
   const purpose = 44;
-  const coinInt = coin ? coinConstants[coin] : parseInt('0x80000001', 16);
-  const coinIndex = coinInt - bitcoinJs.HDNode.HIGHEST_BIT;
+  const coin = coinConstants[network] - bitcoinJs.HDNode.HIGHEST_BIT;
   const account = 0;
   const change = 0;
 
   let path = "m/";
   path += purpose + "'/";
-  path += coinIndex + "'/";
+  path += coin + "'/";
   path += account + "'/";
   path += change;
 
@@ -73,8 +73,6 @@ const create = ({ seed, index, coin, hex = false, prefix = '', multiAddress = fa
     (multiAddress ? eosPublicKey(PrivateKey.fromString(privateKey).toBuffer(), prefix) :
     ((prefix ? prefix : '' ) + (keyPair.getPublicKeyBuffer().toString('hex'))));
 
-  path += '/' + index;
-
   if (hex) {
     // multiaddress is not an option for blockchains with HEX address representation
     const privKeyBuffer = keyPair.d.toBuffer(32);
@@ -89,6 +87,8 @@ const create = ({ seed, index, coin, hex = false, prefix = '', multiAddress = fa
        publicKey: ethUtil.addHexPrefix(publicKey)
     };
   }
+
+  path += '/' + index;
   return rmUndefined({ path, address, publicKey, privateKey });
 };
 

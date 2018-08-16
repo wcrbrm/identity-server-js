@@ -178,7 +178,7 @@ describe("Bitcoin functions test", async (d) => {
 
   it('Get pending transactions by public key', async () => {
     const pending = await bitcoin.getPending({ walletPublicConfig });
-    console.log(pending);
+    //console.log(pending);
     // Make incoming and outgoing transaction
     // Check that they are present in mempool
     // Check sender, receiver and amount

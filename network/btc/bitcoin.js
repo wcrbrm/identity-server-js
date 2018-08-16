@@ -8,11 +8,7 @@ const utils = require('./bitcoin-utils');
 const base58 = require('./../../services/base58');
 
 const create = ({ seed, index, networkConfig }) => {
-  const network = utils.getNetwork({ networkConfig });
-  // Testnet has no corresponding coin symbol:
-  //const coin =  networkConfig.testnet ? '' : networkConfig.value;
-  const coin = 'BTC';
-  return require('./../../services/hdwallet').create({ seed, index, network, coin });
+  return require('./../../services/hdwallet').create({ seed, index, network: 'BTC' });
 };
 
 const isValidAddress = ({ address, networkConfig }) => {
