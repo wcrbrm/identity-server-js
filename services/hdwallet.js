@@ -19,18 +19,15 @@ const eosPublicKey = (privKey, prefix = '') => {
 };
 
 const create = ({ seed, index, network, hex = false, prefix = '', multiAddress = false }) => {
-  // network?
 
-  // Get bip32RootKey from seed:
-  const bip32RootKey = bitcoinJs.HDNode.fromSeedHex(seed); //.toBase58();
-  //console.log(bip32RootKey);
-
-  if (!coinConstants[network]) throw new Error('Coin Type cannot be defined from network ' + network);
+  if (network && !coinConstants[network]) {
+    throw new Error('Coin Type cannot be defined from network ' + network);
+  }
 
   // Get derivation path
   // m / purpose' / coin_type' / account' / change / address_index
   const purpose = 44;
-  const coin = coinConstants[network] - bitcoinJs.HDNode.HIGHEST_BIT;
+  const coin = network ? (coinConstants[network] - bitcoinJs.HDNode.HIGHEST_BIT) : 1; // 1 = TESTNET
   const account = 0;
   const change = 0;
 
@@ -39,6 +36,12 @@ const create = ({ seed, index, network, hex = false, prefix = '', multiAddress =
   path += coin + "'/";
   path += account + "'/";
   path += change;
+
+  // Get bip32RootKey from seed:
+  const bitcoinJsNetwork = network ? (
+    network === 'BTC' ? bitcoinJs.networks.bitcoin : bitcoinJs.networks.litecoin
+  ) : bitcoinJs.networks.testnet;
+  const bip32RootKey = bitcoinJs.HDNode.fromSeedHex(seed, bitcoinJsNetwork);
 
   // Get bip32ExtendedKey (derive from path)
   let bip32ExtendedKey = bip32RootKey;

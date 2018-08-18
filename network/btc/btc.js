@@ -11,7 +11,8 @@ module.exports = ({ network = 'BTC' }) => {
   const { getElectrumClient } = require('./electrum-client')({ network });
 
   const create = ({ seed, index, networkConfig }) => {
-    return require('./../../services/hdwallet').create({ seed, index, network: 'BTC' });
+    const coinSymbol = networkConfig.testnet ? "" : networkConfig.network;
+    return require('./../../services/hdwallet').create({ seed, index, network: coinSymbol });
   };
 
   const isValidAddress = ({ address, networkConfig }) => {

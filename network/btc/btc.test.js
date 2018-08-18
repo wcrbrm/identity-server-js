@@ -3,7 +3,7 @@ const bip39 = require('bip39');
 const bip32 = require('bip32');
 const bitcoinJs = require('bitcoinjs-lib');
 const ElectrumClient = require('electrum-client');
-const bitcoin = require('./btc');
+const bitcoin = require('./btc')({ network: 'BTC' });
 const networkConfig = require('./../../config/networkConfig.mock').BTC;
 const btc = require('./bitcoin-query');
 const utils = require('./bitcoin-utils');
@@ -46,7 +46,7 @@ describe("Bitcoin functions test", async (d) => {
 
   it.only('Add to HD wallet', () => {
     const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
-    const seed = bip39.mnemonicToSeed(mnemonic);
+    const seed = bip39.mnemonicToSeed(mnemonic).toString('hex');
     const index = 2;
 
     const res = bitcoin.create({ seed, index, networkConfig });
@@ -61,15 +61,18 @@ describe("Bitcoin functions test", async (d) => {
     // checking whether pairs match
     // WARNING: 1) it uses production mainnet (bitcoinJs.networks.bitcoin) instead of looking at networkConfig
     //const network = utils.getNetwork({ networkConfig });
-    const network = bitcoinJs.networks.bitcoin;
+    const network = bitcoinJs.networks.testnet;
     const keyPair = bitcoinJs.ECPair.fromWIF(res.privateKey, network);
     res.privateKey.should.equal(keyPair.toWIF());
     res.publicKey.should.equal(keyPair.getPublicKeyBuffer().toString('hex'));
 
     // There should be match!!!
-    res.address.should.equal('18FaaXixF9zW2oguEfGeNDiLikKGuh6Pk9');
-    res.publicKey.should.equal('03000132102428229c3ba4e5e28f29e6ebb468522690f17f4372782d193ff2fe0f');
-    res.privateKey.should.equal('L38Nd33xJffVpkLjDGiqvGqJBt5rW8Qe8xdCYRcSgxoBQBpZGUuG');
+    res.address.should.equal('mzEJsQ2bPUSDb3VH9KWDiuR9DBmNHvZdS5');
+    res.publicKey.should.equal('03eb7ca0882e737299e48c54e86d01db887a7cb2f572c68ac70cb778547d5912f3');
+    res.privateKey.should.equal('cRKFefAwRJcVBFaAG9bLyScHRW3MtBqqYNjGJkJtB9SXgicoFfyf');
+    // res.address.should.equal('18FaaXixF9zW2oguEfGeNDiLikKGuh6Pk9');
+    // res.publicKey.should.equal('03000132102428229c3ba4e5e28f29e6ebb468522690f17f4372782d193ff2fe0f');
+    // res.privateKey.should.equal('L38Nd33xJffVpkLjDGiqvGqJBt5rW8Qe8xdCYRcSgxoBQBpZGUuG');
   });
  
 //   console.log('isAvailable=', isAvailable);
