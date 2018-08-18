@@ -61,10 +61,11 @@ module.exports = ({ network = 'BTC' }) => {
           : 0
         )
       );
+      return [{ name: 'BTC', value }];
     } catch (e) {
       throw new Error(e.message);
     }
-    return { name: 'BTC', value: value || 0 };
+    return [{ name: 'BTC', value: 0 }];
   };
 
 
