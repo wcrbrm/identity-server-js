@@ -25,7 +25,7 @@ const create = ({ seed, index, network, hex = false, prefix = '', multiAddress =
   const bip32RootKey = bitcoinJs.HDNode.fromSeedHex(seed); //.toBase58();
   //console.log(bip32RootKey);
 
-  if (!coinConstants[network]) throw new Error('Coin Type cannout be defined from network ' + network);
+  if (!coinConstants[network]) throw new Error('Coin Type cannot be defined from network ' + network);
 
   // Get derivation path
   // m / purpose' / coin_type' / account' / change / address_index

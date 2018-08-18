@@ -3,7 +3,7 @@ const bip39 = require('bip39');
 const bip32 = require('bip32');
 const bitcoinJs = require('bitcoinjs-lib');
 const ElectrumClient = require('electrum-client');
-const bitcoin = require('./bitcoin');
+const bitcoin = require('./btc');
 const networkConfig = require('./../../config/networkConfig.mock').BTC;
 const btc = require('./bitcoin-query');
 const utils = require('./bitcoin-utils');
@@ -44,7 +44,7 @@ describe("Bitcoin functions test", async (d) => {
   ///  const res = bitcoin.createRandom({ networkConfig });
   // });
 
-  it('Add to HD wallet', () => {
+  it.only('Add to HD wallet', () => {
     const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
     const seed = bip39.mnemonicToSeed(mnemonic);
     const index = 2;
@@ -92,7 +92,7 @@ describe("Bitcoin functions test", async (d) => {
   // });
 
   it('Get assets by public key', async () => {
-    const initBalance = await bitcoin.getAssets({ walletPublicConfig });
+    const initBalance = await bitcoin.getAssetsList({ walletPublicConfig });
     const address = await utils.getAddressFromPubKey({ walletPublicConfig });
     const amount = 0.123;
     
@@ -184,6 +184,30 @@ describe("Bitcoin functions test", async (d) => {
     // Check sender, receiver and amount
     // Make confirmation and make sure transactions disappeared
     //console.log(res);
+  });
+
+});
+
+describe('Electrum client test', async (d) => {
+
+  it('Get Electrum client', async () => {
+    const network = 'BTC';
+    const ElectrumClient = require('electrum-client');
+    const { getElectrumClient } = require('./electrum-client')({ network });
+    const config =     {
+      "network": "BTC",
+      "networkId": "REGTEST",
+      "testnet": true,
+      "path": "m/44'/0'/0'/0/0",
+      "address": "1L77xbeuJmfuvkpL6NiSENaFu6G6kk8V3h",
+      "publicKey": "035e9545e716de05d92ce5e3d4817e65d75005882e16bea2280c65a87cb8754b9c",
+      "privateKey": "Ky4xvMnEpckwCDZMrt5VQ4RfeS8m6mjNHcutXKWVXhy43M6vxLbT",
+      "id": "3181958fb46a5d47e761beaead508334c4664c63",
+      "index": 0,
+      "name": "My BTC Wallet"
+    };
+    const electrumClient = await getElectrumClient(config);
+    electrumClient.should.be.an.instanceof(ElectrumClient);
   });
 
 });

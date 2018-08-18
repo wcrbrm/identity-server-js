@@ -12,7 +12,26 @@ const Networks = [
   {
     value: 'BTC', name: 'Bitcoin', icon: '/networks/BTC.png',
     local: 'http://localhost:8333',
-    disabled: ['watch']
+    disabled: ['watch'],
+    // TODO mainnet config
+    api: [
+      // Electrum mainnet servers
+      // 
+    ],
+    testnets: [
+      // TODO testnet config
+      {
+        networkId: 'REGTEST',
+        rpc: 'http://admin1:123@localhost:19001',
+        api: 'tcp://127.0.0.1:50001',
+      },
+      {
+        networkId: 'TESTNET',
+        api: [
+          // Electrum testnet servers
+        ]
+      }
+    ]
   },
   // {
   //   value: 'BTD', name: 'Bitcoin Diamond', icon: '/networks/BTD.png',

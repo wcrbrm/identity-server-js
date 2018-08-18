@@ -1,15 +1,49 @@
 const axios = require('axios');
 const ElectrumClient = require('electrum-client');
+const URL = require('url');
 
 const baseUrlFromConfig = (config) => {
   // TODO: more cases should be handled
-  return config.networkId === 'REGTEST' ? 'http://localhost:18443' : config.rpcRoot;
+  return config.networkId === 'REGTEST' && !config.rpc 
+          ? 'http://localhost:18443' 
+          : getRpcUrl(config.rpc);
 };
 
 const authFromConfig = (config) => {
   // TODO: more cases should be handled
-  return config.rpcAuth;
+  if (config.rpcAuth) {
+    return config.rpcAuth;
+  };
+  return getRpcAuth(config.rpc);
 };
+
+const getRpcUrl = (url) => {
+  const urlParts = URL.parse(url);
+  return `${urlParts.protocol}//${urlParts.hostname}:${urlParts.port}`;
+}
+
+const getRpcAuth = (url) => {
+  const urlParts = URL.parse(url);
+  let username = '';
+  let password = '';
+  if (urlParts.auth) {
+    username = urlParts.auth.split(':')[0];
+    password = urlParts.auth.split(':')[1];
+  }
+  return {
+    username,
+    password
+  };
+}
+
+const getApiConf = (url) => {
+  const urlParts = URL.parse(url);
+  return {
+    host: urlParts.hostname,
+    port: urlParts.port,
+    protocol: urlParts.protocol.replace(':', '')
+  };
+}
 
 const query = ({ method, params, config }) => (
   axios({
@@ -45,10 +79,15 @@ const isRegTestRunning = ({ config }) => (getBlockChainInfo({ config }));
 
 const isElectrumRunning = async ({ config }) => {
   const { port, host, protocol } = config;
+  if (!port || !host || !protocol) 
+    return false;
+
   const ecl = new ElectrumClient(port, host, protocol);
   try {
     await ecl.connect();
-    return ecl.server_version();
+    const version = await ecl.server_version();
+    await ecl.close();
+    return version; 
   } catch (e) {
     if (e.code == 'ECONNREFUSED') return false;
     throw e;
@@ -61,5 +100,6 @@ module.exports = {
   isRegTestRunning,
   isElectrumRunning,
   baseUrlFromConfig,
-  authFromConfig
+  authFromConfig,
+  getApiConf
 };
