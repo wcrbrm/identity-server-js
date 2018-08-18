@@ -44,7 +44,7 @@ describe("Bitcoin functions test", async (d) => {
   ///  const res = bitcoin.createRandom({ networkConfig });
   // });
 
-  it.only('Add to HD wallet', () => {
+  it('Add to HD wallet', () => {
     const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
     const seed = bip39.mnemonicToSeed(mnemonic).toString('hex');
     const index = 2;
