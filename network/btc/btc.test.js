@@ -150,9 +150,9 @@ describe("Bitcoin functions test", async (d) => {
     pending3.map(tx => tx.txid).should.contain(outgoingTx);
   });
 
-  it.only('Get history by address', async () => {
+  it('Get history by address', async () => {
     const history = await bitcoin.getHistory({ walletPrivateConfig, start: 10, limit: 3 });
-    console.log(history);
+    //console.log(history);
   });
 
   it('Get Electrum client', async () => {

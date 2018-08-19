@@ -109,7 +109,6 @@ const decodeOutput = (tx, network) => {
 };
 
 const decodeTransaction = async ({ txid, electrumClient, network }) => {
-  console.log(txid);
   // Transaction data hash:
   const hex = await electrumClient.blockchainTransaction_get(txid);
   // Transaction as Buffer:
