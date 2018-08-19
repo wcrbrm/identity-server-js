@@ -8,17 +8,9 @@ module.exports = {
     testnet: true, 
     //networkId: 'REGTEST',
     // rpcRoot: 'http://localhost:18443' // only if networkId is absent
-    rpcRoot: 'http://localhost:19001',
-    rpcAuth: {
-      // username: 'me',
-      // password: 'mypassword'
-      username: 'admin1',
-      password: '123'
-    },
-    electrum: {
-      host: '127.0.0.1',
-      port: '50001',
-      protocol: 'tcp'
-    }
+    networkId: 'REGTEST',
+    rpc: 'http://admin1:123@localhost:19001',
+    api: 'tcp://127.0.0.1:50001',
+
   }
 }

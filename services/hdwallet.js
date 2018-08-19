@@ -39,7 +39,7 @@ const create = ({ seed, index, network, hex = false, prefix = '', multiAddress =
 
   // Get bip32RootKey from seed:
   const bitcoinJsNetwork = network ? (
-    network === 'BTC' ? bitcoinJs.networks.bitcoin : bitcoinJs.networks.litecoin
+    network === 'BTC' || 'ETH' ? bitcoinJs.networks.bitcoin : bitcoinJs.networks.litecoin
   ) : bitcoinJs.networks.testnet;
   const bip32RootKey = bitcoinJs.HDNode.fromSeedHex(seed, bitcoinJsNetwork);
 
