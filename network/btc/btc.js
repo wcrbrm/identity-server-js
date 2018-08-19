@@ -96,59 +96,19 @@ module.exports = ({ network = 'BTC' }) => {
 
     try {
       const electrumClient = await getElectrumClient(networkConfig);
+      const network = utils.getNetwork({ networkConfig });
       const mempool = await electrumClient.blockchainAddress_getMempool(address);
       //console.log(mempool);
   
       if (mempool && mempool.length > 0) {
         const mempoolTransactions = mempool.map(async (m) => {
-          const network = utils.getNetwork({ networkConfig });
           // Transaction id:
           const txid = m.tx_hash;
-          //console.log(txid);
-          // Transaction data hash:
-          const hex = await electrumClient.blockchainTransaction_get(txid);
-          // Transaction as Buffer:
-          const tx = bitcoinJs.Transaction.fromHex(hex);
-  
-          // Sender:
-          // https://bitcoin.stackexchange.com/questions/28182/how-to-find-the-change-sender-address-given-a-txid
-          // Process transaction inputs:
-          const inputs = utils.decodeInput(tx);
-          //console.log(inputs);
-          const senders = inputs.map(async (input) => {
-            const addresses = [];
-            const iTxid = input.txid;
-            const iN = input.n;
-            const iHex = await electrumClient.blockchainTransaction_get(iTxid);
-            const iTx = bitcoinJs.Transaction.fromHex(iHex);
-          
-            const outputs = utils.decodeOutput(iTx, network);
-            outputs.forEach(output => {
-              if (output.n === iN) {
-                output.scriptPubKey.addresses.forEach(a => addresses.push(a));
-              }
-            });
-            return addresses;
-          });
-          const senderSet = new Set();
-          const senderAddresses = await Promise.all(senders);
-          senderAddresses.forEach(addrArr => addrArr.forEach(addr => senderSet.add(addr)));
-          const sender = [...senderSet];
-  
-          // Receiver:
-          // Process transaction outputs
-          const outputs = utils.decodeOutput(tx, network);
-          const receiver = {};
-          outputs.forEach(o => {
-            const address = o.scriptPubKey.addresses[0];
-            receiver[address] = o.value;
-          });
-          
-          return {
+          return await utils.decodeTransaction({
             txid,
-            sender,
-            receiver
-          };
+            electrumClient,
+            network
+          });
         });
         return await Promise.all(mempoolTransactions);
       }
@@ -159,7 +119,28 @@ module.exports = ({ network = 'BTC' }) => {
   };
 
   // get list of past transactions. could paging be better?
-  const getHistory = ({ walletPrivateConfig, start = 0, limit = 100 }) => {
+  const getHistory = async ({ walletPrivateConfig, start = 0, limit = 100 }) => {
+    const { address, networkConfig } =  walletPrivateConfig;
+    try {
+      const electrumClient = await getElectrumClient(networkConfig);
+      const network = utils.getNetwork({ networkConfig });
+      const history = await electrumClient.blockchainAddress_getHistory(address);
+      if (history && history.length > 0) {
+        // We cannot limit Electrum query, but we can decode only transaction within limit
+        const txsToDecode = history.splice(start, limit);
+        const decodedTransactions = txsToDecode.map(async (tx) => {
+          const txid = tx.tx_hash;
+          return await utils.decodeTransaction({
+            txid,
+            electrumClient,
+            network
+          });
+        });
+        return await Promise.all(decodedTransactions);
+      }
+    } catch (e) {
+      throw new Error(e.message);
+    }
     return [];
   };
 

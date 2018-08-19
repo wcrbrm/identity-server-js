@@ -94,7 +94,7 @@ const decodeOutput = (tx, network) => {
         //case 'pubkey':
         case 'pubkeyhash':
         case 'scripthash': {
-          vout.scriptPubKey.addresses.push(bitcoinJs.address.fromOutputScript(out.script, network));
+            vout.scriptPubKey.addresses.push(bitcoinJs.address.fromOutputScript(out.script, network));
           break;
         }
       }
@@ -108,6 +108,54 @@ const decodeOutput = (tx, network) => {
   return result;
 };
 
+const decodeTransaction = async ({ txid, electrumClient, network }) => {
+  console.log(txid);
+  // Transaction data hash:
+  const hex = await electrumClient.blockchainTransaction_get(txid);
+  // Transaction as Buffer:
+  const tx = bitcoinJs.Transaction.fromHex(hex);
+
+  // Sender:
+  // https://bitcoin.stackexchange.com/questions/28182/how-to-find-the-change-sender-address-given-a-txid
+  // Process transaction inputs:
+  const inputs = decodeInput(tx);
+  //console.log(inputs);
+  const senders = inputs.map(async (input) => {
+    const addresses = [];
+    const iTxid = input.txid;
+    const iN = input.n;
+    const iHex = await electrumClient.blockchainTransaction_get(iTxid);
+    const iTx = bitcoinJs.Transaction.fromHex(iHex);
+  
+    const outputs = decodeOutput(iTx, network);
+    outputs.forEach(output => {
+      if (output.n === iN) {
+        output.scriptPubKey.addresses.forEach(a => addresses.push(a));
+      }
+    });
+    return addresses;
+  });
+  const senderSet = new Set();
+  const senderAddresses = await Promise.all(senders);
+  senderAddresses.forEach(addrArr => addrArr.forEach(addr => senderSet.add(addr)));
+  const sender = [...senderSet];
+
+  // Receiver:
+  // Process transaction outputs
+  const outputs = decodeOutput(tx, network);
+  const receiver = {};
+  outputs.forEach(o => {
+    const address = o.scriptPubKey.addresses[0];
+    receiver[address] = o.value;
+  });
+  
+  return {
+    txid,
+    sender,
+    receiver
+  };
+};
+
 module.exports = {
   getNetwork,
   getAddressFromPubKey,
@@ -118,6 +166,7 @@ module.exports = {
   parse,
   parseSatoshi,
   toSatoshi,
+  decodeTransaction,
   decodeInput,
   decodeOutput
 }
