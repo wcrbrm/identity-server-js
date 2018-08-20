@@ -42,7 +42,7 @@ describe("Bitcoin functions test", async (d) => {
     }
   });
 
-  it.only('Address validation', () => {
+  it('Address validation', () => {
     const mainnetAddress = '3BUVuEHpVtj6uWUTQj5SkNZA2AMq82haR5';
     const testnetAddress = 'mzEJsQ2bPUSDb3VH9KWDiuR9DBmNHvZdS5';
     const regtestAddress = '2MtwDMQqTEExC9bozQjUPTrJDCTtMsJqQr4';

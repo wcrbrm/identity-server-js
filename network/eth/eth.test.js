@@ -97,14 +97,14 @@ describe("Ethereum network", () => {
   it('Valid Primary Key Validation', async () => {
     const validPk = '57313bbe4a12900498ad234381289134698573d7003ec33843dd580bb9158b3c';
     const invalidPk = '0x57313bbe4a12900498ad234381289134698573d7003ec33843dd580bb9158b3c';
-    const res = modEthereum.isValidprivateKey({ privateKey: validPk });
+    const res = modEthereum.isValidPrivateKey({ privateKey: validPk });
     res.should.be.a('object');
     res.valid.should.equal(true);
   });
 
   it('Invalid Primary Key Validation', async () => {
     const invalidPk = '0x57313bbe4a12900498ad234381289134698573d7003ec33843dd580bb9158b3c';
-    const res = modEthereum.isValidprivateKey({ privateKey: invalidPk });
+    const res = modEthereum.isValidPrivateKey({ privateKey: invalidPk });
     res.should.be.a('object');
     res.valid.should.equal(false);
     res.error.should.be.a('string');

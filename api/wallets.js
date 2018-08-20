@@ -152,6 +152,33 @@ module.exports = (operation, options) => {
 
         const payload = body(req);
         if (payload) {
+          
+          const config = require('./../config/networks');
+          if (!config) return;
+          if (!payload.name) { error(res, 'Name must be provided'); return; }
+          if (!payload.network) { error(res, 'Network must be provided'); return; }
+          const found = config.Networks.filter(n => n.value === payload.network)[0];
+          if (!found) { error(res, 'No such network'); return; }
+          const module = require('./../network/index')[payload.network]({ network: payload.network });
+          if (!module) {
+             return error(res, 'No module implemented for network ' + payload.network);
+          }
+
+	  if (payload.privateKey) {
+             // if there is a private Key given, we should validate
+             if ((typeof module.isValidPrivateKey) !== 'function') {
+                return error(res, 'isValidPrivateKey is not implemented for ' + networkId
+                  + ', module=' + JSON.stringify(module));
+	     }
+
+             if (!config.multiAccount && !payload.address) { return error(res, 'Address must be provided'); }
+
+             const { network, networkId = '', testnet = false, privateKey } = payload;
+             const networkConfig = { network, networkId, testnet };
+             const objResult = module.isValidPrivateKey({ privateKey, networkConfig });
+             if (!objResult.valid || objResult.error) { return ok(res, objResult); }
+	  }
+	
           const id = sha1(JSON.stringify(payload) + '-' + (new Date()).toISOString());
           const newWallet = { ...payload, id };
           json.wallets.push(newWallet);
