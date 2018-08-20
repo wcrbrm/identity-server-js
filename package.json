@@ -45,6 +45,7 @@
     "msgpack5": "^4.2.0",
     "node-machine-id": "^1.1.10",
     "sjcl": "^1.0.7",
+    "wallet-address-validator": "^0.1.7",
     "web3": "^0.20.1"
   },
   "devDependencies": {

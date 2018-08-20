@@ -42,6 +42,21 @@ describe("Bitcoin functions test", async (d) => {
     }
   });
 
+  it.only('Address validation', () => {
+    const mainnetAddress = '3BUVuEHpVtj6uWUTQj5SkNZA2AMq82haR5';
+    const testnetAddress = 'mzEJsQ2bPUSDb3VH9KWDiuR9DBmNHvZdS5';
+    const regtestAddress = '2MtwDMQqTEExC9bozQjUPTrJDCTtMsJqQr4';
+    networkConfig.testnet = false;
+    const mainnetValid = bitcoin.isValidAddress({ address: mainnetAddress, networkConfig });
+    networkConfig.testnet = true;
+    const testnetValid = bitcoin.isValidAddress({ address: testnetAddress, networkConfig });
+    const regtestValid = bitcoin.isValidAddress({ address: regtestAddress, networkConfig });
+    //console.log(mainnetValid, testnetValid);
+    mainnetValid.valid.should.equal(true);
+    testnetValid.valid.should.equal(true);
+    regtestValid.valid.should.equal(true);
+  });
+
   it('Add to HD wallet', () => {
     const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
     const seed = bip39.mnemonicToSeed(mnemonic).toString('hex');

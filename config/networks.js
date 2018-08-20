@@ -12,23 +12,31 @@ const Networks = [
   {
     value: 'BTC', name: 'Bitcoin', icon: '/networks/BTC.png',
     local: 'http://localhost:8333',
-    disabled: ['watch'],
+    //disabled: ['watch'],
+    disabled: false,
     // TODO mainnet config
+    // https://1209k.com/bitcoin-eye/ele.php?chain=btc
     api: [
       // Electrum mainnet servers
-      // 
+      // TODO: update list of working servers automatically
+      'tcp://helicarrier.bauerj.eu:50001',
+      'tcp://174.138.11.174:50001',
     ],
     testnets: [
       // TODO testnet config
+      // https://1209k.com/bitcoin-eye/ele.php?chain=tbtc
       {
+        value: 'REGTEST', name: 'Bitcoin Regtest',
         networkId: 'REGTEST',
         rpc: 'http://admin1:123@localhost:19001',
         api: 'tcp://127.0.0.1:50001',
       },
       {
+        value: 'TESTNET', name: 'Bitcoin Testnet',
         networkId: 'TESTNET',
         api: [
           // Electrum testnet servers
+          'tcp://testnet.qtornado.com:51001'
         ]
       }
     ]

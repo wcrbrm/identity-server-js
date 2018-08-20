@@ -16,18 +16,22 @@ module.exports = ({ network = 'BTC' }) => {
   };
 
   const isValidAddress = ({ address, networkConfig }) => {
-    // WARNING: THIS IS DRAFT, TEST COVERAGE IS REQUIRED
-    // sources: https://en.bitcoin.it/wiki/List_of_address_prefixes
-    const firstChar = address.substring(0, 1);
-    const hasNicePrefix = networkConfig.testnet ? 
-      (firstChar === 'm' || firstChar === 'n' || firstChar === '2') : 
-      (firstChar === '1' || firstChar === '3');
-    const minExpectedLength = networkConfig.testnet ? 34 : 26;
-    const maxExpectedLength = 34;
-    const hasNiceSize = address.length <= maxExpectedLength && address.length >= minExpectedLength;
-    const isValidChars = base58.check(address.substring(1));
+    // // WARNING: THIS IS DRAFT, TEST COVERAGE IS REQUIRED
+    // // sources: https://en.bitcoin.it/wiki/List_of_address_prefixes
+    // const firstChar = address.substring(0, 1);
+    // const hasNicePrefix = networkConfig.testnet ? 
+    //   (firstChar === 'm' || firstChar === 'n' || firstChar === '2') : 
+    //   (firstChar === '1' || firstChar === '3');
+    // const minExpectedLength = networkConfig.testnet ? 34 : 26;
+    // const maxExpectedLength = 34;
+    // const hasNiceSize = address.length <= maxExpectedLength && address.length >= minExpectedLength;
+    // const isValidChars = base58.check(address.substring(1));
 
-    const valid = hasNicePrefix && hasNiceSize && isValidChars;
+    // const valid = hasNicePrefix && hasNiceSize && isValidChars;
+    const WAValidator = require('wallet-address-validator');
+    const networkType = networkConfig.testnet ? 'testnet' : 'prod';
+    const valid = WAValidator.validate(address, network, networkType);
+
     return { valid };
   }
 
@@ -151,6 +155,7 @@ module.exports = ({ network = 'BTC' }) => {
 
 
   return {
+    isValidAddress,
     create,
     getAssetsList,
     sendTransaction,
