@@ -46,15 +46,25 @@ describe("Bitcoin functions test", async (d) => {
     const mainnetAddress = '3BUVuEHpVtj6uWUTQj5SkNZA2AMq82haR5';
     const testnetAddress = 'mzEJsQ2bPUSDb3VH9KWDiuR9DBmNHvZdS5';
     const regtestAddress = '2MtwDMQqTEExC9bozQjUPTrJDCTtMsJqQr4';
-    networkConfig.testnet = false;
-    const mainnetValid = bitcoin.isValidAddress({ address: mainnetAddress, networkConfig });
-    networkConfig.testnet = true;
-    const testnetValid = bitcoin.isValidAddress({ address: testnetAddress, networkConfig });
+    const mainnetValid = bitcoin.isValidAddress({ address: mainnetAddress, networkConfig: { ...networkConfig, testnet: false } });
+    const testnetValid = bitcoin.isValidAddress({ address: testnetAddress, networkConfig: { ...networkConfig, testnet: true } });
     const regtestValid = bitcoin.isValidAddress({ address: regtestAddress, networkConfig });
     //console.log(mainnetValid, testnetValid);
     mainnetValid.valid.should.equal(true);
     testnetValid.valid.should.equal(true);
     regtestValid.valid.should.equal(true);
+  });
+
+  it('Private key validation', () => {
+    const compressedPK = 'cRtqvxwR1sx3axQyHDAS5dmAxXPiXkE9B5sEgpY8LX6M3W92JcXe'; // Testnet
+    const uncompressedPK = '5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ'; // Mainnet
+    const compressedValid = bitcoin.isValidPrivateKey({ privateKey: compressedPK, networkConfig: { ...networkConfig, testnet: true } });
+    const uncompressedValid = bitcoin.isValidPrivateKey({ privateKey: uncompressedPK, networkConfig: { ...networkConfig, testnet: false } });
+    //console.log(compressedValid);
+    //console.log(uncompressedValid);
+
+    compressedValid.valid.should.equal(true);
+    uncompressedValid.valid.should.equal(true);
   });
 
   it('Add to HD wallet', () => {

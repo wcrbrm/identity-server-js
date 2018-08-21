@@ -1,5 +1,6 @@
 const bitcoinJs = require('bitcoinjs-lib');
 const jsSHA = require('jssha');
+const bs58 = require('bs58');
 
 const getNetwork = ({ networkConfig }) => {
   // Regtest is also a Testnet, no special config needed
@@ -181,6 +182,20 @@ const sha256Checksum = (payload) => {
   return sha256(sha256(payload)).substr(0, 8);
 };
 
+const validateChecksum = (str) => {
+  try {
+    const decoded = bs58.decode(str);
+    const length = decoded.length;
+    const checksum = toHex(decoded.slice(length - 4, length));
+    const body = toHex(decoded.slice(0, length - 4));
+    const goodChecksum = sha256Checksum(body);
+    return checksum === goodChecksum;
+
+  } catch (e) {
+    return false;
+  }
+};
+
 module.exports = {
   getNetwork,
   getAddressFromPubKey,
@@ -195,5 +210,6 @@ module.exports = {
   decodeInput,
   decodeOutput,
   toHex,
-  sha256Checksum
+  sha256Checksum,
+  validateChecksum
 }
