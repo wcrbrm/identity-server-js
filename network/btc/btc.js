@@ -3,6 +3,7 @@ module.exports = ({ network = 'BTC' }) => {
   const bitcoinJs = require('bitcoinjs-lib');
   const bip32 = require('bip32');
   const bip39 = require('bip39');
+  const bs58 = require('bs58');
   const coinConstants = require('bip44-constants');
   const btc = require('./bitcoin-query');
   const utils = require('./bitcoin-utils');
@@ -18,21 +19,44 @@ module.exports = ({ network = 'BTC' }) => {
   const isValidAddress = ({ address, networkConfig }) => {
     // // WARNING: THIS IS DRAFT, TEST COVERAGE IS REQUIRED
     // // sources: https://en.bitcoin.it/wiki/List_of_address_prefixes
-    // const firstChar = address.substring(0, 1);
-    // const hasNicePrefix = networkConfig.testnet ? 
-    //   (firstChar === 'm' || firstChar === 'n' || firstChar === '2') : 
-    //   (firstChar === '1' || firstChar === '3');
-    // const minExpectedLength = networkConfig.testnet ? 34 : 26;
-    // const maxExpectedLength = 34;
-    // const hasNiceSize = address.length <= maxExpectedLength && address.length >= minExpectedLength;
-    // const isValidChars = base58.check(address.substring(1));
+    const firstChar = address.substring(0, 1);
+    const hasNicePrefix = networkConfig.testnet ? 
+      (firstChar === 'm' || firstChar === 'n' || firstChar === '2') : 
+      (firstChar === '1' || firstChar === '3');
+    const minExpectedLength = networkConfig.testnet ? 34 : 26;
+    const maxExpectedLength = firstChar === '2' ? 35 : 34;
+    const hasNiceSize = address.length <= maxExpectedLength && address.length >= minExpectedLength;
+    const isValidChars = base58.check(address.substring(1));
 
-    // const valid = hasNicePrefix && hasNiceSize && isValidChars;
-    const WAValidator = require('wallet-address-validator');
-    const networkType = networkConfig.testnet ? 'testnet' : 'prod';
-    const valid = WAValidator.validate(address, network, networkType);
+    const decoded = bs58.decode(address);
+    const length = decoded.length;
+    const checksum = utils.toHex(decoded.slice(length - 4, length));
+    const body = utils.toHex(decoded.slice(0, length - 4));
+    const goodChecksum = utils.sha256Checksum(body);
+    const isValidChecksum = checksum === goodChecksum;
 
-    return { valid };
+    const valid = hasNicePrefix && hasNiceSize && isValidChars && isValidChecksum;
+
+    const res = { valid, checksum: isValidChecksum };
+
+    if (!valid) {
+      // try to give suggestion
+      if (!hasNicePrefix) {
+        res.error = networkConfig.testnet 
+          ? 'Address should begin with "m", "n" or "2" in Testnet' 
+          : 'Address should begin with "1" or "3" in Mainnet';
+      } else if (!hasNiceSize && address.length < minExpectedLength) {
+        res.error = 'Too few characters';
+      } else if (!hasNiceSize && address.length > maxExpectedLength) {
+        res.error = 'Too many characters';
+      } else if (!isValidChars) {
+        res.error = 'Address should be a valid base58 code';
+      } else if (!isValidChecksum) {
+        res.error = 'Checksum of the Address is invalid';
+      }
+    }
+
+    return res;
   }
 
   const getAssetsList = async ({ walletPublicConfig }) => {

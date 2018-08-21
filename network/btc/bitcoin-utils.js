@@ -1,4 +1,5 @@
 const bitcoinJs = require('bitcoinjs-lib');
+const jsSHA = require('jssha');
 
 const getNetwork = ({ networkConfig }) => {
   // Regtest is also a Testnet, no special config needed
@@ -155,6 +156,31 @@ const decodeTransaction = async ({ txid, electrumClient, network }) => {
   };
 };
 
+const toHex = (arrayOfBytes) => {
+  numberToHex = (number) => {
+    let hex = Math.round(number).toString(16);
+    if(hex.length === 1) {
+        hex = '0' + hex;
+    }
+    return hex;
+  };
+
+  let hex = '';
+  for(let i = 0; i < arrayOfBytes.length; i++) {
+      hex += numberToHex(arrayOfBytes[i]);
+  }
+  return hex;
+};
+
+const sha256Checksum = (payload) => {
+  sha256 = (hexString) => {
+    const sha = new jsSHA('SHA-256', 'HEX');
+    sha.update(hexString);
+    return sha.getHash('HEX');
+  };
+  return sha256(sha256(payload)).substr(0, 8);
+};
+
 module.exports = {
   getNetwork,
   getAddressFromPubKey,
@@ -167,5 +193,7 @@ module.exports = {
   toSatoshi,
   decodeTransaction,
   decodeInput,
-  decodeOutput
+  decodeOutput,
+  toHex,
+  sha256Checksum
 }
