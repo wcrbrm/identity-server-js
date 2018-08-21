@@ -156,35 +156,64 @@ module.exports = (operation, options) => {
           const config = require('./../config/networks');
           if (!config) return;
           if (!payload.name) { error(res, 'Name must be provided'); return; }
-          if (!payload.network) { error(res, 'Network must be provided'); return; }
-          const found = config.Networks.filter(n => n.value === payload.network)[0];
-          if (!found) { error(res, 'No such network'); return; }
-          const module = require('./../network/index')[payload.network]({ network: payload.network });
-          if (!module) {
-             return error(res, 'No module implemented for network ' + payload.network);
-          }
+          const idSuffix = '-' + (new Date()).toISOString();// could that be empty?
+          let resultToReturn = null;
 
-	  if (payload.privateKey) {
-             // if there is a private Key given, we should validate
-             if ((typeof module.isValidPrivateKey) !== 'function') {
+          if (payload.exchange) {
+
+            // CASE WHEN WE ARE IMPORTING EXCHANGE CREDENTIALS
+
+            const { exchange } = payload;
+            const found = config.Exchange.filter(n => n.value === exchange)[0];
+            if (!found) { error(res, 'No such exchange'); return; }
+            const module = require('./../exchanges/index')[exchange]({ exchange });
+            if (!module) {
+              return error(res, 'No module implemented for exchange ' + exchange);
+            }
+            const objResult = module.isValidCredentials({ payload });
+            if (!objResult.valid || objResult.error) { return ok(res, objResult); }
+
+            const { result } = objResult;
+            if (!result){ return error(res, 'Missing result in modules isValidCredentials'); }
+
+            const id = sha1(JSON.stringify(result) + idSuffix);
+            resultToReturn = { ...result, id };
+            json.wallets.push(resultToReturn);
+
+          } else {
+            // CASE WHEN WE ARE IMPORTING THE WALLET. 
+            // OR ADDING WALLET FOR WATCHING
+
+            if (!payload.network) { error(res, 'Network must be provided'); return; }
+            const found = config.Networks.filter(n => n.value === payload.network)[0];
+            if (!found) { error(res, 'No such network'); return; }
+            const module = require('./../network/index')[payload.network]({ network: payload.network });
+            if (!module) {
+              return error(res, 'No module implemented for network ' + payload.network);
+            }
+
+            if (payload.privateKey) {
+              // if there is a private Key given, we should validate
+              if ((typeof module.isValidPrivateKey) !== 'function') {
                 return error(res, 'isValidPrivateKey is not implemented for ' + networkId
                   + ', module=' + JSON.stringify(module));
-	     }
+              }
 
-             if (!config.multiAccount && !payload.address) { return error(res, 'Address must be provided'); }
+              if (!config.multiAccount && !payload.address) { return error(res, 'Address must be provided'); }
 
-             const { network, networkId = '', testnet = false, privateKey } = payload;
-             const networkConfig = { network, networkId, testnet };
-             const objResult = module.isValidPrivateKey({ privateKey, networkConfig });
-             if (!objResult.valid || objResult.error) { return ok(res, objResult); }
-	  }
-	
-          const id = sha1(JSON.stringify(payload) + '-' + (new Date()).toISOString());
-          const newWallet = { ...payload, id };
-          json.wallets.push(newWallet);
+              const { network, networkId = '', testnet = false, privateKey } = payload;
+              const networkConfig = { network, networkId, testnet };
+              const objResult = module.isValidPrivateKey({ privateKey, networkConfig });
+              if (!objResult.valid || objResult.error) { return ok(res, objResult); }
+            }
+            const id = sha1(JSON.stringify(payload)  + idSuffix);
+            resultToReturn = { ...payload, id };
+            json.wallets.push(resultToReturn);
+          }
+
           try {
             saveStorageJson(options, json);
-            ok(res, safeWalletInfo(newWallet));
+            ok(res, safeWalletInfo(resultToReturn));
           } catch (e) {
             error(res, "Error on save: " + e.toString());
           }
