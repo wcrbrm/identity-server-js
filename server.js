@@ -2,9 +2,12 @@ const http = require("http");
 const express = require("express");
 const bodyParser = require('body-parser');
 const options = require('./options');
+const pdf = require('express-pdf');
 
 const app = express();
 app.use(bodyParser.json());
+
+app.use(pdf);
 
 if (options.cors) {
   app.use(require('cors')());
@@ -50,7 +53,7 @@ app.delete(`${root}/wallets/:id`, modWallets('delete', options));
 app.get(`${root}/wallets/:id/assets/:assetId`,  modWallets('assetinfo', options));
 app.get(`${root}/wallets/:id/assets`,    modWallets('assets', options));
 app.get(`${root}/wallets/:id`,    modWallets('info', options));
-
+app.get(`${root}/wallets/:id/pdf`, modWallets('pdf', options));
 
 const modNetworks = require('./api/networks');
 app.get(`${root}/networks/:networkId/terms`,  modNetworks('terms', options));
