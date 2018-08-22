@@ -155,7 +155,7 @@ module.exports = (operation, options) => {
 
         const payload = body(req);
         if (payload) {
-          
+
           const config = require('./../config/networks');
           if (!config) return;
           if (!payload.name) { error(res, 'Name must be provided'); return; }
@@ -184,7 +184,7 @@ module.exports = (operation, options) => {
             json.wallets.push(resultToReturn);
 
           } else {
-            // CASE WHEN WE ARE IMPORTING THE WALLET. 
+            // CASE WHEN WE ARE IMPORTING THE WALLET.
             // OR ADDING WALLET FOR WATCHING
 
             if (!payload.network) { error(res, 'Network must be provided'); return; }
@@ -231,7 +231,11 @@ module.exports = (operation, options) => {
 
         const walletId = req.params.id;
         const wallet = json.wallets.find(w => w.id === walletId);
+        //TODO：missing wallet = error message in PDF
+        //TODO: move all this logic to another file. it will be growing
+
         const address = wallet && wallet.address ? wallet.address : '';
+        //TODO: if not address, then publicKey
         const privateKey = wallet && wallet.privateKey ? wallet.privateKey : '';
 
         const template = path.join(__dirname, '/../template.html');
@@ -250,8 +254,7 @@ module.exports = (operation, options) => {
             filename: `${walletId}.pdf`,
             htmlContent: templateHtml,
           });
-        });
-
+        }); // TODO: missing catch
         return;
       }
 
