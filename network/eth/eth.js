@@ -12,18 +12,21 @@ module.exports = ({ network = 'ETH' }) => {
       .create({ ...networkConfig, network, seed, index, hex: true });
   };
 
-  const createRandom = async ({ networkConfig }) => {
-    const web3 = getWeb3Client(networkConfig);
-    const privateKey = web3.sha3((new Date().getTime()) + '' + Math.random());
-    if (!privateKey) throw new Error('Private Key was not generated for ETH');
-
+  const addressFromPrivateKey = ({ privateKey, networkConfig }) => {
     const keyPair = ec.genKeyPair();
     keyPair._importPrivate(privateKey, 'hex');
     const compact = false;
     const pubKey = keyPair.getPublic(compact, 'hex').slice(2);
     const pubKeyWordArray = CryptoJS.enc.Hex.parse(pubKey);
     const hash = CryptoJS.SHA3(pubKeyWordArray, { outputLength: 256 });
-    const address = '0x' + hash.toString(CryptoJS.enc.Hex).slice(24);
+    return '0x' + hash.toString(CryptoJS.enc.Hex).slice(24);
+  };
+
+  const createRandom = async ({ networkConfig }) => {
+    const web3 = getWeb3Client(networkConfig);
+    const privateKey = web3.sha3((new Date().getTime()) + '' + Math.random());
+    if (!privateKey) throw new Error('Private Key was not generated for ETH');
+    const address = addressFromPrivateKey({ privateKey, networkConfig });
     return { address, privateKey };
   };
 
@@ -50,7 +53,7 @@ module.exports = ({ network = 'ETH' }) => {
   };
 
   // primary key is same for all configs
-  const isValidPrivateKey = ({ privateKey }) => {
+  const isValidPrivateKey = ({ privateKey, networkConfig }) => {
     const prefix = '0x';
     const hasZeroXPrefix = privateKey.substring(0, prefix.length) === prefix;
     const isCorrectLength = privateKey.length === 64;
@@ -68,6 +71,7 @@ module.exports = ({ network = 'ETH' }) => {
         res.error = 'Private key should be 64 chars of hexadecimal';
       }
     }
+    res.address = addressFromPrivateKey({ privateKey, networkConfig });
     return res;
   };
 
@@ -208,6 +212,7 @@ module.exports = ({ network = 'ETH' }) => {
 
   return {
     create,            // generate keypair for HD wallet
+    addressFromPrivateKey, // getting address from private key and network config (optional)
     createRandom,      // generate random keypair
     isValidAddress,    // to be used on wallet addition
     isValidPrivateKey, // to be used on wallet import

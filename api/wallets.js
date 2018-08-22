@@ -202,12 +202,19 @@ module.exports = (operation, options) => {
                   + ', module=' + JSON.stringify(module));
               }
 
-              if (!config.multiAccount && !payload.address) { return error(res, 'Address must be provided'); }
-
               const { network, networkId = '', testnet = false, privateKey } = payload;
               const networkConfig = { network, networkId, testnet };
               const objResult = module.isValidPrivateKey({ privateKey, networkConfig });
               if (!objResult.valid || objResult.error) { return ok(res, objResult); }
+
+              if (!config.multiAccount && !objResult.address) {
+                return error(res, 'Address must be generated in isValidPrivateKey');
+              }
+              if (objResult.address) payload.address = objResult.address;
+              if (payload.password) {
+                // TODO： decrypt privateKey with the given password (BIP38)
+                delete payload.password;
+              }
             }
             const id = sha1(JSON.stringify(payload)  + idSuffix);
             resultToReturn = { ...payload, id };
