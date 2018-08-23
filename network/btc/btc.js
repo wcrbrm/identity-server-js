@@ -15,11 +15,22 @@ module.exports = ({ network = 'BTC' }) => {
     return require('./../../services/hdwallet').create({ seed, index, network: coinSymbol });
   };
 
+  const addressFromPrivateKey = ({ privateKey, networkConfig }) => {
+    // TODO:　！
+    // const keyPair = ec.genKeyPair();
+    // keyPair._importPrivate(privateKey, 'hex');
+    // const compact = false;
+    // const pubKey = keyPair.getPublic(compact, 'hex').slice(2);
+    // const pubKeyWordArray = CryptoJS.enc.Hex.parse(pubKey);
+    // const hash = CryptoJS.SHA3(pubKeyWordArray, { outputLength: 256 });
+    return '';
+  };
+
   const isValidAddress = ({ address, networkConfig }) => {
     // sources: https://en.bitcoin.it/wiki/List_of_address_prefixes
     const firstChar = address.substring(0, 1);
-    const hasNicePrefix = networkConfig.testnet ? 
-      (firstChar === 'm' || firstChar === 'n' || firstChar === '2') : 
+    const hasNicePrefix = networkConfig.testnet ?
+      (firstChar === 'm' || firstChar === 'n' || firstChar === '2') :
       (firstChar === '1' || firstChar === '3');
     const minExpectedLength = networkConfig.testnet ? 34 : 26;
     const maxExpectedLength = firstChar === '2' ? 35 : 34;
@@ -35,8 +46,8 @@ module.exports = ({ network = 'BTC' }) => {
     if (!valid) {
       // try to give suggestion
       if (!hasNicePrefix) {
-        res.error = networkConfig.testnet 
-          ? 'Address should begin with "m", "n" or "2" in Testnet' 
+        res.error = networkConfig.testnet
+          ? 'Address should begin with "m", "n" or "2" in Testnet'
           : 'Address should begin with "1" or "3" in Mainnet';
       } else if (!hasNiceSize && address.length < minExpectedLength) {
         res.error = 'Too few characters';
@@ -54,7 +65,7 @@ module.exports = ({ network = 'BTC' }) => {
 
   const isValidPrivateKey = ({ privateKey, networkConfig }) => {
     const firstChar = privateKey.substring(0, 1);
-    const hasNicePrefix = networkConfig.testnet 
+    const hasNicePrefix = networkConfig.testnet
                           ? firstChar === '9' || firstChar === 'c'
                           : firstChar === '5' || firstChar === 'K' || firstChar === 'L';
     const hasNiceSize = (firstChar === '9' || firstChar === '5') && privateKey.length === 51
@@ -62,14 +73,14 @@ module.exports = ({ network = 'BTC' }) => {
                           (firstChar === 'c' || firstChar === 'K' || firstChar === 'L')
                           && privateKey.length === 52
                         );
-    
+
     const checksum = utils.validateChecksum(privateKey);
 
     const valid = hasNicePrefix && hasNiceSize && checksum;
     const res = { valid, checksum };
     if (!valid) {
       if (!hasNicePrefix) {
-        res.error = networkConfig.testnet ? 
+        res.error = networkConfig.testnet ?
           'Private key should begin with "9" or "c" in Testnet'
           : 'Private key should begin with "5", "K", "L" in Mainnet';
       } else if (!hasNiceSize && privateKey.length < 52) {
@@ -80,6 +91,7 @@ module.exports = ({ network = 'BTC' }) => {
         res.error = 'Checksum of a Private Key is invalid';
       }
     }
+    res.address = addressFromPrivateKey({ privateKey, networkConfig });
     return res;
   };
 
@@ -91,10 +103,10 @@ module.exports = ({ network = 'BTC' }) => {
       const balance = await electrumClient.blockchainAddress_getBalance(address);
       const value = utils.parse(
         utils.parseSatoshi(
-          balance 
-          && balance.confirmed !== undefined 
-          && balance.unconfirmed !== undefined 
-          ? balance.confirmed + balance.unconfirmed 
+          balance
+          && balance.confirmed !== undefined
+          && balance.unconfirmed !== undefined
+          ? balance.confirmed + balance.unconfirmed
           : 0
         )
       );
@@ -108,34 +120,34 @@ module.exports = ({ network = 'BTC' }) => {
   const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletPrivateConfig }) => {
     const { address, privateKey, publicKey, networkConfig } = walletPrivateConfig;
     const walletPublicConfig = { address, publicKey, networkConfig };
-    
+
     try {
       const electrumClient = await getElectrumClient(networkConfig);
 
       const network = utils.getNetwork({ networkConfig });
       const builder = new bitcoinJs.TransactionBuilder(network);
-   
+
       // List transaction of the address
       const from = address;
       const unspent = await electrumClient.blockchainAddress_listunspent(from);
       const toSpend = utils.getTxsToSpend2({ unspent, amount: (amount + fee) });
-      
+
       toSpend.forEach((tx) => builder.addInput(tx.tx_hash, tx.tx_pos));
-  
+
       const sum = toSpend.reduce((sum, tx) => sum + tx.value, 0); // satoshi
       builder.addOutput(to, utils.toSatoshi(amount));
       builder.addOutput(change, (sum - utils.toSatoshi(amount) - utils.toSatoshi(fee)));
-  
+
       // Sign each transaction input
       toSpend.forEach((tx, i) => builder.sign(i, bitcoinJs.ECPair.fromWIF(privateKey, network)));
-      
+
       const transaction = builder.build();
       const tx = transaction.toHex();
-  
+
       const sentTx = await electrumClient.blockchainTransaction_broadcast(tx);
-  
+
       // should return transaction hash if succeed. Or throw exception if not
-      return sentTx; 
+      return sentTx;
 
     } catch (e) {
       throw new Error(e.message);
@@ -151,7 +163,7 @@ module.exports = ({ network = 'BTC' }) => {
       const network = utils.getNetwork({ networkConfig });
       const mempool = await electrumClient.blockchainAddress_getMempool(address);
       //console.log(mempool);
-  
+
       if (mempool && mempool.length > 0) {
         const mempoolTransactions = mempool.map(async (m) => {
           // Transaction id:
@@ -201,9 +213,9 @@ module.exports = ({ network = 'BTC' }) => {
     return {};
   };
 
-
   return {
     isValidAddress,
+    addressFromPrivateKey, // getting address from private key and network config (optional)
     isValidPrivateKey,
     create,
     getAssetsList,
@@ -214,4 +226,3 @@ module.exports = ({ network = 'BTC' }) => {
   };
 
 }
-
