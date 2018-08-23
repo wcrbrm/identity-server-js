@@ -2,12 +2,9 @@ const http = require("http");
 const express = require("express");
 const bodyParser = require('body-parser');
 const options = require('./options');
-const pdf = require('express-pdf');
 
 const app = express();
 app.use(bodyParser.json());
-
-app.use(pdf);
 
 if (options.cors) {
   app.use(require('cors')());

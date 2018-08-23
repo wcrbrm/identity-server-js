@@ -1,11 +1,11 @@
 const sha1 = require('js-sha1');
 const path = require('path');
-const fs = require('fs');
 const { getStorageJson, saveStorageJson } = require('./../services/storage');
 const WalletStorage = require('./../services/wallet-storage');
 const WalletInfo = require('./../services/wallet-info');
-const QRCode = require('qrcode');
 const { error, ok, body } = require("./../services/express-util")('wallets');
+const { pdf } = require('./../services/pdf');
+
 
 const requireWalletId = (req, res) => {
   if (!req.params.id) {
@@ -230,31 +230,8 @@ module.exports = (operation, options) => {
         if (!json) return;
 
         const walletId = req.params.id;
-        const wallet = json.wallets.find(w => w.id === walletId);
-        //TODO：missing wallet = error message in PDF
-        //TODO: move all this logic to another file. it will be growing
+        pdf({ res, walletId, json });
 
-        const address = wallet && wallet.address ? wallet.address : '';
-        //TODO: if not address, then publicKey
-        const privateKey = wallet && wallet.privateKey ? wallet.privateKey : '';
-
-        const template = path.join(__dirname, '/../template.html');
-        let templateHtml = fs.readFileSync(template, 'utf8')
-                                .replace('{{address}}', address)
-                                .replace('{{private_key}}', privateKey);
-
-        const qr1 = QRCode.toDataURL(address);
-        const qr2 = QRCode.toDataURL(privateKey);
-        Promise.all([qr1, qr2]).then((qrcodes) => {
-          const addressQR = qrcodes[0];
-          const pkQR = qrcodes[1];
-          templateHtml = templateHtml.replace('{{address_qr}}', addressQR);
-          templateHtml = templateHtml.replace('{{pk_qr}}', pkQR);
-          res.pdfFromHTML({
-            filename: `${walletId}.pdf`,
-            htmlContent: templateHtml,
-          });
-        }); // TODO: missing catch
         return;
       }
 
