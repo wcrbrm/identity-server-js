@@ -237,7 +237,8 @@ module.exports = (operation, options) => {
         if (!json) return;
 
         const walletId = req.params.id;
-        pdf({ res, walletId, json }).then(doc => {
+        const { rotate } = req.query;
+        pdf({ res, walletId, json, rotate }).then(doc => {
           res.setHeader('Content-disposition', 'inline');
           res.setHeader('Content-type', 'application/pdf');
           doc.pipe(res);

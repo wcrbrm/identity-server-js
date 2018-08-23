@@ -2,7 +2,7 @@ const PDFDocument = require('pdfkit');
 const QRCode = require('qrcode');
 const pixelWidth = require('string-pixel-width');
 
-const pdf = async ({ res, walletId, json }) => {
+const pdf = async ({ res, walletId, json, rotate }) => {
 
   // Set up pdf
   let doc = new PDFDocument({
@@ -90,7 +90,7 @@ const pdf = async ({ res, walletId, json }) => {
         doc.x = x + 25;
         doc.image(addrPKQR);
       }
-      
+
       if (privateKey) {
         const pkQR = await QRCode.toDataURL(privateKey);
         doc.y = 40;
@@ -129,10 +129,13 @@ const pdf = async ({ res, walletId, json }) => {
     doc.end();
     return doc;
   }
+  // Rotate entire document
+  if (rotate) {
+    doc.page.dictionary.data.Rotate = 90;
+    doc._root.data.Pages.data.Kids[0] = doc.page.dictionary;
+  }
+
   doc.end();
-  // // Rotate entire document
-  // doc.page.dictionary.data.Rotate = 270;
-  // doc._root.data.Pages.data.Kids[0] = doc.page.dictionary;
 
   return doc;
 };
