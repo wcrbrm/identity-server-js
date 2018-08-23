@@ -237,7 +237,13 @@ module.exports = (operation, options) => {
         if (!json) return;
 
         const walletId = req.params.id;
-        pdf({ res, walletId, json });
+        pdf({ res, walletId, json }).then(doc => {
+          res.setHeader('Content-disposition', 'inline');
+          res.setHeader('Content-type', 'application/pdf');
+          doc.pipe(res);
+        }).catch(e => {
+          error(res, `Error: ${e.message}`);
+        });
 
         return;
       }
