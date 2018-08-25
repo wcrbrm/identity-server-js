@@ -67,6 +67,17 @@ describe("Bitcoin functions test", async (d) => {
     uncompressedValid.valid.should.equal(true);
   });
 
+  it('Getting address from Private Key', () => {
+    const compressedPK = 'cMtDkLRPSyCwx5SfW9KGfAZoqEZAvyJ9tajgBKkXYrVSAtrTvEdj'; // Testnet
+    const uncompressedPK = '5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ'; // Mainnet
+    const address1 = bitcoin.addressFromPrivateKey({ privateKey: compressedPK, networkConfig });
+    networkConfig.testnet = false;
+    const address2 = bitcoin.addressFromPrivateKey({ privateKey: uncompressedPK, networkConfig });
+    networkConfig.testnet = true;
+    address1.should.equal('mioS9bNE2suWxK8wrsTfbCBrbexDrirHft');
+    address2.should.equal('1GAehh7TsJAHuUAeKZcXf5CnwuGuGgyX2S'); // uncompressed address
+  });
+
   it('Add to HD wallet', () => {
     const mnemonic = 'stock script strategy banner space siege picture miss million bench render fun demise wheel pulse page paddle tower fine puppy sword acoustic grit october';
     const seed = bip39.mnemonicToSeed(mnemonic).toString('hex');

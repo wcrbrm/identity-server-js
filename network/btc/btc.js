@@ -16,14 +16,8 @@ module.exports = ({ network = 'BTC' }) => {
   };
 
   const addressFromPrivateKey = ({ privateKey, networkConfig }) => {
-    // TODO:　！
-    // const keyPair = ec.genKeyPair();
-    // keyPair._importPrivate(privateKey, 'hex');
-    // const compact = false;
-    // const pubKey = keyPair.getPublic(compact, 'hex').slice(2);
-    // const pubKeyWordArray = CryptoJS.enc.Hex.parse(pubKey);
-    // const hash = CryptoJS.SHA3(pubKeyWordArray, { outputLength: 256 });
-    return '';
+    const network = utils.getNetwork({ networkConfig });
+    return bitcoinJs.ECPair.fromWIF(privateKey, network).getAddress().toString();
   };
 
   const isValidAddress = ({ address, networkConfig }) => {
