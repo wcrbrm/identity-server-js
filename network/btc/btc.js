@@ -19,7 +19,7 @@ module.exports = ({ network = 'BTC' }) => {
 
   const addressFromPrivateKey = ({ privateKey, networkConfig }) => {
     const network = utils.getNetwork({ networkConfig });
-    return bitcoinJs.ECPair.fromWIF(privateKey, network).getAddress().toString();
+    return bitcoinJs.ECPair.fromWIF(privateKey, network).getAddress();
   };
 
   const decryptPrivateKey = ({ key, password, networkConfig }) => {
@@ -69,7 +69,7 @@ module.exports = ({ network = 'BTC' }) => {
   };
 
   const isValidPrivateKey = ({ privateKey, password, networkConfig }) => {
-    privateKey = decryptPrivateKey({ key: privateKey, password, networkConfig});
+    privateKey = decryptPrivateKey({ key: privateKey, password, networkConfig });
     const firstChar = privateKey.substring(0, 1);
     const hasNicePrefix = networkConfig.testnet
                           ? firstChar === '9' || firstChar === 'c'
@@ -83,7 +83,7 @@ module.exports = ({ network = 'BTC' }) => {
     const checksum = utils.validateChecksum(privateKey);
 
     const valid = hasNicePrefix && hasNiceSize && checksum;
-    const res = { valid, checksum };
+    const res = { valid, checksum, privateKey };
     if (!valid) {
       if (!hasNicePrefix) {
         res.error = networkConfig.testnet ?

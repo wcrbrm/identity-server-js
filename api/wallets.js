@@ -202,9 +202,9 @@ module.exports = (operation, options) => {
                   + ', module=' + JSON.stringify(module));
               }
 
-              const { network, networkId = '', testnet = false, privateKey } = payload;
+              const { network, networkId = '', testnet = false, privateKey, password } = payload;
               const networkConfig = { network, networkId, testnet };
-              const objResult = module.isValidPrivateKey({ privateKey, networkConfig });
+              const objResult = module.isValidPrivateKey({ privateKey, password, networkConfig });
               if (!objResult.valid || objResult.error) { return ok(res, objResult); }
 
               if (!config.multiAccount && !objResult.address) {
@@ -212,7 +212,7 @@ module.exports = (operation, options) => {
               }
               if (objResult.address) payload.address = objResult.address;
               if (payload.password) {
-                // TODO： decrypt privateKey with the given password (BIP38)
+                payload.privateKey = objResult.privateKey;
                 delete payload.password;
               }
             }

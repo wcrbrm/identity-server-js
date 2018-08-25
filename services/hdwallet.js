@@ -68,7 +68,7 @@ const create = ({ seed, index, network, hex = false, prefix = '', multiAddress =
   const key = bip32ExtendedKey.derive(index);
   const keyPair = key.keyPair;
   // get address
-  const address = multiAddress ? undefined : keyPair.getAddress().toString();
+  const address = multiAddress ? undefined : keyPair.getAddress();
   // get privkey
   const privateKey = keyPair.toWIF();
   // get pubkey

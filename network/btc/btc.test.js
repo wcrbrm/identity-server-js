@@ -55,7 +55,7 @@ describe("Bitcoin functions test", async (d) => {
     regtestValid.valid.should.equal(true);
   });
 
-  it.only('Private key validation', () => {
+  it('Private key validation', () => {
     const compressedPK = 'cRtqvxwR1sx3axQyHDAS5dmAxXPiXkE9B5sEgpY8LX6M3W92JcXe'; // Testnet
     const uncompressedPK = '5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ'; // Mainnet
     const encpyptedPK = '6PRPaYFcCJYyS3xjzzBeF3wR8WdczhvkM4WCaqGzqG95K4775QGFeUJMpS'; // Testnet
