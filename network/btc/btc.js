@@ -3,6 +3,8 @@ module.exports = ({ network = 'BTC' }) => {
   const bitcoinJs = require('bitcoinjs-lib');
   const bip32 = require('bip32');
   const bip39 = require('bip39');
+  const bip38 = require('bip38');
+  const wif = require('wif');
   const coinConstants = require('bip44-constants');
   const btc = require('./bitcoin-query');
   const utils = require('./bitcoin-utils');
@@ -18,6 +20,15 @@ module.exports = ({ network = 'BTC' }) => {
   const addressFromPrivateKey = ({ privateKey, networkConfig }) => {
     const network = utils.getNetwork({ networkConfig });
     return bitcoinJs.ECPair.fromWIF(privateKey, network).getAddress().toString();
+  };
+
+  const decryptPrivateKey = ({ key, password, networkConfig }) => {
+    if (password) {
+      const decrypted = bip38.decrypt(key, password);
+      const network = utils.getNetwork({ networkConfig });
+      return wif.encode(network.wif, decrypted.privateKey, true); // compressed?
+    }
+    return key;
   };
 
   const isValidAddress = ({ address, networkConfig }) => {
@@ -57,7 +68,8 @@ module.exports = ({ network = 'BTC' }) => {
     return res;
   };
 
-  const isValidPrivateKey = ({ privateKey, networkConfig }) => {
+  const isValidPrivateKey = ({ privateKey, password, networkConfig }) => {
+    privateKey = decryptPrivateKey({ key: privateKey, password, networkConfig});
     const firstChar = privateKey.substring(0, 1);
     const hasNicePrefix = networkConfig.testnet
                           ? firstChar === '9' || firstChar === 'c'
@@ -210,6 +222,7 @@ module.exports = ({ network = 'BTC' }) => {
   return {
     isValidAddress,
     addressFromPrivateKey, // getting address from private key and network config (optional)
+    decryptPrivateKey,
     isValidPrivateKey,
     create,
     getAssetsList,

@@ -55,25 +55,35 @@ describe("Bitcoin functions test", async (d) => {
     regtestValid.valid.should.equal(true);
   });
 
-  it('Private key validation', () => {
+  it.only('Private key validation', () => {
     const compressedPK = 'cRtqvxwR1sx3axQyHDAS5dmAxXPiXkE9B5sEgpY8LX6M3W92JcXe'; // Testnet
     const uncompressedPK = '5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ'; // Mainnet
+    const encpyptedPK = '6PRPaYFcCJYyS3xjzzBeF3wR8WdczhvkM4WCaqGzqG95K4775QGFeUJMpS'; // Testnet
+    const password = '123456789';
     const compressedValid = bitcoin.isValidPrivateKey({ privateKey: compressedPK, networkConfig: { ...networkConfig, testnet: true } });
     const uncompressedValid = bitcoin.isValidPrivateKey({ privateKey: uncompressedPK, networkConfig: { ...networkConfig, testnet: false } });
+    const encryptedValid = bitcoin.isValidPrivateKey({ privateKey: encpyptedPK, password, networkConfig: { ...networkConfig, testnet: true } });
     //console.log(compressedValid);
     //console.log(uncompressedValid);
 
     compressedValid.valid.should.equal(true);
     uncompressedValid.valid.should.equal(true);
+    encryptedValid.valid.should.equal(true);
+  });
+
+  it('Decrypt private key', () => {
+    const privateKey = 'cPEKRtkyoJKp8L8FcQ5ZJD84M3BscGABPUjQZp67wiYffcjEdeXP';
+    const encryptedPrivateKey = '6PRPaYFcCJYyS3xjzzBeF3wR8WdczhvkM4WCaqGzqG95K4775QGFeUJMpS';
+    const password = '123456789';
+    const decryptedPrivateKey = bitcoin.decryptPrivateKey({ key: encryptedPrivateKey, password, networkConfig });
+    decryptedPrivateKey.should.equal(privateKey);
   });
 
   it('Getting address from Private Key', () => {
     const compressedPK = 'cMtDkLRPSyCwx5SfW9KGfAZoqEZAvyJ9tajgBKkXYrVSAtrTvEdj'; // Testnet
     const uncompressedPK = '5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ'; // Mainnet
-    const address1 = bitcoin.addressFromPrivateKey({ privateKey: compressedPK, networkConfig });
-    networkConfig.testnet = false;
-    const address2 = bitcoin.addressFromPrivateKey({ privateKey: uncompressedPK, networkConfig });
-    networkConfig.testnet = true;
+    const address1 = bitcoin.addressFromPrivateKey({ privateKey: compressedPK, networkConfig: { ...networkConfig, testnet: true } });
+    const address2 = bitcoin.addressFromPrivateKey({ privateKey: uncompressedPK, networkConfig: { ...networkConfig, testnet: false } });
     address1.should.equal('mioS9bNE2suWxK8wrsTfbCBrbexDrirHft');
     address2.should.equal('1GAehh7TsJAHuUAeKZcXf5CnwuGuGgyX2S'); // uncompressed address
   });
