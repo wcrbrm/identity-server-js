@@ -237,8 +237,34 @@ module.exports = (operation, options) => {
         if (!json) return;
 
         const walletId = req.params.id;
+        const wallet = json.wallets.find(w => w.id === walletId);
+        const errors = []; // All errors, that should be redirected to PDF
+
+        if (!wallet) errors.push('Error: \n wallet not found!');
+
+        const bip38Passphrase = req.headers['bip38-passphrase'];
+        if (bip38Passphrase && wallet) {
+          const module = require('./../network/index')[wallet.network]({ network: wallet.network });
+          if (!module) {
+            errors.push('No module implemented for network ' + wallet.network);
+          } else {
+            if ((typeof module.encryptPrivateKey) !== 'function') {
+              errors.push(`encryptPrivateKey is not implemented for ${wallet.network} ${wallet.networkId}`);
+            } else {
+              const networkConfig = { 
+                network: wallet.network,
+                networkId: wallet.networkId,
+                testnet: wallet.testnet 
+              };
+              const encryptedPrivateKey = module.encryptPrivateKey({ key: wallet.privateKey, password: bip38Passphrase, networkConfig });
+              wallet.privateKey = encryptedPrivateKey;
+            }
+          }
+        }
+        
         const { rotate } = req.query;
-        pdf({ res, walletId, json, rotate }).then(doc => {
+        pdf({ res, wallet, rotate, errors }).then(doc => {
+          //const filename = `${wallet.id}.pdf`;
           res.setHeader('Content-disposition', 'inline');
           res.setHeader('Content-type', 'application/pdf');
           doc.pipe(res);

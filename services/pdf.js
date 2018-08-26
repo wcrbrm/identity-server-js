@@ -2,13 +2,12 @@ const PDFDocument = require('pdfkit');
 const QRCode = require('qrcode');
 const pixelWidth = require('string-pixel-width');
 
-const pdf = async ({ res, walletId, json, rotate }) => {
+const pdf = async ({ res, wallet, rotate, errors }) => {
 
   // Set up pdf
   let doc = new PDFDocument({
     autoFirstPage: false
   });
-  const filename = `${walletId}.pdf`;
 
   // Genetate page with MASTERWALLET title
   const companyName = 'MASTERWALLET.PRO';
@@ -23,27 +22,25 @@ const pdf = async ({ res, walletId, json, rotate }) => {
   });
 
   try {
-    const wallet = json.wallets.find(w => w.id === walletId);
+
+    if (errors.length > 0) {
+      throw new Error(errors.join(' '));
+    }
+
     const address = wallet && wallet.address ? wallet.address : null;
     const privateKey = wallet && wallet.privateKey ? wallet.privateKey : null;
     const publicKey = wallet && wallet.publicKey ? wallet.publicKey : null;
 
     // Header
-    if (wallet) {
-      const network = wallet.network
-      doc.rotate(-90, { origin });
-      doc.x = -30;
-      doc.y = 5;
-      doc.image(`${__dirname}/../img/${network}.png`, { width: 30 });
-      doc.x = 5;
-      doc.y = 12;
-      doc.font('Courier-Bold').fontSize(24).text(companyName);
-      doc.rotate(90, { origin });
-    }
-    if (!wallet) {
-      // Missing wallet = error message in PDF
-      throw new Error('Error: \n wallet not found!');
-    }
+    const network = wallet.network
+    doc.rotate(-90, { origin });
+    doc.x = -30;
+    doc.y = 5;
+    doc.image(`${__dirname}/../img/${network}.png`, { width: 30 });
+    doc.x = 5;
+    doc.y = 12;
+    doc.font('Courier-Bold').fontSize(24).text(companyName);
+    doc.rotate(90, { origin });
 
     // In case only address or public key is available
     if ((address || publicKey) && !privateKey) {
@@ -70,12 +67,12 @@ const pdf = async ({ res, walletId, json, rotate }) => {
       for (let i = 7; i < 13; i++) {
         const leftColWidth = pixelWidth(address || publicKey, { font, size: i }) + gap;
         const rightColWidth = pixelWidth(privateKey, { font, size: i }) + gap;
-        size = i;
-        x2 = leftColWidth + x;
         //console.log(size, x2);
         if (leftColWidth + rightColWidth >= availWidth) {
           break;
         }
+        size = i;
+        x2 = leftColWidth + x;
       }
 
       if (address || publicKey) {
@@ -126,6 +123,10 @@ const pdf = async ({ res, walletId, json, rotate }) => {
     doc.x = 100;
     doc.y = 100;
     doc.font('Courier-Bold').fillColor('red').fontSize(50).text(e.message || e);
+    if (rotate) {
+      doc.page.dictionary.data.Rotate = 90;
+      doc._root.data.Pages.data.Kids[0] = doc.page.dictionary;
+    }
     doc.end();
     return doc;
   }
