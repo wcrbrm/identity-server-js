@@ -79,6 +79,16 @@ describe("Bitcoin functions test", async (d) => {
     decryptedPrivateKey.should.equal(privateKey);
   });
 
+  it('Encrypt private key', () => {
+    const privateKey = 'cNgDxkGRBbbASHj972nNDfnHkEjpzqVUDJKv9F31eQuS5sMzzpSo';
+    const encryptedPrivateKey = '6PRSk48kp1SPcA9q2AtamUKjCUfjrakDmvW8BNscjvekpwkm84utj1xyjw';
+    const password = '123456789';
+    const encryptionResult = bitcoin.encryptPrivateKey({ key: privateKey, password, networkConfig });
+    const decryptionResult = bitcoin.decryptPrivateKey({ key: encryptionResult, password, networkConfig });
+    encryptionResult.should.equal(encryptedPrivateKey);
+    decryptionResult.should.equal(privateKey);
+  });
+
   it('Getting address from Private Key', () => {
     const compressedPK = 'cMtDkLRPSyCwx5SfW9KGfAZoqEZAvyJ9tajgBKkXYrVSAtrTvEdj'; // Testnet
     const uncompressedPK = '5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ'; // Mainnet

@@ -31,6 +31,15 @@ module.exports = ({ network = 'BTC' }) => {
     return key;
   };
 
+  const encryptPrivateKey = ({ key, password, networkConfig }) => {
+    if (password) {
+      const network = utils.getNetwork({ networkConfig });
+      const privateKeyBuffer = wif.decode(key, network.wif, false);
+      return bip38.encrypt(privateKeyBuffer.privateKey, false, password);
+    }
+    return key;
+  };
+
   const isValidAddress = ({ address, networkConfig }) => {
     // sources: https://en.bitcoin.it/wiki/List_of_address_prefixes
     const firstChar = address.substring(0, 1);
@@ -223,6 +232,7 @@ module.exports = ({ network = 'BTC' }) => {
     isValidAddress,
     addressFromPrivateKey, // getting address from private key and network config (optional)
     decryptPrivateKey,
+    encryptPrivateKey,
     isValidPrivateKey,
     create,
     getAssetsList,
