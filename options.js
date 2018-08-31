@@ -1,11 +1,16 @@
+const homedir = require('os').homedir();
+
 if (process.versions.hasOwnProperty('electron')) {
 
-  // TODO: electron application should read configation file for server parameters
-  module.exports = {
-  };
+  const host = "127.0.0.1";
+  const port = 7773;
+  const verbose = true;
+  const cors = true;
+  const storage = `${homedir}/.MasterWallet`;
+  const debug = true;
+  module.exports = { host, port, verbose, cors, storage, debug };
 
 } else {
-  const homedir = require('os').homedir();
   const program = require('commander');
  
   // TODO: include options for http proxy support
