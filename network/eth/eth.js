@@ -1,6 +1,7 @@
 module.exports = ({ network = 'ETH' }) => {
 
   const CryptoJS = require('crypto-js');
+  const bip38 = require('bip38');
   const EC = require('elliptic').ec;
   const ec = new EC('secp256k1');
   const { getTicker } = require('./../../services/coinmarketcap');
@@ -74,6 +75,23 @@ module.exports = ({ network = 'ETH' }) => {
     res.address = addressFromPrivateKey({ privateKey, networkConfig });
     return res;
   };
+
+  // const encryptPrivateKey = ({ key, password, networkConfig }) => {
+  //   if (password) {
+  //     const keyPair = ec.genKeyPair();
+  //     keyPair._importPrivate(key, 'hex');
+      
+  //     var privKeyBuffer = keyPair.priv;
+  //     return bip38.encrypt(privKeyBuffer, false, password);
+  //   }
+  //   return key;
+  // };
+
+  // const decryptPrivateKey = ({ key, password, networkConfig }) => {
+  //   if (password) {
+  //   }
+  //   return key;
+  // };
 
   const niceFloat = x => (parseFloat(x).toFixed(6).replace(/0{1,5}$/, ''));
 
@@ -216,6 +234,8 @@ module.exports = ({ network = 'ETH' }) => {
     createRandom,      // generate random keypair
     isValidAddress,    // to be used on wallet addition
     isValidPrivateKey, // to be used on wallet import
+    //encryptPrivateKey,
+    //decryptPrivateKey,
     getBalance,        // quick getter what is in the wallet
     getAssetsList,     // full retrieval of assets list
     getAssetValue,     // getting asset value (from contract name)

@@ -24,7 +24,8 @@ describe("Ethereum network", () => {
     // tests that doesn't need network to be running
     const notInNetwork = [
       'Add to HD wallet', 'Create Random Wallet',
-      'Address Validation (Checksum)', 'Address Validation'
+      'Address Validation (Checksum)', 'Address Validation',
+      'Encrypt private key', 'Decrypt private key'
     ];
     // tests that need etherscan api to be available too
     const withEtherscan = ['Get Assets Balance', 'Send Assets'];
@@ -108,6 +109,12 @@ describe("Ethereum network", () => {
     res.should.be.a('object');
     res.valid.should.equal(false);
     res.error.should.be.a('string');
+  });
+
+  it('Encrypt private key', () => {
+    // const privateKey = '0xbe91a8e265788f2314502f16976eefd64831539503fb11432d91196e1b01267b';
+    // const password = '123456789';
+    // const res = modEthereum.encryptPrivateKey({ key: privateKey, password, networkConfig });
   });
 
   const createMyTokenContract = async ({ web3 }) => {
