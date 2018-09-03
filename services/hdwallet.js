@@ -1,6 +1,6 @@
 const bitcoinJs = require('bitcoinjs-lib');
 // const bip32 = require('bip32');
-const coinConstants = require('bip44-constants');
+const coinConstants = require('./../config/coin-constants');
 const ethUtil = require('ethereumjs-util');
 const { toChecksumAddress } = require('./eip55');
 const { PrivateKey } = require('eosjs-ecc');

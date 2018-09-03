@@ -5,7 +5,6 @@ module.exports = ({ network = 'BTC' }) => {
   const bip39 = require('bip39');
   const bip38 = require('bip38');
   const wif = require('wif');
-  const coinConstants = require('bip44-constants');
   const btc = require('./bitcoin-query');
   const utils = require('./bitcoin-utils');
   const base58 = require('./../../services/base58');
