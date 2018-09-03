@@ -24,7 +24,7 @@ const requireAssetId = (req, res) => {
 };
 
 const safeWalletInfo = (wallet) => {
-  const info = { ...wallet };
+  const info = Object.assign({}, wallet); //{ ...wallet };
   delete info.privateKey;
   delete info.keyStore;
   return info;
@@ -122,7 +122,8 @@ module.exports = (operation, options) => {
         const json = getStorageJson(options, res);
         if (!json) return;
         const wallets = json.wallets.filter(w => (w.id !== id));
-        const jsonUpdated = { ...json, wallets };
+        const jsonUpdated = Object.assign({ wallets }, json); // { ...json, wallets };
+
         saveStorageJson(options, jsonUpdated);
         return ok(res, { operation: "deleted", length: wallets.length });
 
@@ -180,7 +181,7 @@ module.exports = (operation, options) => {
             if (!result){ return error(res, 'Missing result in modules isValidCredentials'); }
 
             const id = sha1(JSON.stringify(result) + idSuffix);
-            resultToReturn = { ...result, id };
+            resultToReturn = Object.assign({ id }, result);  //{ ...result, id };
             json.wallets.push(resultToReturn);
 
           } else {
@@ -217,7 +218,7 @@ module.exports = (operation, options) => {
               }
             }
             const id = sha1(JSON.stringify(payload)  + idSuffix);
-            resultToReturn = { ...payload, id };
+            resultToReturn = Object.assign({ id }, payload); //{ ...payload, id };
             json.wallets.push(resultToReturn);
           }
 

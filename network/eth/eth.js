@@ -9,8 +9,10 @@ module.exports = ({ network = 'ETH' }) => {
   const { getWeb3Client, getEtherscanClient } = require('./ethereum-networkhelper')({ network });
 
   const create = async ({ seed, index, networkConfig }) => {
-    return require('./../../services/hdwallet')
-      .create({ ...networkConfig, network, seed, index, hex: true });
+    // return require('./../../services/hdwallet')
+    //   .create({ ...networkConfig, network, seed, index, hex: true });
+    const args = Object.assign({ network, seed, index, hex: true }, networkConfig);
+    return require('./../../services/hdwallet').create(args);
   };
 
   const addressFromPrivateKey = ({ privateKey, networkConfig }) => {

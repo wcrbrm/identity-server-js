@@ -3,9 +3,11 @@ module.exports = ({ network = 'EOS', prefix = 'EOS' }) => {
   const Eos = require("eosjs");
 
   const create = async ({ seed, index, networkConfig }) => {
-    return require('./../../services/hdwallet').create({ 
-      ...networkConfig, seed, index, network, prefix, multiAddress: true
-    });
+    // return require('./../../services/hdwallet').create({ 
+    //   ...networkConfig, seed, index, network, prefix, multiAddress: true
+    // });
+    const args = Object.assign({ seed, index, network, prefix, multiAddress: true }, networkConfig);
+    return require('./../../services/hdwallet').create(args);
   };
 
   const isValidAddress = ({ address, networkConfig }) => {

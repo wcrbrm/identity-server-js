@@ -36,7 +36,7 @@ const ensureExists = dir => {
 const saveStorageJson = (options, json) => {
   const updated = (new Date()).toISOString();
   const wallets = json.wallets || [];
-  const obj = { ...json, updated, wallets };
+  const obj = Object.assign({ updated, wallets }, json); // { ...json, updated, wallets };
 
   ensureExists(options.storage);
   const path = options.storage + "/encrypted.storage";

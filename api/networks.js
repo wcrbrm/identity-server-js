@@ -48,7 +48,7 @@ module.exports = (operation, options) => {
         }
         const networkConfig = req.body || { network: networkId, testnet: false };
         const objResult = module.isValidAddress({ address, networkConfig });
-        return ok(res, { address, ...objResult });
+        return ok(res, Object.assign({ address }, objResult)); // { address, ...objResult }
 
       } else if (operation === 'terms') {
         const config = require('./../config/networks');

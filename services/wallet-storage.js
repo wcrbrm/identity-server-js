@@ -62,7 +62,7 @@ function WalletStorage(json) {
     // validate network
     const wallet = await modNetwork.create({ seed, index, networkConfig });
     const id = sha1(JSON.stringify(wallet) + '-' + (new Date()).toISOString());
-    return { ...networkConfig, ...wallet, id, index, name };
+    return Object.assign({ id, index, name }, networkConfig, wallet); // { ...networkConfig, ...wallet, id, index, name };
   };
 };
 

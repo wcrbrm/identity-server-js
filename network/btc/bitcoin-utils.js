@@ -139,7 +139,7 @@ const decodeTransaction = async ({ txid, electrumClient, network }) => {
   const senderSet = new Set();
   const senderAddresses = await Promise.all(senders);
   senderAddresses.forEach(addrArr => addrArr.forEach(addr => senderSet.add(addr)));
-  const sender = [...senderSet];
+  const sender = Array.from(senderSet); //[...senderSet];
 
   // Receiver:
   // Process transaction outputs

@@ -45,7 +45,7 @@ function WalletInfo(walletInfo) {
       throw new Error('getAssetsList is not defined for this blockchain network');
     }
     const balances = await modNetwork.getBalance({ walletPublicConfig: { address, networkConfig } });
-    return { ...this.walletInfo, balances };
+    return Object.assign({ balances }, this.walletInfo); //{ ...this.walletInfo, balances };
   };
 
   this.fetchAssetsList = async function() {
@@ -59,7 +59,7 @@ function WalletInfo(walletInfo) {
       throw new Error('getAssetsList is not defined for this blockchain network');
     }
     const assets = await modNetwork.getAssetsList({ walletPublicConfig: { address, networkConfig } });
-    return { ...this.walletInfo, assets };
+    return Object.assign({ assets }, this.walletInfo); //{ ...this.walletInfo, assets };
   };
 
   this.fetchAssetsValue = async function(contractAddress) {
@@ -73,7 +73,7 @@ function WalletInfo(walletInfo) {
       throw new Error('getAssetValue is not defined for this blockchain network');
     }
     const asset = await modNetwork.getAssetValue({ walletPublicConfig: { address, networkConfig }, contractAddress });
-    return { ...this.walletInfo, contractAddress, asset };
+    return Object.assign({ contractAddress, assets }, this.walletInfo); // { ...this.walletInfo, contractAddress, asset };
   };
 
 };
