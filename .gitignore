@@ -65,3 +65,7 @@ typings/
 
 # old code
 *.old
+
+# electron
+main.js
+public/

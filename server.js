@@ -1,14 +1,21 @@
-const http = require("http");
-const express = require("express");
-const bodyParser = require('body-parser');
+let app = null;
 const options = require('./options');
 
-const app = express();
-app.use(bodyParser.json());
-
-if (options.cors) {
-  app.use(require('cors')());
+if (process.versions.hasOwnProperty('electron')) {
+  app = require('./ipc/app');
+} else {
+  const http = require("http");
+  const express = require("express");
+  const bodyParser = require('body-parser');
+  
+  app = express();
+  app.use(bodyParser.json());
+  
+  if (options.cors) {
+    app.use(require('cors')());
+  }
 }
+
 const root = '/api';
 
 app.get(`${root}/status`, require('./api/status')(options));
