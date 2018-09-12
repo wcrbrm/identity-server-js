@@ -47,7 +47,9 @@ module.exports = {
     request({ method: 'POST', path, callback });
   },
 
-  delete: (path, callback) => {},
+  delete: (path, callback) => {
+    request({ method: 'DELETE', path, callback });
+  },
 
   listen: () => {
     // Empty method for compatibility with Express only
