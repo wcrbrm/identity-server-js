@@ -6,6 +6,7 @@ class IPCResponse {
   constructor ({ event, channel, params }) {
     this.event = event;
     this.params = params;
+    this.headers = {};
 
     this.json = (obj) => {
       obj.params = this.params;
@@ -19,8 +20,13 @@ class IPCResponse {
     };
 
     this.send = (fileBuffer) => {
-      this.event.sender.send(channel, fileBuffer.toString('utf8'));
+      const encoding = this.params.encoding || 'utf8';
+      this.event.sender.send(channel, fileBuffer.toString(encoding));
       return this;
+    };
+
+    this.setHeader = (header, value) => {
+      this.headers[header] = value;
     };
   }
 };

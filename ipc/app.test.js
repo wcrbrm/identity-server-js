@@ -2,6 +2,7 @@ const should = require('chai').should();
 const Application = require('spectron').Application;
 const electronPath = require('electron');
 const path = require('path');
+const URL = require('url');
 
 const pathToRegexp = require('path-to-regexp');
 const urlPatterns = [
@@ -68,6 +69,29 @@ describe('Electron IPC functionality test', () => {
     const params = getParams({ url });
     params.should.have.property('id', 'd545794ce045dfce898e4a4c823cbcd23727bb91');
     params.should.have.property('assetId', 'cd6664d44e064c6bc9154d242b245ef75b12ec63');
+  });
+
+  it('Find query parameters from url', () => {
+
+    const getQuery = ({ url }) => {
+      const urlObj = URL.parse(url);
+      const query = {};
+      if (urlObj.query) {
+        const keyValuePairs = urlObj.query.split('&');
+        keyValuePairs.forEach(kvpair => {
+          const pair = kvpair.split('=');
+          if (pair[0] && pair[1]) {
+            query[pair[0]] = pair[1];
+          }
+        });
+      }
+      return query;
+    };
+
+    const url = 'http://localhost:7773/api/wallets/81b98d95ea338af6c3a5928e4a9055ea58bbf26a/pdf?rotate=true&a=b';
+    const query = getQuery({ url });
+    console.log(query);
+
   });
 
   it('Find pattern from url', () => {

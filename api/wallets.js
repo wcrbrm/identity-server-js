@@ -268,7 +268,8 @@ module.exports = (operation, options) => {
           //const filename = `${wallet.id}.pdf`;
           res.setHeader('Content-disposition', 'inline');
           res.setHeader('Content-type', 'application/pdf');
-          doc.pipe(res);
+          res.send(doc);
+          //doc.pipe(res);
         }).catch(e => {
           error(res, `Error: ${e.message}`);
         });
