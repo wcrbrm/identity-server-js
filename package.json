@@ -19,7 +19,8 @@
     "start:eth": "npm-run-all --parallel start:eth:testrpc start:eth:etherscan:delayed",
     "start:eos": "nodeos -e -p eosio --contracts-console --http-server-address=\"0.0.0.0:8888\" --access-control-allow-origin \"*\" --access-control-allow-headers \"*\" --access-control-allow-credentials true --plugin eosio::history_api_plugin --plugin eosio::chain_api_plugin --http-validate-host=false --verbose-http-errors 2>&1 | grep -v produce_block",
     "reset:eos": "rm -rf ~/.local/share/eosio/nodeos",
-    "electron": "node copy.electron.js --link"
+    "electron": "node copy.electron.js --link",
+    "electron:hard": "node copy.electron.js"
   },
   "keywords": [],
   "author": "Web Cerebrium <webcerebrium@gmail.com> (https://webcerebrium.com/)",

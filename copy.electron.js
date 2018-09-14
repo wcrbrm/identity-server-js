@@ -23,11 +23,16 @@ fs.readdir(".", (err, items) => {
      const file = items[i];
      if (excluded.indexOf(file) !== -1) continue;
      const allowLink = file.indexOf(".json") === -1;
-    
-     console.log((linking && allowLink ? "linking " : "copying ") + file);
-     shell.exec((linking && allowLink) ? 
-         "ln -s " + __dirname + "/" + file + " " + desktop_dir + "/" +  file
-       : "cp -rf " + __dirname + "/" + file + " " + desktop_dir + "/");
+     if (linking && allowLink) {
+       if(!fs.existsSync(desktop_dir + "/" + file)) { 
+         console.log("linking " + file);
+         shell.exec("ln -s " + __dirname + "/" + file + " " + desktop_dir + "/" +  file);
+       }
+
+     } else {
+       console.log("copy " + file);
+       shell.exec("cp -rf " + __dirname + "/" + file + " " + desktop_dir + "/");
+     }
   }
   if (!linking) {
     console.log("removing tests");
@@ -44,7 +49,7 @@ fs.readdir(".", (err, items) => {
   json.description = "MasterWallet Pro - Desktop Wallet for CryptoAsset Management";
   json.main = "main.js";
   json.scripts = { 
-     "app": "cross-env DEBUG=* electron main.js" 
+     "app": "cross-env REACT_APP_IS_ELECTRON=true DEBUG=* electron main.js" 
   };
 
   fs.writeFileSync(fnJson, JSON.stringify(json, null, 2));
