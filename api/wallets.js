@@ -275,6 +275,33 @@ module.exports = (operation, options) => {
         });
 
         return;
+      } else if (operation === 'history') {
+        const json = getStorageJson(options, res);
+        if (!json) return;
+
+        const walletId = req.params.id;
+        const wallet = json.wallets.find(w => w.id === walletId);
+        if (!wallet) {
+          return error(res, 'Wallet not found');
+        }
+        const module = require('./../network/index')[wallet.network]({ network: wallet.network });
+        if (!module) {
+          return error(res, 'No module implemented for network ' + wallet.network);
+        } 
+        const networkConfig = { 
+          network: wallet.network,
+          networkId: wallet.networkId,
+          testnet: wallet.testnet 
+        };
+        const address = wallet.address;
+        const start = req.query.start || 0;
+        const limit = req.query.limit || 10;
+
+        module.getHistory({ address, networkConfig, start, limit }).then(history => {
+          ok(res, history);
+        });
+
+        return;
       }
 
       next();
