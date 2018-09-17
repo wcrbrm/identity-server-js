@@ -1,7 +1,6 @@
 module.exports = ({ network = 'ETH' }) => {
 
   const CryptoJS = require('crypto-js');
-  const bip38 = require('bip38');
   const EC = require('elliptic').ec;
   const ec = new EC('secp256k1');
   const { getTicker } = require('./../../services/coinmarketcap');
@@ -82,7 +81,7 @@ module.exports = ({ network = 'ETH' }) => {
   //   if (password) {
   //     const keyPair = ec.genKeyPair();
   //     keyPair._importPrivate(key, 'hex');
-      
+
   //     var privKeyBuffer = keyPair.priv;
   //     return bip38.encrypt(privKeyBuffer, false, password);
   //   }
