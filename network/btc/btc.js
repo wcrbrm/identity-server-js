@@ -205,7 +205,6 @@ module.exports = ({ network = 'BTC' }) => {
       const history = await electrumClient.blockchainAddress_getHistory(address);
       //console.log(history);
       if (history && history.length > 0) {
-        // TODO: include TIME (of the block)!
         // We cannot limit Electrum query, but we can decode only transaction within limit
         const txsToDecode = history.splice(start, limit);
         const decodedTransactions = txsToDecode.map(async (tx) => {
