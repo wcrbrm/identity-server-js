@@ -202,16 +202,22 @@ module.exports = ({ network = 'BTC' }) => {
       const electrumClient = await getElectrumClient(networkConfig);
       const network = utils.getNetwork({ networkConfig });
       const history = await electrumClient.blockchainAddress_getHistory(address);
+      //console.log(history);
       if (history && history.length > 0) {
         // We cannot limit Electrum query, but we can decode only transaction within limit
         const txsToDecode = history.splice(start, limit);
         const decodedTransactions = txsToDecode.map(async (tx) => {
           const txid = tx.tx_hash;
-          return await utils.decodeTransaction({
+          const txDecoded = await utils.decodeTransaction({
             txid,
             electrumClient,
             network
           });
+          if (tx.height > 0) {
+            const blockHeader = await electrumClient.blockchainBlock_getHeader(tx.height);
+            txDecoded.timestamp = blockHeader.timestamp;
+          }
+          return txDecoded;
         });
         return await Promise.all(decodedTransactions);
       }
