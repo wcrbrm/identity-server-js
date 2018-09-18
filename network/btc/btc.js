@@ -8,6 +8,7 @@ module.exports = ({ network = 'BTC' }) => {
   const btc = require('./bitcoin-query');
   const utils = require('./bitcoin-utils');
   const base58 = require('./../../services/base58');
+  const { getTicker } = require('./../../services/coinmarketcap');
 
   const { getElectrumClient } = require('./electrum-client')({ network });
 
@@ -124,7 +125,7 @@ module.exports = ({ network = 'BTC' }) => {
           : 0
         )
       );
-      return [{ name: 'BTC', value }];
+      return [{ name: 'BTC', value, cmc: getTicker('BTC')  }];
     } catch (e) {
       throw new Error(e.message);
     }
@@ -204,6 +205,7 @@ module.exports = ({ network = 'BTC' }) => {
       const history = await electrumClient.blockchainAddress_getHistory(address);
       //console.log(history);
       if (history && history.length > 0) {
+        // TODO: include TIME (of the block)!
         // We cannot limit Electrum query, but we can decode only transaction within limit
         const txsToDecode = history.splice(start, limit);
         const decodedTransactions = txsToDecode.map(async (tx) => {

@@ -58,7 +58,9 @@ function WalletInfo(walletInfo) {
     if (typeof modNetwork.getAssetsList !== 'function') {
       throw new Error('getAssetsList is not defined for this blockchain network');
     }
-    const assets = await modNetwork.getAssetsList({ walletPublicConfig: { address, networkConfig } });
+    const allAssets = await modNetwork.getAssetsList({ walletPublicConfig: { address, networkConfig } });
+    // btw there can be another min Value for the asset to be shown, based on cmc.price
+    const assets = allAssets.filter(a => (a.value && parseFloat(a.value) > 0.0001));
     return Object.assign({ assets }, this.walletInfo); //{ ...this.walletInfo, assets };
   };
 
@@ -73,7 +75,7 @@ function WalletInfo(walletInfo) {
       throw new Error('getAssetValue is not defined for this blockchain network');
     }
     const asset = await modNetwork.getAssetValue({ walletPublicConfig: { address, networkConfig }, contractAddress });
-    return Object.assign({ contractAddress, assets }, this.walletInfo); // { ...this.walletInfo, contractAddress, asset };
+    return Object.assign({ contractAddress, asset }, this.walletInfo); // { ...this.walletInfo, contractAddress, asset };
   };
 
 };
