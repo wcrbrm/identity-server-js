@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const shell = require('shelljs')
-const excluded = [ ".git", ".gitignore", "README.md", "LICENSE", "copy.electron.js", "package-lock.json" ];
+const excluded = [ ".git", ".gitignore", "README.md", "LICENSE", "copy.electron.js", "package-lock.json", ".vscode" ];
 const program = require("commander");
 
 program
@@ -49,7 +49,22 @@ fs.readdir(".", (err, items) => {
   json.description = "MasterWallet Pro - Desktop Wallet for CryptoAsset Management";
   json.main = "main.js";
   json.scripts = { 
-     "app": "cross-env REACT_APP_IS_ELECTRON=true DEBUG=* electron main.js" 
+     "app": "cross-env REACT_APP_IS_ELECTRON=true DEBUG=* electron main.js",
+     "pack": "build --dir",
+     "dist": "build"
+  };
+  json.build = {
+    "appId": "masterwallet.masterwallet-desktop",
+    "protocols": {
+      "name": "master-wallet",
+      "schemes": [
+        "wallet"
+      ]
+    },
+    "mac": {
+      "category": "public.app-category.Reference"
+    },
+    "win": {}
   };
 
   fs.writeFileSync(fnJson, JSON.stringify(json, null, 2));

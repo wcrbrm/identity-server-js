@@ -206,7 +206,7 @@ describe("Bitcoin functions test", async (d) => {
     pending3.map(tx => tx.txid).should.contain(outgoingTx);
   });
 
-  it.only('Get history by address', async () => {
+  it('Get history by address', async () => {
     //const address = 'n47neHc36umupbwtCq9Bp6DN1tWQhaB92D';
     const { address, networkConfig } = walletPrivateConfig;
     const history = await bitcoin.getHistory({ address, networkConfig, start: 10, limit: 3 });
