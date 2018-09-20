@@ -54,7 +54,13 @@ fs.readdir(".", (err, items) => {
      "dist": "build -wl --x64"
   };
   json.build = {
-    "appId": "masterwallet.masterwallet-desktop",
+    "appId": "masterwallet.pro",
+    "artifactName": "${os}-${productName}-${version}-${arch}.${ext}",
+    "asar": true,
+    "directories": {
+      "buildResources": "build",
+      "output": "release"
+    },
     "protocols": {
       "name": "master-wallet",
       "schemes": [
