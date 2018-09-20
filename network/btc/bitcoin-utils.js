@@ -93,7 +93,11 @@ const decodeOutput = (tx, network) => {
           },
       };
       switch(vout.scriptPubKey.type){
-        //case 'pubkey':
+        case 'pubkey': {
+          const pubKeyBuffer = new Buffer(vout.scriptPubKey.asm.split(' ')[0],'hex');
+          vout.scriptPubKey.addresses.push(bitcoinJs.ECPair.fromPublicKeyBuffer(pubKeyBuffer).getAddress());
+          break;
+        }
         case 'pubkeyhash':
         case 'scripthash': {
             vout.scriptPubKey.addresses.push(bitcoinJs.address.fromOutputScript(out.script, network));
@@ -121,8 +125,8 @@ const decodeTransaction = async ({ txid, electrumClient, network }) => {
   // Process transaction inputs:
   const inputs = decodeInput(tx);
   //console.log(inputs);
-  const senders = inputs.map(async (input) => {
-    const addresses = [];
+  const sender = {};
+  const senderPromise = inputs.map(async (input) => {
     const iTxid = input.txid;
     const iN = input.n;
     const iHex = await electrumClient.blockchainTransaction_get(iTxid);
@@ -130,16 +134,15 @@ const decodeTransaction = async ({ txid, electrumClient, network }) => {
   
     const outputs = decodeOutput(iTx, network);
     outputs.forEach(output => {
+      //console.log(output);
       if (output.n === iN) {
-        output.scriptPubKey.addresses.forEach(a => addresses.push(a));
+        output.scriptPubKey.addresses.forEach(a => {
+          sender[a] = output.value;
+        });
       }
     });
-    return addresses;
+    return iTx;
   });
-  const senderSet = new Set();
-  const senderAddresses = await Promise.all(senders);
-  senderAddresses.forEach(addrArr => addrArr.forEach(addr => senderSet.add(addr)));
-  const sender = Array.from(senderSet); //[...senderSet];
 
   // Receiver:
   // Process transaction outputs
@@ -149,12 +152,15 @@ const decodeTransaction = async ({ txid, electrumClient, network }) => {
     const address = o.scriptPubKey.addresses[0];
     receiver[address] = o.value;
   });
-  
-  return {
-    txid,
-    sender,
-    receiver
-  };
+
+  const senderResolved = await Promise.all(senderPromise);
+  if (senderResolved) {
+    return {
+      txid,
+      sender,
+      receiver
+    };
+  }
 };
 
 const toHex = (arrayOfBytes) => {

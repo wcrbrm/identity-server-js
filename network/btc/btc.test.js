@@ -207,9 +207,9 @@ describe("Bitcoin functions test", async (d) => {
   });
 
   it('Get history by address', async () => {
-    //const address = 'n47neHc36umupbwtCq9Bp6DN1tWQhaB92D';
-    const { address, networkConfig } = walletPrivateConfig;
-    const history = await bitcoin.getHistory({ address, networkConfig, start: 10, limit: 3 });
+    const address = '2N2KLS5mttzdYGw3Ezv7jKNZQV225dyYKWw';
+    const { networkConfig } = walletPrivateConfig;
+    const history = await bitcoin.getHistory({ address, networkConfig, start: 0, limit: 10 });
     //console.log(history);
   });
 
