@@ -51,7 +51,7 @@ fs.readdir(".", (err, items) => {
   json.scripts = { 
      "app": "cross-env REACT_APP_IS_ELECTRON=true DEBUG=* electron main.js",
      "pack": "build --dir",
-     "dist": "build"
+     "dist": "build -wl --x64"
   };
   json.build = {
     "appId": "masterwallet.masterwallet-desktop",
@@ -61,10 +61,16 @@ fs.readdir(".", (err, items) => {
         "wallet"
       ]
     },
-    "mac": {
-      "category": "public.app-category.Reference"
+    "linux": {
+      "target": "zip"
     },
-    "win": {}
+    "mac": {
+      "category": "public.app-category.Reference",
+      "target": "zip"
+    },
+    "win": {
+      "target": "portable"
+    }
   };
 
   fs.writeFileSync(fnJson, JSON.stringify(json, null, 2));
