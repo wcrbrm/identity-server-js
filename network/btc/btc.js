@@ -135,7 +135,8 @@ module.exports = ({ network = 'BTC' }) => {
   const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletPrivateConfig }) => {
     const { address, privateKey, publicKey, networkConfig } = walletPrivateConfig;
     const walletPublicConfig = { address, publicKey, networkConfig };
-
+    change = change || address;
+    
     try {
       const electrumClient = await getElectrumClient(networkConfig);
 

@@ -302,6 +302,37 @@ module.exports = (operation, options) => {
         });
 
         return;
+
+      } else if (operation === 'send_transaction') {
+        const json = getStorageJson(options, res);
+        if (!json) return;
+
+        const walletId = req.params.id;
+        const wallet = json.wallets.find(w => w.id === walletId);
+        if (!wallet) {
+          return error(res, 'Wallet not found');
+        }
+        const module = require('./../network/index')[wallet.network]({ network: wallet.network });
+        if (!module) {
+          return error(res, 'No module implemented for network ' + wallet.network);
+        }
+
+        const { amount, fee, to, change } = req.body;
+        const walletPrivateConfig = {
+          address: wallet.address,
+          privateKey: wallet.privateKey,
+          publicKey: wallet.publicKey, 
+          networkConfig: {
+            network: wallet.network,
+            networkId: wallet.networkId,
+            testnet: wallet.testnet 
+          }
+        };
+        module.sendTransaction({ amount, fee, to, change, walletPrivateConfig }).then(tx => {
+          ok(res, { tx });
+        });
+
+        return;
       }
 
       next();
