@@ -69,3 +69,6 @@ typings/
 # electron
 main.js
 public/
+
+# remove it to avoid conflicts with yarn. Yarn is the main builder for this package
+package-lock.json
