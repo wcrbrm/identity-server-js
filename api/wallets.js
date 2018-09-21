@@ -298,6 +298,11 @@ module.exports = (operation, options) => {
         const limit = req.query.limit || 10;
 
         module.getHistory({ address, networkConfig, start, limit }).then(history => {
+          history.sort((tx1, tx2) => {
+            if (!tx1.timestamp && tx2.timestamp) return Number.MIN_SAFE_INTEGER;
+            if (tx1.timestamp && !tx2.timestamp) return Number.MAX_SAFE_INTEGER;
+            return tx2.timestamp - tx1.timestamp;
+          });
           ok(res, history);
         });
 

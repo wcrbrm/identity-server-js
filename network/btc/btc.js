@@ -136,7 +136,7 @@ module.exports = ({ network = 'BTC' }) => {
     const { address, privateKey, publicKey, networkConfig } = walletPrivateConfig;
     const walletPublicConfig = { address, publicKey, networkConfig };
     change = change || address;
-    
+
     try {
       const electrumClient = await getElectrumClient(networkConfig);
 
@@ -218,6 +218,8 @@ module.exports = ({ network = 'BTC' }) => {
           if (tx.height > 0) {
             const blockHeader = await electrumClient.blockchainBlock_getHeader(tx.height);
             txDecoded.timestamp = blockHeader.timestamp;
+          } else {
+            txDecoded.timestamp = null;
           }
           return txDecoded;
         });
