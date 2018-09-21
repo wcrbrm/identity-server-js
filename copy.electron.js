@@ -75,7 +75,7 @@ fs.readdir(".", (err, items) => {
       "target": "zip"
     },
     "win": {
-      "target": "portable"
+      "target": "nsis"
     }
   };
 

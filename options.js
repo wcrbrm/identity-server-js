@@ -7,7 +7,7 @@ if (process.versions.hasOwnProperty('electron')) {
   const verbose = true;
   const cors = true;
   const storage = `${homedir}/.MasterWallet`;
-  const debug = true;
+  const debug = process.env.RELEASE ? false : true;
   module.exports = { host, port, verbose, cors, storage, debug };
 
 } else {
