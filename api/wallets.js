@@ -304,6 +304,8 @@ module.exports = (operation, options) => {
             return tx2.timestamp - tx1.timestamp;
           });
           ok(res, history);
+        }).catch(e => {
+          return error(res, e.message);
         });
 
         return;
