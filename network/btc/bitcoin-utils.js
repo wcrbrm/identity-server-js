@@ -150,7 +150,9 @@ const decodeTransaction = async ({ txid, electrumClient, network }) => {
   const receiver = {};
   outputs.forEach(o => {
     const address = o.scriptPubKey.addresses[0];
-    receiver[address] = o.value;
+    if (address && parseFloat(o.value) !== 0) {
+      receiver[address] = o.value;
+    }
   });
 
   const senderResolved = await Promise.all(senderPromise);
