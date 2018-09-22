@@ -335,8 +335,16 @@ module.exports = (operation, options) => {
             testnet: wallet.testnet 
           }
         };
-        module.sendTransaction({ amount, fee, to, change, walletPrivateConfig }).then(tx => {
-          ok(res, { tx });
+        module.sendTransaction({ 
+          amount: parseFloat(amount),
+          fee: fee ? parseFloat(fee) : null,
+          to, 
+          change, 
+          walletPrivateConfig 
+        }).then(result => {
+          ok(res, result);
+        }).catch(e => {
+          return error(res, e.message);
         });
 
         return;

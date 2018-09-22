@@ -136,7 +136,7 @@ module.exports = ({ network = 'BTC' }) => {
     const { address, privateKey, publicKey, networkConfig } = walletPrivateConfig;
     const walletPublicConfig = { address, publicKey, networkConfig };
     change = change || address;
-
+    
     try {
       const electrumClient = await getElectrumClient(networkConfig);
 
@@ -145,6 +145,8 @@ module.exports = ({ network = 'BTC' }) => {
 
       // List transaction of the address
       const from = address;
+      fee = fee || await electrumClient.blockchainEstimatefee(6); // 6 blocks waiting
+       
       const unspent = await electrumClient.blockchainAddress_listunspent(from);
       const toSpend = utils.getTxsToSpend2({ unspent, amount: (amount + fee) });
 
@@ -163,7 +165,14 @@ module.exports = ({ network = 'BTC' }) => {
       const sentTx = await electrumClient.blockchainTransaction_broadcast(tx);
 
       // should return transaction hash if succeed. Or throw exception if not
-      return sentTx;
+      return {
+        txid: sentTx,
+        from: address,
+        to,
+        change,
+        amount,
+        fee
+      };
 
     } catch (e) {
       throw new Error(e.message);
