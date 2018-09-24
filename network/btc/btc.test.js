@@ -233,4 +233,13 @@ describe("Bitcoin functions test", async (d) => {
     electrumClient.should.be.an.instanceof(ElectrumClient);
   });
 
+  it('Get Transaction Details', async () => {
+    // {tx_hash:
+    //  '69b400e3ede7cce58d93a965693169c61f1f8c99169818bd248be47d92319c7b',
+    // height: 1290 }
+    const txid = '69b400e3ede7cce58d93a965693169c61f1f8c99169818bd248be47d92319c7b';
+    const res = await bitcoin.getTransactionDetails({ networkConfig, txid });
+    //console.log(res);
+  });
+
 });

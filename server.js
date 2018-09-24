@@ -60,6 +60,7 @@ app.get(`${root}/wallets/:id`,    modWallets('info', options));
 app.get(`${root}/wallets/:id/pdf`, modWallets('pdf', options));
 app.get(`${root}/wallets/:id/history`, modWallets('history', options));
 app.post(`${root}/wallets/:id/transaction`, modWallets('send_transaction', options));
+app.get(`${root}/wallets/:id/transaction/:txId`, modWallets('transaction_details', options));
 
 const modNetworks = require('./api/networks');
 app.get(`${root}/networks/:networkId/terms`,  modNetworks('terms', options));

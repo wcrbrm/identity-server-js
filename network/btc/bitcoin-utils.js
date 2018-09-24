@@ -165,6 +165,60 @@ const decodeTransaction = async ({ txid, electrumClient, network }) => {
   }
 };
 
+const decodeTransactionAdvanced = async ({ txid, electrumClient, network }) => {
+  const transaction = {};
+  // Transaction data hash:
+  const hex = await electrumClient.blockchainTransaction_get(txid);
+  // Transaction as Buffer:
+  const tx = bitcoinJs.Transaction.fromHex(hex);
+
+  const inputs = decodeInput(tx);
+  const outputs = decodeOutput(tx, network);
+
+  transaction.txid = txid;
+  transaction.version = tx.version;
+  transaction.locktime = tx.locktime;
+  transaction.inputs = inputs;
+  transaction.outputs = outputs;
+  transaction.hex = hex;
+
+  // Timestamp is not contained in decoded transaction by BitcoinJS
+  // Get any address, related to transaction, to query history by:
+  const anyAddress = outputs[0].scriptPubKey.addresses[0];
+  const history = await electrumClient.blockchainAddress_getHistory(anyAddress);
+  // Find current transaction in history:
+  const currentTx = history.find(t => t.tx_hash === txid);
+  if (currentTx.height > 0) {
+    const blockHeader = await electrumClient.blockchainBlock_getHeader(currentTx.height);
+    transaction.timestamp = blockHeader.timestamp;
+    // Find number of confirmations: current blockchain height - block height it was confirmed in + 1
+    const topHeader = await electrumClient.blockchainHeaders_subscribe();
+    transaction.confirmations = topHeader.block_height - blockHeader.block_height + 1;
+  } else {
+    transaction.timestamp = null;
+    transaction.confirmations = 0;
+  }
+  
+  // Fee: decode all inputs, sum inputs, sum outputs, substract
+  const inputsAmountPromise = inputs.map(async input => {
+    const iHex = await electrumClient.blockchainTransaction_get(input.txid);
+    const iN = input.n;
+    const iTx = bitcoinJs.Transaction.fromHex(iHex);
+    const iOutputs = decodeOutput(iTx, network);
+    const amount = iOutputs.reduce((acc, iO) => iO.n === iN ? acc + parseFloat(iO.value) : 0, 0);
+    return amount;
+  }, 0);
+
+  const inputsAmountArr = await Promise.all(inputsAmountPromise);
+  const inputsAmount = inputsAmountArr.reduce((acc, a) => acc + a, 0);
+  const outputsAmount = outputs.reduce((acc, o) => acc + parseFloat(o.value), 0);
+  const fee = inputsAmount - outputsAmount;
+
+  transaction.fee = parse(fee);
+
+  return { ...transaction };
+};
+
 const toHex = (arrayOfBytes) => {
   numberToHex = (number) => {
     let hex = Math.round(number).toString(16);
@@ -215,6 +269,7 @@ module.exports = {
   parseSatoshi,
   toSatoshi,
   decodeTransaction,
+  decodeTransactionAdvanced,
   decodeInput,
   decodeOutput,
   toHex,

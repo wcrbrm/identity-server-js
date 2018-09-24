@@ -348,6 +348,34 @@ module.exports = (operation, options) => {
         });
 
         return;
+      } else if (operation === 'transaction_details') {
+        const json = getStorageJson(options, res);
+        if (!json) return;
+
+        const walletId = req.params.id;
+        const wallet = json.wallets.find(w => w.id === walletId);
+        if (!wallet) {
+          return error(res, 'Wallet not found');
+        }
+        const module = require('./../network/index')[wallet.network]({ network: wallet.network });
+        if (!module) {
+          return error(res, 'No module implemented for network ' + wallet.network);
+        }
+
+        const txid = req.params.txId;
+        const networkConfig = {
+          network: wallet.network,
+          networkId: wallet.networkId,
+          testnet: wallet.testnet 
+        };
+
+        module.getTransactionDetails({ networkConfig, txid }).then(result => {
+          ok(res, result);
+        }).catch(e => {
+          return error(res, e.message);
+        });
+
+        return;
       }
 
       next();

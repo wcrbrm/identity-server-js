@@ -241,8 +241,19 @@ module.exports = ({ network = 'BTC' }) => {
   };
 
   // get transaction details
-  const getTransactionDetails = ({ walletPublicConfig, txHash }) => {
-    return {};
+  const getTransactionDetails = async ({ networkConfig, txid }) => {
+    try {
+      const electrumClient = await getElectrumClient(networkConfig);
+      const network = utils.getNetwork({ networkConfig });
+      const transaction = await utils.decodeTransactionAdvanced({
+        txid,
+        electrumClient,
+        network
+      });
+      return { ...transaction };
+    } catch (e) {
+      throw new Error(e.message);
+    }
   };
 
   return {
