@@ -125,6 +125,8 @@ module.exports = ({ network = 'BTC' }) => {
           : 0
         )
       );
+      await electrumClient.close();
+
       return [{ name: 'BTC', value, cmc: getTicker('BTC')  }];
     } catch (e) {
       throw new Error(e.message);
@@ -164,6 +166,7 @@ module.exports = ({ network = 'BTC' }) => {
 
       const sentTx = await electrumClient.blockchainTransaction_broadcast(tx);
 
+      await electrumClient.close();
       // should return transaction hash if succeed. Or throw exception if not
       return {
         txid: sentTx,
@@ -190,7 +193,7 @@ module.exports = ({ network = 'BTC' }) => {
       //console.log(mempool);
 
       if (mempool && mempool.length > 0) {
-        const mempoolTransactions = mempool.map(async (m) => {
+        const mempoolTransactionsPromise = mempool.map(async (m) => {
           // Transaction id:
           const txid = m.tx_hash;
           return await utils.decodeTransaction({
@@ -199,7 +202,10 @@ module.exports = ({ network = 'BTC' }) => {
             network
           });
         });
-        return await Promise.all(mempoolTransactions);
+        const mempoolTransactions = await Promise.all(mempoolTransactionsPromise);
+        await electrumClient.close();
+
+        return mempoolTransactions; 
       }
     } catch (e) {
       throw new Error(e.message);
@@ -217,7 +223,7 @@ module.exports = ({ network = 'BTC' }) => {
       if (history && history.length > 0) {
         // We cannot limit Electrum query, but we can decode only transaction within limit
         const txsToDecode = history.splice(start, limit);
-        const decodedTransactions = txsToDecode.map(async (tx) => {
+        const decodedTransactionsPromise = txsToDecode.map(async (tx) => {
           const txid = tx.tx_hash;
           const txDecoded = await utils.decodeTransaction({
             txid,
@@ -232,7 +238,10 @@ module.exports = ({ network = 'BTC' }) => {
           }
           return txDecoded;
         });
-        return await Promise.all(decodedTransactions);
+        const decodedTransactions = await Promise.all(decodedTransactionsPromise);
+        await electrumClient.close();
+
+        return decodedTransactions;
       }
     } catch (e) {
       throw new Error(e.message);
@@ -250,6 +259,7 @@ module.exports = ({ network = 'BTC' }) => {
         electrumClient,
         network
       });
+      await electrumClient.close();
       return { ...transaction };
     } catch (e) {
       throw new Error(e.message);
