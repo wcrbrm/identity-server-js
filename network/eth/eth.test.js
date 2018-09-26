@@ -3,7 +3,9 @@ require('chai').should();
 const network = 'ETH';
 const modEthereum = require('./eth')({ network });
 const networkConfig = {
-  value: network, name: 'Ethereum', testnet: true, rpcRoot: 'http://127.0.0.1:8545',
+  value: network, name: 'Ethereum', 
+  testnet: true, 
+  rpcRoot: 'http://127.0.0.1:8545', rpc: 'http://127.0.0.1:8545',
   api: 'http://127.0.0.1:9911'
 };
 const ethNetwork = require('./ethereum-networkhelper')({ network });
@@ -177,6 +179,12 @@ describe("Ethereum network", () => {
   it.skip('Get Transaction History', async () => {
   });
   it.skip('Get Pending Transaction', async () => {
+  });
+
+  it('Query', async () => {
+    const { query, isRPCAccessible } = require('./ethereum-query');
+    //const res = await query({ method: 'web3_clientVersion', networkConfig });
+    //console.log(await isRPCAccessible({ networkConfig}));
   });
 
 });

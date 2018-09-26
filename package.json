@@ -27,6 +27,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.18.0",
+    "bignumber.js": "^7.2.1",
     "bip32": "^0.1.0",
     "bip38": "^2.0.2",
     "bip39": "^2.5.0",
@@ -38,12 +39,14 @@
     "commander": "^2.15.1",
     "cors": "^2.8.4",
     "cross-env": "^5.2.0",
+    "crypto-js": "^3.1.9-1",
     "debug": "^3.1.0",
     "electrum-client": "0.0.6",
     "eosjs": "^15.0.6",
     "eosjs-ecc": "^4.0.2",
     "ethereumjs-util": "^5.2.0",
     "express": "^4.16.3",
+    "js-sha1": "^0.6.0",
     "jssha": "^2.3.1",
     "msgpack5": "^4.2.0",
     "node-machine-id": "^1.1.10",
@@ -53,8 +56,7 @@
     "sjcl": "^1.0.7",
     "string-pixel-width": "^1.7.0",
     "web3": "^0.20.1",
-    "wif": "^2.0.6",
-    "js-sha1": "^0.6.0"
+    "wif": "^2.0.6"
   },
   "devDependencies": {
     "chai": "^4.1.2",

@@ -4,8 +4,14 @@ module.exports = ({ network = 'ETH' }) => {
   const EC = require('elliptic').ec;
   const ec = new EC('secp256k1');
   const { getTicker } = require('./../../services/coinmarketcap');
+  const ethereumQuery = require('./ethereum-query');
+  const BigNumber = require('bignumber.js');
 
-  const { getWeb3Client, getEtherscanClient } = require('./ethereum-networkhelper')({ network });
+  const { getWeb3Client, getEtherscanClient, httpEndpointFromConfig } = require('./ethereum-networkhelper')({ network });
+
+  const fromWei = (valueWei) => {
+    return (new BigNumber(valueWei).dividedBy(new BigNumber(Math.pow(10, 18)))).toString();
+  };
 
   const create = async ({ seed, index, networkConfig }) => {
     // return require('./../../services/hdwallet')
@@ -96,35 +102,60 @@ module.exports = ({ network = 'ETH' }) => {
 
   const niceFloat = x => (parseFloat(x).toFixed(6).replace(/0{1,5}$/, ''));
 
-  const getEth = ({ web3, address }) => {
-    return new Promise((resolve, reject) => {
-      web3.eth.getBalance(address, (error, response) => {
-        if (error) reject(error);
-        resolve(niceFloat(web3.fromWei(response.toNumber(), "ether")));
-      });
+  // const getEth = ({ web3, address }) => {
+  //   return new Promise((resolve, reject) => {
+  //     web3.eth.getBalance(address, (error, response) => {
+  //       if (error) reject(error);
+  //       resolve(niceFloat(web3.fromWei(response.toNumber(), "ether")));
+  //     });
+  //   });
+  // };
+
+  const getEth = ({ address, endpoint }) => {
+    return ethereumQuery.query({
+      method: 'eth_getBalance',
+      params: [ address, 'latest' ],
+      endpoint
     });
   };
 
+  // const getBalance = async ({ walletPublicConfig }) => {
+  //   const { address, networkConfig } = walletPublicConfig;
+  //   const web3 = getWeb3Client(networkConfig);
+  //   if (!web3.isConnected())
+  //      throw new Error('Cannot connect to the network');
+  //   return [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }), cmc: getTicker('ETH') }];
+  // };
+
   const getBalance = async ({ walletPublicConfig }) => {
     const { address, networkConfig } = walletPublicConfig;
-    const web3 = getWeb3Client(networkConfig);
-    if (!web3.isConnected())
+    if (!ethereumQuery.isRPCAccessible({ networkConfig }))
        throw new Error('Cannot connect to the network');
-    return [{ symbol: 'ETH', name: 'Ethereum', value: await getEth({ web3, address }), cmc: getTicker('ETH') }];
+    return [
+      { 
+        symbol: 'ETH', 
+        name: 'Ethereum', 
+        value: fromWei(await getEth({ address, endpoint: httpEndpointFromConfig(networkConfig) })), 
+        cmc: getTicker('ETH') 
+      }
+    ];
   };
 
   const getAssetsList = async ({ walletPublicConfig }) => {
     // Getting ETH balance here:
     const { address, networkConfig } = walletPublicConfig;
-    const web3 = getWeb3Client(networkConfig);
-    if (!web3.isConnected()) {
+    // const web3 = getWeb3Client(networkConfig);
+    // if (!web3.isConnected()) {
+    //    throw new Error('Cannot connect to the network');
+    // }
+    if (!ethereumQuery.isRPCAccessible({ networkConfig }))
        throw new Error('Cannot connect to the network');
-    }
 
     const assets = [{
       symbol: 'ETH',
       name: 'Ethereum',
-      value: await getEth({ web3, address }),
+      //value: await getEth({ web3, address }),
+      value: fromWei(await getEth({ address, endpoint: httpEndpointFromConfig(networkConfig) })),
       cmc: getTicker('ETH')
     }];
     const etherscan = getEtherscanClient(networkConfig);
