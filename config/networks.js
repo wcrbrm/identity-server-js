@@ -102,6 +102,11 @@ const Networks = [
       //   explorer: 'https://tobalaba.etherscan.com/',
       //   api: 'https://api-tobalaba.etherscan.com'
       // },
+      {
+        value: 'LOCAL', name: 'Local TestNet',
+        rpc: 'http://127.0.0.1:8545',
+        api: 'http://127.0.0.1:9911'
+      }
     ]
   },
   {

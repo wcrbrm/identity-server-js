@@ -11,7 +11,9 @@ module.exports = ({ network = 'ETH' }) => {
         return config.api;
       }
       if (config.networkId) {
-        const testNetDescriptor = testnets[config.networkId];
+        const testNetDescriptor = testnets.find(ntwrk => {
+          if(ntwrk.value === config.networkId) return ntwrk;
+        });
         if (typeof testNetDescriptor === 'undefined') {
           throw new Error('Ethereum Test Network is not defined');
         }
