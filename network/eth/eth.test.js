@@ -8,8 +8,10 @@ const networkConfig = {
   rpcRoot: 'http://127.0.0.1:8545', rpc: 'http://127.0.0.1:8545',
   api: 'http://127.0.0.1:9911'
 };
-const ethNetwork = require('./ethereum-networkhelper')({ network });
-const { getWeb3Client, isNetworkRunning, isEtherscanRunning } = ethNetwork;
+
+const { getWeb3Client, isNetworkRunning } = require('./web3-helper')({ network });
+const { isEtherscanRunning } = require('./etherscan-helper')({ network });
+
 const Genesis = require('./ethereum-genesis')({ network });
 
 const sleep = ms => (new Promise(resolve => { setTimeout(resolve, ms); }));

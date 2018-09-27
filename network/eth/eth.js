@@ -3,11 +3,13 @@ module.exports = ({ network = 'ETH' }) => {
   const CryptoJS = require('crypto-js');
   const EC = require('elliptic').ec;
   const ec = new EC('secp256k1');
+  const ethereumUtil = require('ethereumjs-util');
   const { getTicker } = require('./../../services/coinmarketcap');
   const ethereumQuery = require('./ethereum-query');
   const BigNumber = require('bignumber.js');
 
-  const { getWeb3Client, getEtherscanClient, httpEndpointFromConfig } = require('./ethereum-networkhelper')({ network });
+  const { httpEndpointFromConfig } = require('./ethereum-networkhelper')({ network });
+  const { getEtherscanClient } = require('./etherscan-helper')({ network });
 
   const fromWei = (valueWei) => {
     return (new BigNumber(valueWei).dividedBy(new BigNumber(Math.pow(10, 18)))).toString();
@@ -31,8 +33,9 @@ module.exports = ({ network = 'ETH' }) => {
   };
 
   const createRandom = async ({ networkConfig }) => {
-    const web3 = getWeb3Client(networkConfig);
-    const privateKey = web3.sha3((new Date().getTime()) + '' + Math.random());
+    //const web3 = getWeb3Client(networkConfig);
+    //const privateKey = web3.sha3((new Date().getTime()) + '' + Math.random());
+    const privateKey = ethereumUtil.bufferToHex(ethereumUtil.sha3((new Date().getTime()) + '' + Math.random()));
     if (!privateKey) throw new Error('Private Key was not generated for ETH');
     const address = addressFromPrivateKey({ privateKey, networkConfig });
     return { address, privateKey };
