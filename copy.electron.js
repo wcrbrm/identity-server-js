@@ -53,6 +53,12 @@ fs.readdir(".", (err, items) => {
      "pack": "build --dir",
      "dist": "build -wl --x64"
   };
+
+  const depsToRemove = ['web3'];
+  depsToRemote.forEach(dep => {
+    delete json.dependencies[dep];
+  });
+
   json.build = {
     "appId": "masterwallet.pro",
     "artifactName": "${os}-${productName}-${version}-${arch}.${ext}",
