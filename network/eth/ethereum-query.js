@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const genRpcId = () => (new Date().getTime()) + '' + Math.random();
+const genRpcId = () => (new Date().getTime()) + '.' + Math.random();
 
 const query = ({ method, params, endpoint }) => (
   axios({
