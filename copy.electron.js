@@ -5,13 +5,13 @@ const excluded = [ ".git", ".gitignore", "README.md", "LICENSE", "copy.electron.
 const program = require("commander");
 
 program
- .option("--skip-node-modules", "Skip node_modules")
+// .option("--skip-node-modules", "Skip node_modules")
  .option("--link", "Link instead of copying")
  .parse(process.argv);
 
-if (program.skipNodeModules) {
-   excluded.push("node_modules")
-}
+//if (program.skipNodeModules) {
+excluded.push("node_modules")
+//}
 
 const linking = !!program.link;
 const desktop_dir = path.dirname(__dirname) + "/masterwallet-desktop";
@@ -55,7 +55,7 @@ fs.readdir(".", (err, items) => {
   };
 
   const depsToRemove = ['web3'];
-  depsToRemote.forEach(dep => {
+  depsToRemove.forEach(dep => {
     delete json.dependencies[dep];
   });
 
