@@ -183,10 +183,35 @@ describe("Ethereum network", () => {
   it.skip('Get Pending Transaction', async () => {
   });
 
-  it('Query', async () => {
-    const { query, isRPCAccessible } = require('./ethereum-query');
-    //const res = await query({ method: 'web3_clientVersion', networkConfig });
-    //console.log(await isRPCAccessible({ networkConfig}));
+  it('Get Asset Value', async () => {
+    // https://stackoverflow.com/questions/48228662/get-token-balance-with-ethereum-rpc
+    const web3 = getWeb3Client(networkConfig);
+    const { contractAddress, abi } = await createMyTokenContract({ web3 });
+    const { address } = Genesis.createRandomAccount({ web3 });
+    const receipt = await Genesis.creditTokens({ web3, contractAddress, abi, to: address, tokens: 3000000 });
+
+    const walletPublicConfig = { address, networkConfig };
+
+    const res = await modEthereum.getAssetValue({ walletPublicConfig, contractAddress });
+    //console.log(JSON.stringify(res));
+
+    // Query with Web3:
+    // Balance
+    const contractAbi = web3.eth.contract(abi);
+    const theContract = contractAbi.at(contractAddress);
+    const balance = theContract.balanceOf.call(address);
+    // Decimals
+    const decimals = parseInt(theContract.decimals.call().toString(), 10);
+    const value = balance.toNumber() / Math.pow(10, decimals)
+    // Symbol
+    const symbol = theContract.symbol();
+    // Name
+    const name = theContract.name();
+    //console.log(value, symbol, name);
+
+    value.should.equal(res.value);
+    symbol.should.equal(res.symbol);
+    name.should.equal(res.name);
   });
 
 });

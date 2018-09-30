@@ -132,13 +132,14 @@ module.exports = ({ network = 'ETH' }) => {
 
   const getBalance = async ({ walletPublicConfig }) => {
     const { address, networkConfig } = walletPublicConfig;
-    if (!ethereumQuery.isRPCAccessible({ networkConfig }))
+    const endpoint = httpEndpointFromConfig(networkConfig);
+    if (!ethereumQuery.isRPCAccessible({ endpoint }))
        throw new Error('Cannot connect to the network');
     return [
       { 
         symbol: 'ETH', 
         name: 'Ethereum', 
-        value: fromWei(await getEth({ address, endpoint: httpEndpointFromConfig(networkConfig) })), 
+        value: fromWei(await getEth({ address, endpoint })), 
         cmc: getTicker('ETH') 
       }
     ];
@@ -151,14 +152,15 @@ module.exports = ({ network = 'ETH' }) => {
     // if (!web3.isConnected()) {
     //    throw new Error('Cannot connect to the network');
     // }
-    if (!ethereumQuery.isRPCAccessible({ networkConfig }))
+    const endpoint = httpEndpointFromConfig(networkConfig);
+    if (!ethereumQuery.isRPCAccessible({ endpoint }))
        throw new Error('Cannot connect to the network');
 
     const assets = [{
       symbol: 'ETH',
       name: 'Ethereum',
       //value: await getEth({ web3, address }),
-      value: fromWei(await getEth({ address, endpoint: httpEndpointFromConfig(networkConfig) })),
+      value: fromWei(await getEth({ address, endpoint })),
       cmc: getTicker('ETH')
     }];
     const etherscan = getEtherscanClient(networkConfig);
@@ -185,37 +187,107 @@ module.exports = ({ network = 'ETH' }) => {
 
   const contractCache = {};
 
+  // const getAssetValue = async ({ walletPublicConfig, contractAddress }) => {
+  //   const { getWeb3Client } = require('./web3-helper')({ network });
+  //   if (!contractAddress) {
+  //     throw new Error('Cannot get asset without contractAddress');
+  //   }
+  //   const { address, networkConfig } = walletPublicConfig;
+  //   const web3 = getWeb3Client(networkConfig);
+  //   if (!web3.isConnected()) {
+  //      throw new Error('Cannot connect to the network');
+  //   }
+
+  //   if (!contractCache[contractAddress]) contractCache[contractAddress] = {};
+  //   const cachedContract = contractCache[contractAddress] || {};
+
+  //   const abi = getErc20Abi();
+  //   const contractAbi = web3.eth.contract(abi);
+  //   const theContract = contractAbi.at(contractAddress);
+  //   const debug = require('debug')('eth.getassetvalue');
+  //   debug('contract at', contractAddress, JSON.stringify(Object.keys(theContract)));
+  //   const balance = theContract.balanceOf.call(address);
+
+  //   let decimals = 18;
+  //   if (typeof cachedContract.decimals === 'undefined') {
+  //     decimals = parseInt(theContract.decimals.call().toString(), 10);
+  //     contractCache[contractAddress].decimals = decimals;
+  //   }
+  //   const value = balance.toNumber() / Math.pow(10, decimals);
+  //   debug('balance:', balance.toString(), 'decimals:', decimals, 'value:', value);
+  //   const asset = { value, decimals, contractAddress };
+
+  //   try {
+  //     const symbol = cachedContract.symbol || theContract.symbol();
+  //     if (symbol) {
+  //       debug('token contract symbol:', symbol);
+  //       asset.symbol = symbol;
+  //       contractCache[contractAddress].symbol = symbol;
+  //     }
+  //   } catch (e) {
+  //     debug('token symbol extraction error', e.toString());
+  //   }
+
+  //   try {
+  //     const name = cachedContract.name || theContract.name();
+  //     if (name) {
+  //       debug('token contract name:', name);
+  //       asset.name = name;
+  //       contractCache[contractAddress].name = name;
+  //     }
+  //   } catch (e) {
+  //     debug('token name extraction error', e.toString());
+  //   }
+  //   return asset;
+  // };
+
   const getAssetValue = async ({ walletPublicConfig, contractAddress }) => {
     if (!contractAddress) {
       throw new Error('Cannot get asset without contractAddress');
     }
     const { address, networkConfig } = walletPublicConfig;
-    const web3 = getWeb3Client(networkConfig);
-    if (!web3.isConnected()) {
-       throw new Error('Cannot connect to the network');
+
+    const endpoint = httpEndpointFromConfig(networkConfig);
+    if (!ethereumQuery.isRPCAccessible({ endpoint })) {
+      throw new Error('Cannot connect to the network');
     }
 
     if (!contractCache[contractAddress]) contractCache[contractAddress] = {};
     const cachedContract = contractCache[contractAddress] || {};
 
     const abi = getErc20Abi();
-    const contractAbi = web3.eth.contract(abi);
-    const theContract = contractAbi.at(contractAddress);
+
     const debug = require('debug')('eth.getassetvalue');
-    debug('contract at', contractAddress, JSON.stringify(Object.keys(theContract)));
-    const balance = theContract.balanceOf.call(address);
+    debug('contract at', contractAddress);
+
+    const callParams = { address, contractAddress, abi, endpoint };
+
+    const balance = await ethereumQuery.callContract({
+      ...callParams,
+      contractMethod: 'balanceOf',
+      contractParams: [ address ],
+    });
 
     let decimals = 18;
     if (typeof cachedContract.decimals === 'undefined') {
-      decimals = parseInt(theContract.decimals.call().toString(), 10);
+      decimals = await ethereumQuery.callContract({
+        ...callParams, contractMethod: 'decimals'
+      });
       contractCache[contractAddress].decimals = decimals;
     }
-    const value = balance.toNumber() / Math.pow(10, decimals);
-    debug('balance:', balance.toString(), 'decimals:', decimals, 'value:', value);
+    const value = balance / Math.pow(10, decimals);
+    debug('balance:', balance, 'decimals:', decimals, 'value:', value);
     const asset = { value, decimals, contractAddress };
 
     try {
-      const symbol = cachedContract.symbol || theContract.symbol();
+      let symbol;
+      if (cachedContract.symbol) {
+        symbol = cachedContract.symbol;
+      } else {
+        symbol = await ethereumQuery.callContract({
+          ...callParams, contractMethod: 'symbol'
+        });
+      }
       if (symbol) {
         debug('token contract symbol:', symbol);
         asset.symbol = symbol;
@@ -226,7 +298,14 @@ module.exports = ({ network = 'ETH' }) => {
     }
 
     try {
-      const name = cachedContract.name || theContract.name();
+      let name;
+      if (cachedContract.name) {
+        name = cachedContract.name;
+      } else {
+        name = await ethereumQuery.callContract({
+          ...callParams, contractMethod: 'name'
+        });
+      }
       if (name) {
         debug('token contract name:', name);
         asset.name = name;
