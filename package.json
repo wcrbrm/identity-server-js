@@ -1,6 +1,6 @@
 {
   "name": "identity-server-js",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Masterwallet - Identity Server (NodeJS)",
   "main": "server.js",
   "scripts": {
