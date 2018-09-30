@@ -2,7 +2,7 @@ const axios = require('axios');
 const ethereumUtil = require('ethereumjs-util');
 const BigNumber = require('bignumber.js');
 
-const genRpcId = () => (new Date().getTime()) + '' + Math.random();
+const genRpcId = () => (new Date().getTime()) + '.' + Math.random();
 
 const query = ({ method, params, endpoint }) => (
   axios({
