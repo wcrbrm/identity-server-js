@@ -57,6 +57,7 @@ fs.readdir(".", (err, items) => {
   const depsToRemove = ['web3'];
   depsToRemove.forEach(dep => {
     delete json.dependencies[dep];
+    delete json.devDependencies[dep];
   });
 
   json.build = {
