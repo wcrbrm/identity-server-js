@@ -360,7 +360,19 @@ module.exports = ({ network = 'ETH' }) => {
         method: 'eth_sendRawTransaction', params: [ rawTx ], endpoint
       });
 
-      return txHash;
+      // Calculate fee:
+      const receipt = await ethereumQuery.query({
+        method: 'eth_getTransactionReceipt', params: [ txHash ], endpoint
+      });
+      const fee = fromWei(receipt.gasUsed * gasPrice);
+
+      return {
+        txid: txHash,
+        from: address,
+        to,
+        amount,
+        fee
+      };
 
     } catch (e) {
       throw new Error(e.message);
