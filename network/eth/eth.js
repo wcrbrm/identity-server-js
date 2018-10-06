@@ -4,6 +4,7 @@ module.exports = ({ network = 'ETH' }) => {
   const EC = require('elliptic').ec;
   const ec = new EC('secp256k1');
   const ethereumUtil = require('ethereumjs-util');
+  const EthereumTransaction = require('ethereumjs-tx');
   const { getTicker } = require('./../../services/coinmarketcap');
   const ethereumQuery = require('./ethereum-query');
   const BigNumber = require('bignumber.js');
@@ -13,6 +14,14 @@ module.exports = ({ network = 'ETH' }) => {
 
   const fromWei = (valueWei) => {
     return (new BigNumber(valueWei).dividedBy(new BigNumber(Math.pow(10, 18)))).toString();
+  };
+
+  const toWei = (valueEth) => {
+    return (new BigNumber(valueEth).multipliedBy(new BigNumber(Math.pow(10, 18)))).toNumber();
+  };
+
+  const toWeiHex = (valueEth) => {
+    return `0x${(new BigNumber(valueEth).multipliedBy(new BigNumber(Math.pow(10, 18)))).toString(16)}`;
   };
 
   const create = async ({ seed, index, networkConfig }) => {
@@ -319,12 +328,43 @@ module.exports = ({ network = 'ETH' }) => {
 
   const sendTransaction = async ({ asset = 'ETH', amount, to, walletPrivateConfig }) => {
 
-    if (asset === 'ETH') {
-    } else {
-    }
+    const { address, privateKey, networkConfig } = walletPrivateConfig;
+    const endpoint = httpEndpointFromConfig(networkConfig);
+    const value = toWeiHex(amount);
 
-    return '0x000000000000000000000000000000000000';
-    // should return transaction hash if succeed. Or throw exception if not
+    try {
+      const nonce = await ethereumQuery.query({
+        method: 'eth_getTransactionCount', params: [ address, 'latest' ], endpoint
+      });
+  
+      const gasPrice = await ethereumQuery.query({
+        method: 'eth_gasPrice', params: [], endpoint
+      });
+  
+      const gasLimit = await ethereumQuery.query({
+        method: 'eth_estimateGas', params : [{
+          from: address,
+          to,
+          value
+        }], endpoint
+      });
+  
+      const txParams = { nonce, gasPrice, gasLimit, to, value };
+      const tx = new EthereumTransaction(txParams);
+      const privKeyBuffer = Buffer.from(privateKey.substring(2), 'hex');
+      tx.sign(privKeyBuffer);
+      const serializedTx = tx.serialize();
+      const rawTx = '0x' + serializedTx.toString('hex');
+      
+      const txHash = await ethereumQuery.query({
+        method: 'eth_sendRawTransaction', params: [ rawTx ], endpoint
+      });
+
+      return txHash;
+
+    } catch (e) {
+      throw new Error(e.message);
+    }
   };
 
   // get list of pending transactions
@@ -356,7 +396,10 @@ module.exports = ({ network = 'ETH' }) => {
     sendTransaction,
     getPending,
     getHistory,
-    getTransactionDetails
+    getTransactionDetails,
+    fromWei,
+    toWei,
+    toWeiHex
   };
 
 };
