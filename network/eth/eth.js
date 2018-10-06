@@ -385,7 +385,23 @@ module.exports = ({ network = 'ETH' }) => {
   };
 
   // get list of past transactions. could paging be better?
-  const getHistory = ({ walletPrivateConfig, start = 0, limit = 100 }) => {
+  const getHistory = async ({ address, networkConfig, start = 0, limit = 100 }) => {;
+    const etherscan = getEtherscanClient(networkConfig);
+    const result = await etherscan.getAccountHistory(address);
+
+    if (result.length > 0) {
+      const history = [];
+      result.forEach(txData => {
+        history.push({
+          txid: txData.hash,
+          timestamp: txData.timeStamp, 
+          sender: { [txData.from]: fromWei(txData.value) }, 
+          receiver: { [txData.to]: fromWei(txData.value) } 
+        });
+      });
+      return history;
+    }
+
     return [];
   };
 

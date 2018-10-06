@@ -155,7 +155,7 @@ describe("Ethereum network", () => {
     myToken.length.should.equal(1, 'MY-token records');
   });
 
-  it.only('Send ETH', async () => {
+  it('Send ETH', async () => {
 
     const web3 = getWeb3Client(networkConfig);
 
@@ -193,8 +193,14 @@ describe("Ethereum network", () => {
   it.skip('Send Assets', async () => {
   });
 
-  it.skip('Get Transaction History', async () => {
+  it('Get Transaction History', async () => {
+    const endpoint = httpEndpointFromConfig(networkConfig);
+    //const address = '0xCA3fF259F4F2F295772a9cE6d2d65fb90b3a769B';
+    const address = '0xF83883FE4866A407e4f035cB6C4b359CfC4e2eeA';
+    const walletPublicConfig = { address, networkConfig };
+    const res = modEthereum.getHistory({ walletPublicConfig });
   });
+  
   it.skip('Get Pending Transaction', async () => {
   });
 
