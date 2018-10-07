@@ -137,6 +137,7 @@ module.exports = ({ network = 'BTC' }) => {
   const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletPrivateConfig }) => {
     const { address, privateKey, publicKey, networkConfig } = walletPrivateConfig;
     const walletPublicConfig = { address, publicKey, networkConfig };
+    amount = utils.parse(amount);
     change = change || address;
     
     try {
@@ -147,8 +148,8 @@ module.exports = ({ network = 'BTC' }) => {
 
       // List transaction of the address
       const from = address;
-      fee = fee || await electrumClient.blockchainEstimatefee(6); // 6 blocks waiting
-       
+      fee = fee ? utils.parse(fee) : await electrumClient.blockchainEstimatefee(6); // 6 blocks waiting
+      
       const unspent = await electrumClient.blockchainAddress_listunspent(from);
       const toSpend = utils.getTxsToSpend2({ unspent, amount: (amount + fee) });
 
