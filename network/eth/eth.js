@@ -326,7 +326,7 @@ module.exports = ({ network = 'ETH' }) => {
     return asset;
   };
 
-  const sendTransaction = async ({ asset = 'ETH', amount, to, walletPrivateConfig }) => {
+  const sendTransaction = async ({ asset = 'ETH', amount, to, contractAddress, walletPrivateConfig }) => {
 
     const { address, privateKey, networkConfig } = walletPrivateConfig;
     const endpoint = httpEndpointFromConfig(networkConfig);
@@ -340,16 +340,34 @@ module.exports = ({ network = 'ETH' }) => {
       const gasPrice = await ethereumQuery.query({
         method: 'eth_gasPrice', params: [], endpoint
       });
+
+      const txParams = { from: address };
+      
+      if (contractAddress) {
+        // Smart contract transaction
+        const abi = getErc20Abi();
+        txParams.to = contractAddress;
+
+        // data: method - transfer, _to - address, _value - uint256
+        const methodSpec = ethereumQuery.getMethodSpec({ abi, contractMethod: 'transfer' });
+        txParams.data = ethereumQuery.encodeParams({ methodSpec, contractParams: [ to, value ] });
+
+      } else {
+        // ETH transaction 
+        txParams.to = to;
+        txParams.value = value;
+      }
   
       const gasLimit = await ethereumQuery.query({
-        method: 'eth_estimateGas', params : [{
-          from: address,
-          to,
-          value
-        }], endpoint
+        method: 'eth_estimateGas', 
+        params: [ { ...txParams } ], 
+        endpoint
       });
-  
-      const txParams = { nonce, gasPrice, gasLimit, to, value };
+
+      txParams.nonce = nonce;
+      txParams.gasPrice = gasPrice;
+      txParams.gasLimit = gasLimit;
+      
       const tx = new EthereumTransaction(txParams);
       const privKeyBuffer = Buffer.from(privateKey.substring(2), 'hex');
       tx.sign(privKeyBuffer);

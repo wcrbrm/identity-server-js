@@ -127,11 +127,11 @@ module.exports = ({ network = 'BTC' }) => {
       );
       await electrumClient.close();
 
-      return [{ name: 'BTC', value, cmc: getTicker('BTC')  }];
+      return [{ symbol: 'BTC', name: 'Bitcoin', value, cmc: getTicker('BTC')  }];
     } catch (e) {
       throw new Error(e.message);
     }
-    return [{ name: 'BTC', value: 0 }];
+    return [{ symbol: 'BTC', name: 'Bitcoin', value: 0 }];
   };
 
   const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletPrivateConfig }) => {

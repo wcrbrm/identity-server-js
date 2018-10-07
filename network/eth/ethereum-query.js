@@ -41,25 +41,8 @@ const callContract = async ({
   endpoint 
 }) => {
 
-  // Get contract method specification from ABI
-  const methodSpec = abi.find(spec => {
-    if (spec.name === contractMethod) return spec;
-  });
-  const paramTypesStr = methodSpec.inputs.map(input => input.type).join(',');
-  const methodHash = ethereumUtil.sha3(`${contractMethod}(${paramTypesStr})`).slice(0, 4).toString('hex');
-  contractParams = contractParams || [];
-  // Encode params
-  const encodedParams = methodSpec.inputs.map((input, i) => {
-    const { type } = input;
-    const value = contractParams[i];
-    // TODO: handle other param types
-    switch (type) {
-      case 'address': {
-        return value.substring(2).padStart(64, '0');
-      }
-    }
-  });
-  const data = `0x${methodHash}${encodedParams.join('')}`;
+  const methodSpec = getMethodSpec({ abi, contractMethod });
+  const data = encodeParams({ methodSpec, contractParams });
 
   const response = await query({ method: 'eth_call', params: [
     { 
@@ -82,6 +65,26 @@ const callContract = async ({
   }
 };
 
+const encodeParams = ({ methodSpec, contractParams }) => {
+  const contractMethod = methodSpec.name;
+  const paramTypesStr = methodSpec.inputs.map(input => input.type).join(',');
+  const methodHash = ethereumUtil.sha3(`${contractMethod}(${paramTypesStr})`).slice(0, 4).toString('hex');
+  contractParams = contractParams || [];
+  // Encode params
+  const encodedParams = methodSpec.inputs.map((input, i) => {
+    const { type } = input;
+    const value = contractParams[i];
+    // TODO: handle other param types
+    switch (type) {
+      case 'address':
+      case 'uint256': {
+        return value.substring(2).padStart(64, '0');
+      }
+    }
+  });
+  return `0x${methodHash}${encodedParams.join('')}`;
+};
+
 const decodeString = (response) => {
   // web3/lib/solidity/type.js: remove 0x, substr starting from 64 length 64*2
   const param = response.substr(64 + 2, 64 * 2);
@@ -95,8 +98,17 @@ const decodeString = (response) => {
   return string;
 };
 
+const getMethodSpec = ({ abi, contractMethod }) => {
+  // Get contract method specification from ABI
+  return abi.find(spec => {
+    if (spec.name === contractMethod) return spec;
+  });
+};
+
 module.exports = {
   query,
   isRPCAccessible,
-  callContract
+  callContract,
+  encodeParams,
+  getMethodSpec
 };

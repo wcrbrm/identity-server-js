@@ -324,7 +324,7 @@ module.exports = (operation, options) => {
           return error(res, 'No module implemented for network ' + wallet.network);
         }
 
-        const { amount, fee, to, change } = req.body;
+        const { amount, fee, to, change, asset, contractAddress } = req.body;
         const walletPrivateConfig = {
           address: wallet.address,
           privateKey: wallet.privateKey,
@@ -335,11 +335,13 @@ module.exports = (operation, options) => {
             testnet: wallet.testnet 
           }
         };
-        module.sendTransaction({ 
+        module.sendTransaction({
+          asset,
           amount: parseFloat(amount),
           fee: fee ? parseFloat(fee) : null,
           to, 
-          change, 
+          change,
+          contractAddress,
           walletPrivateConfig 
         }).then(result => {
           ok(res, result);
