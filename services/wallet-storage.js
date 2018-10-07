@@ -17,7 +17,7 @@ function WalletStorage(json) {
     if (!this.json.wallets) return 0;
     const debug = require('debug')('wallet-storage.next-index');
     return this.json.wallets
-      .filter(w => (w && w.network === network))
+      .filter(w => (w && w.network === network && w.index !== undefined))
       .reduce((accumulator, w) => {
         debug("accumulator=", accumulator, "index=", w.index);
         return Math.max(accumulator, w.index)
