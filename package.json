@@ -1,6 +1,6 @@
 {
   "name": "identity-server-js",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Masterwallet - Identity Server (NodeJS)",
   "main": "server.js",
   "scripts": {
@@ -12,11 +12,10 @@
     "test": "mocha -w --timeout=20000 network/**/*.test.js api/*.test.js",
     "start": "cross-env DEBUG=*,-follow-redirects nodemon server.js --cors",
     "all": "npm-run-all --parallel start test",
-    "start:eth:testrpc": "ganache-cli -l 1999999",
-    "start:eth:etherscan": "cd ../etherscan-server && npm run start",
-    "start:eth:etherscan:delayed": "run-s delay start:eth:etherscan",
+    "start:eth:testrpc": "ganache-cli -l 1999999 | grep -v getFilterChanges",
+    "start:eth:etherscan": "cd ../etherscan-server && wait-on tcp:8545 && npm run start",
     "delay": "npm-delay 2000",
-    "start:eth": "npm-run-all --parallel start:eth:testrpc start:eth:etherscan:delayed",
+    "start:eth": "npm-run-all --parallel start:eth:testrpc start:eth:etherscan",
     "start:eos": "nodeos -e -p eosio --contracts-console --http-server-address=\"0.0.0.0:8888\" --access-control-allow-origin \"*\" --access-control-allow-headers \"*\" --access-control-allow-credentials true --plugin eosio::history_api_plugin --plugin eosio::chain_api_plugin --http-validate-host=false --verbose-http-errors 2>&1 | grep -v produce_block",
     "reset:eos": "rm -rf ~/.local/share/eosio/nodeos",
     "electron": "node copy.electron.js --link",
@@ -62,14 +61,14 @@
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
     "electron": "^2.0.8",
+    "electron-builder": "~20.28.4",
     "ganache-cli": "^6.1.6",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.3",
-    "npm-delay": "^1.0.4",
     "npm-run-all": "^4.1.3",
     "shelljs": "^0.8.2",
     "spectron": "^4.0.0",
-    "web3": "^0.20.1",
-    "electron-builder": "~20.28.4"
+    "wait-on": "^3.1.0",
+    "web3": "^0.20.1"
   }
 }
