@@ -267,6 +267,28 @@ module.exports = ({ network = 'BTC' }) => {
     }
   };
 
+  const estimateFee = async ({ networkConfig }) => {
+    const electrumClient = await getElectrumClient(networkConfig);
+    let blocks = 6;
+    let fee = -1;
+    while (fee === -1) {
+      // btc/kb
+      fee = await electrumClient.blockchainEstimatefee(blocks);
+      blocks += 6;
+    };
+    await electrumClient.close();
+    
+    const avTxSize = 250; // byte
+    fee = utils.parse(fee / avTxSize);
+    const min = utils.parse(fee - fee * 0.9); // -90%
+    const max = utils.parse(fee + fee * 0.9); // +90%
+
+    // Find step:
+    const step = parseFloat('0.' + '1'.padStart(/[1-9]/.exec(fee.toString().substring(2)).index + 1 , '0'));
+
+    return { fee, min, max, step, units: 'BTC' };
+  };
+
   return {
     isValidAddress,
     addressFromPrivateKey, // getting address from private key and network config (optional)
@@ -278,7 +300,8 @@ module.exports = ({ network = 'BTC' }) => {
     sendTransaction,
     getPending,
     getHistory,
-    getTransactionDetails
+    getTransactionDetails,
+    estimateFee
   };
 
 }

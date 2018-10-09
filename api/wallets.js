@@ -378,6 +378,33 @@ module.exports = (operation, options) => {
         });
 
         return;
+      } else if (operation === 'fee') {
+        const json = getStorageJson(options, res);
+        if (!json) return;
+
+        const walletId = req.params.id;
+        const wallet = json.wallets.find(w => w.id === walletId);
+        if (!wallet) {
+          return error(res, 'Wallet not found');
+        }
+        const module = require('./../network/index')[wallet.network]({ network: wallet.network });
+        if (!module) {
+          return error(res, 'No module implemented for network ' + wallet.network);
+        }
+        if (typeof module.estimateFee !== 'function') {
+          return error(res, 'estimateFee is not implemented for ' + wallet.network);
+        }
+
+        const networkConfig = {
+          network: wallet.network,
+          networkId: wallet.networkId,
+          testnet: wallet.testnet 
+        };
+        module.estimateFee({ networkConfig }).then(fee => {
+          ok(res, fee);
+        });
+
+        return;
       }
 
       next();

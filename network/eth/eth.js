@@ -326,7 +326,7 @@ module.exports = ({ network = 'ETH' }) => {
     return asset;
   };
 
-  const sendTransaction = async ({ asset = 'ETH', amount, to, contractAddress, walletPrivateConfig }) => {
+  const sendTransaction = async ({ asset = 'ETH', amount, to, fee, contractAddress, walletPrivateConfig }) => {
 
     const { address, privateKey, networkConfig } = walletPrivateConfig;
     const endpoint = httpEndpointFromConfig(networkConfig);
@@ -337,7 +337,7 @@ module.exports = ({ network = 'ETH' }) => {
         method: 'eth_getTransactionCount', params: [ address, 'latest' ], endpoint
       });
   
-      const gasPrice = await ethereumQuery.query({
+      const gasPrice = fee || await ethereumQuery.query({
         method: 'eth_gasPrice', params: [], endpoint
       });
 
@@ -398,8 +398,36 @@ module.exports = ({ network = 'ETH' }) => {
   };
 
   // get list of pending transactions
-  const getPending = ({ walletPublicConfig }) => {
-    return [];
+  // TODO: pending for particular address only
+  const getPending = async ({ walletPublicConfig }) => {
+    const { networkConfig, address } = walletPublicConfig;
+    const endpoint = httpEndpointFromConfig(networkConfig);
+
+    const filterId = await ethereumQuery.query({ 
+      method: 'eth_newPendingTransactionFilter', 
+      endpoint
+    });
+
+    // const filterId = await ethereumQuery.query({ 
+    //   method: 'eth_newFilter',
+    //   params: [{ fromBlock: 'earliest', toBlock: 'latest' }],
+    //   topics: [ address ],
+    //   endpoint
+    // }); 
+
+    const changes = await ethereumQuery.query({ 
+      method: 'eth_getFilterChanges', 
+      params: [ filterId ],
+      endpoint 
+    });
+
+    await ethereumQuery.query({ 
+      method: 'eth_uninstallFilter', 
+      params: [ filterId ], 
+      endpoint 
+    });
+
+    return changes;
   };
 
   // get list of past transactions. could paging be better?
@@ -428,6 +456,22 @@ module.exports = ({ network = 'ETH' }) => {
     return {};
   };
 
+  const estimateFee = async ({ networkConfig }) => {
+    const endpoint = httpEndpointFromConfig(networkConfig);
+    const gasPrice = await ethereumQuery.query({
+      method: 'eth_gasPrice', params: [], endpoint
+    });
+    // to gwei:
+    const fee = (new BigNumber(gasPrice).dividedBy(new BigNumber(Math.pow(10, 9)))).toNumber();
+    return { 
+      fee: fee,
+      min: fee - fee * 0.9, // -90%
+      max: fee + fee * 0.9, // +90%
+      step: 1,
+      units: 'gwei' 
+    };
+  };
+
   return {
     create,            // generate keypair for HD wallet
     addressFromPrivateKey, // getting address from private key and network config (optional)
@@ -445,7 +489,8 @@ module.exports = ({ network = 'ETH' }) => {
     getTransactionDetails,
     fromWei,
     toWei,
-    toWeiHex
+    toWeiHex,
+    estimateFee
   };
 
 };
