@@ -270,21 +270,23 @@ module.exports = ({ network = 'BTC' }) => {
   const estimateFee = async ({ networkConfig }) => {
     const electrumClient = await getElectrumClient(networkConfig);
     let blocks = 6;
-    let fee = -1;
-    while (fee === -1) {
+    let feePerKb = -1;
+    while (feePerKb === -1) {
       // btc/kb
-      fee = await electrumClient.blockchainEstimatefee(blocks);
+      feePerKb = await electrumClient.blockchainEstimatefee(blocks);
       blocks += 6;
     };
     await electrumClient.close();
     
     const avTxSize = 250; // byte
-    fee = utils.parse(fee / avTxSize);
-    const min = utils.parse(fee - fee * 0.9); // -90%
-    const max = utils.parse(fee + fee * 0.9); // +90%
+    let fee = utils.parse(avTxSize * feePerKb / 1000);
+    const digits = /[1-9]/.exec(fee.toString().substring(2)).index + 2;
+    fee = parseFloat(fee.toFixed(digits));
+    const min = parseFloat(utils.parse(fee - fee * 0.9).toFixed(digits)); // -90%
+    const max = parseFloat(utils.parse(fee + fee * 0.9).toFixed(digits)); // +90%
 
     // Find step:
-    const step = parseFloat('0.' + '1'.padStart(/[1-9]/.exec(fee.toString().substring(2)).index + 1 , '0'));
+    const step = parseFloat('0.' + '1'.padStart(digits + 1 , '0'));
 
     return { fee, min, max, step, units: 'BTC' };
   };
