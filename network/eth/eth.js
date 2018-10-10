@@ -336,7 +336,7 @@ module.exports = ({ network = 'ETH' }) => {
       const nonce = await ethereumQuery.query({
         method: 'eth_getTransactionCount', params: [ address, 'latest' ], endpoint
       });
-  
+      
       const gasPrice = fee || await ethereumQuery.query({
         method: 'eth_gasPrice', params: [], endpoint
       });
@@ -377,19 +377,19 @@ module.exports = ({ network = 'ETH' }) => {
       const txHash = await ethereumQuery.query({
         method: 'eth_sendRawTransaction', params: [ rawTx ], endpoint
       });
-
+      
       // Calculate fee:
       const receipt = await ethereumQuery.query({
         method: 'eth_getTransactionReceipt', params: [ txHash ], endpoint
       });
-      const fee = fromWei(receipt.gasUsed * gasPrice);
+      const actualFee = fromWei(receipt.gasUsed * gasPrice);
 
       return {
         txid: txHash,
         from: address,
         to,
         amount,
-        fee
+        fee: actualFee
       };
 
     } catch (e) {
