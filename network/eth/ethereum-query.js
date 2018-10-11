@@ -105,10 +105,49 @@ const getMethodSpec = ({ abi, contractMethod }) => {
   });
 };
 
+const getErc20Abi = () => {
+  const fs = require('fs');
+  const jsonPath = __dirname + "/MyToken.json";
+  const json = JSON.parse(fs.readFileSync(jsonPath));
+  const { abi } = json;
+  return abi;
+};
+
+const makeTransactionParams = ({ asset, from, to, value, data = '', contractAddress }) => {
+  const txParams = { from }; 
+
+  if (asset !== 'ETH') {
+    // Smart contract transaction
+    const abi = getErc20Abi();
+    txParams.to = contractAddress;
+
+    if (!data) {
+      // Transfer asset to another address
+
+      // data: method - transfer, _to - address, _value - uint256
+      const methodSpec = getMethodSpec({ abi, contractMethod: 'transfer' });
+      txParams.data = encodeParams({ methodSpec, contractParams: [ to, value ] });
+    } else {
+      // Call custom method of contract
+      txParams.data = '0x' + Buffer.from(data, 'hex').toString('hex');
+    }
+
+  } else {
+    // ETH transaction 
+    txParams.to = to;
+    txParams.value = value;
+    txParams.data = '0x' + Buffer.from(data, 'hex').toString('hex');
+  }
+
+  return txParams;
+};
+
 module.exports = {
   query,
   isRPCAccessible,
   callContract,
   encodeParams,
-  getMethodSpec
+  getMethodSpec,
+  makeTransactionParams,
+  getErc20Abi
 };

@@ -155,7 +155,7 @@ describe("Ethereum network", () => {
     myToken.length.should.equal(1, 'MY-token records');
   });
 
-  it.only('Send ETH', async () => {
+  it('Send ETH', async () => {
 
     const web3 = getWeb3Client(networkConfig);
 
@@ -179,42 +179,70 @@ describe("Ethereum network", () => {
     }), 16);
     const gasFee = gasPrice * gasLimit;
 
-    console.log('gasLimit=', gasLimit, 'gasFee=', gasFee);
+    //console.log('gasLimit=', gasLimit, 'gasFee=', gasFee);
     
     Genesis.creditAccount({ web3, address, value: modEthereum.toWei(amount) + gasFee});
-    // let is record and be saved in etherscan
-    await sleep(1000);
 
     const balanceOfSender = await modEthereum.getBalance({ walletPublicConfig: walletPrivateConfig });
-    console.log('credited address=', address, ', balanceOfSender=', balanceOfSender[0].value, 'in wei:', modEthereum.toWei(balanceOfSender[0].value));
+    //console.log('credited address=', address, ', balanceOfSender=', balanceOfSender[0].value, 'in wei:', modEthereum.toWei(balanceOfSender[0].value));
 
     balanceOfSender[0].should.be.a('object');
     balanceOfSender[0].symbol.should.equal('ETH');
-    // balanceOfSender[0].value.should.equal((amount + parseFloat(modEthereum.fromWei(gasFee))).toString());
+    balanceOfSender[0].value.should.equal((amount + parseFloat(modEthereum.fromWei(gasFee))).toString());
 
     // use modEthereum.sendTransaction to send the funds
     const res = await modEthereum.sendTransaction({ asset: 'ETH', to: dest.address, amount, gasPrice, gasLimit, walletPrivateConfig });
-   console.log(res);
+    //console.log(res);
     const balanceOfDestination = await modEthereum.getBalance({ walletPublicConfig: { networkConfig, address: dest.address } });
-    console.log(res, balanceOfDestination);
+    //console.log(res, balanceOfDestination);
+    balanceOfDestination[0].value.should.equal(amount.toString(10));
   });
 
-  it.skip('Send Assets', async () => {
+  it('Send Assets', async () => {
     const web3 = getWeb3Client(networkConfig);
     const account1 = await modEthereum.createRandom({ networkConfig });
+    const account2 = await modEthereum.createRandom({ networkConfig });
     const { contractAddress, abi } = await createMyTokenContract({ web3 });
-    const walletPrivateConfig = { address: account1.address, privateKey: account1.privateKey, networkConfig };
+    const walletPrivateConfig = { 
+      address: account1.address, 
+      privateKey: account1.privateKey, 
+      networkConfig 
+    };
     await Genesis.creditAccount({ web3, address: account1.address, value: modEthereum.toWei(10) });
     await Genesis.creditTokens({ web3, contractAddress, abi, to: account1.address, tokens: 3 * Math.pow(10, 18) });
-    //const acc1Balance = await modEthereum.getBalance({ walletPublicConfig: walletPrivateConfig });
-    //const acc1AssetVal = await modEthereum.getAssetValue({ walletPublicConfig: walletPrivateConfig, contractAddress });
-    const acc1Balance = await web3.eth.getBalance(account1.address);
+    // const acc1Balance = await modEthereum.getBalance({ walletPublicConfig: walletPrivateConfig });
+    // const acc1AssetVal = await modEthereum.getAssetValue({ walletPublicConfig: walletPrivateConfig, contractAddress });
+    // console.log(acc1Balance, acc1AssetVal);
+
+    const endpoint = httpEndpointFromConfig(walletPrivateConfig.networkConfig);
+    const gasPrice = 41 * 1e9; // 41 GWei 
+
+    const methodSpec = ethereumQuery.getMethodSpec({ abi, contractMethod: 'transfer' });
+    const contractParams = [ account2.address, `0x${(1 * Math.pow(10, 18)).toString(16)}` ];
+    const data = ethereumQuery.encodeParams({ methodSpec, contractParams });
     
-    console.log(acc1Balance.toString());
-    const account2 = await modEthereum.createRandom({ networkConfig });
-    const tx = await modEthereum.sendTransaction({ amount: 1, to: account2.address, walletPrivateConfig });
-    // const balance = await modEthereum.getAssetValue({ walletPublicConfig: { address: account2.address, networkConfig }, contractAddress });
-    // console.log(balance);
+    const gasLimit = parseInt( await ethereumQuery.query({
+      method: 'eth_estimateGas', params : [{
+        from: account1.address,
+        to: contractAddress,
+        data
+      }], endpoint
+    }), 16);
+    //console.log(gasLimit);
+
+    const tx = await modEthereum.sendTransaction({
+      asset: 'MY',
+      amount: 1,
+      to: account2.address, 
+      gasPrice,
+      gasLimit,
+      contractAddress,
+      walletPrivateConfig 
+    });
+
+    const balance = await modEthereum.getAssetValue({ walletPublicConfig: { address: account2.address, networkConfig }, contractAddress });
+    //console.log(balance);
+    balance.value.should.equal(1);
   });
 
   it('Get Transaction History', async () => {
@@ -274,14 +302,6 @@ describe("Ethereum network", () => {
     value.should.equal(res.value);
     symbol.should.equal(res.symbol);
     name.should.equal(res.name);
-  });
-
-  it('Estimate Gas', async () => {
-    // ETH transaction: from, to, value
-
-    // Asset transfer: from, to, contractAddress, value
-
-    // Calling custom 
   });
 
 });

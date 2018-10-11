@@ -324,7 +324,7 @@ module.exports = (operation, options) => {
           return error(res, 'No module implemented for network ' + wallet.network);
         }
 
-        const { amount, fee, to, change, asset, contractAddress } = req.body;
+        const { asset, amount, to, change, fee, gasPrice, gasLimit, data, contractAddress } = req.body;
         const walletPrivateConfig = {
           address: wallet.address,
           privateKey: wallet.privateKey,
@@ -335,12 +335,16 @@ module.exports = (operation, options) => {
             testnet: wallet.testnet 
           }
         };
+
         module.sendTransaction({
           asset,
           amount: parseFloat(amount),
+          to,
           fee: fee ? parseFloat(fee) : null,
-          to, 
-          change,
+          gasPrice, 
+          gasLimit,
+          data,
+          change, // never used
           contractAddress,
           walletPrivateConfig 
         }).then(result => {
@@ -350,6 +354,7 @@ module.exports = (operation, options) => {
         });
 
         return;
+
       } else if (operation === 'transaction_details') {
         const json = getStorageJson(options, res);
         if (!json) return;
@@ -400,11 +405,13 @@ module.exports = (operation, options) => {
           networkId: wallet.networkId,
           testnet: wallet.testnet 
         };
+
         module.estimateFee({ networkConfig }).then(fee => {
           ok(res, fee);
         });
 
         return;
+
       } else if (operation === 'gas') {
         const json = getStorageJson(options, res);
         if (!json) return;
@@ -421,15 +428,21 @@ module.exports = (operation, options) => {
         if (typeof module.estimateGas !== 'function') {
           return error(res, 'estimateGas is not implemented for ' + wallet.network);
         }
+
         // Get transaction params:
-        const { from, to, value, data, contractAddress } = req.body;
+        const { asset, amount, to, data, contractAddress } = req.body;
         const networkConfig = {
           network: wallet.network,
           networkId: wallet.networkId,
           testnet: wallet.testnet 
         };
+        const walletPublicConfig = {
+          address: wallet.address,
+          publicKey: wallet.publicKey,
+          networkConfig
+        };
 
-        module.estimateGas({ networkConfig, from, to, value, data, contractAddress }).then(gas => {
+        module.estimateGas({ asset, amount, to, data, contractAddress, walletPublicConfig }).then(gas => {
           ok(res, gas);
         });
 
