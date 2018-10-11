@@ -36,13 +36,14 @@ module.exports = ({ network = 'ETH' }) => {
   };
 
   const addressFromPrivateKey = ({ privateKey, networkConfig }) => {
-    const keyPair = ec.genKeyPair();
+    return '0x' + ethereumUtil.privateToAddress(privateKey).toString('hex');
+/*    const keyPair = ec.genKeyPair();
     keyPair._importPrivate(privateKey, 'hex');
     const compact = false;
     const pubKey = keyPair.getPublic(compact, 'hex').slice(2);
     const pubKeyWordArray = CryptoJS.enc.Hex.parse(pubKey);
     const hash = CryptoJS.SHA3(pubKeyWordArray, { outputLength: 256 });
-    return '0x' + hash.toString(CryptoJS.enc.Hex).slice(24);
+    return '0x' + hash.toString(CryptoJS.enc.Hex).slice(24);*/
   };
 
   const createRandom = async ({ networkConfig }) => {
@@ -51,6 +52,8 @@ module.exports = ({ network = 'ETH' }) => {
     const privateKey = ethereumUtil.bufferToHex(ethereumUtil.sha3((new Date().getTime()) + '' + Math.random()));
     if (!privateKey) throw new Error('Private Key was not generated for ETH');
     const address = addressFromPrivateKey({ privateKey, networkConfig });
+    console.log('privateKey=', privateKey, 'address=', address);
+
     return { address, privateKey };
   };
 
@@ -330,7 +333,7 @@ module.exports = ({ network = 'ETH' }) => {
     return asset;
   };
 
-  const sendTransaction = async ({ asset = 'ETH', amount, to, fee, contractAddress, walletPrivateConfig }) => {
+  const sendTransaction = async ({ asset = 'ETH', amount = 0, to, gasPrice, gasLimit, data = '', walletPrivateConfig }) => {
 
     const { address, privateKey, networkConfig } = walletPrivateConfig;
     const endpoint = httpEndpointFromConfig(networkConfig);
@@ -340,19 +343,17 @@ module.exports = ({ network = 'ETH' }) => {
       const nonce = await ethereumQuery.query({
         method: 'eth_getTransactionCount', params: [ address, 'latest' ], endpoint
       });
-      
-      const gasPrice = fee || await ethereumQuery.query({
-        method: 'eth_gasPrice', params: [], endpoint
-      });
+  
+      // const gasPrice = fee || await ethereumQuery.query({
+        // method: 'eth_gasPrice', params: [], endpoint
+      // });
 
       const txParams = { from: address };
       
-      // TODO: data field with contractAddress - calling a custom method
-      
-      if (contractAddress) {
+      if (asset !== 'ETH') {
         // Smart contract transaction
         const abi = getErc20Abi();
-        txParams.to = contractAddress;
+        txParams.to = to;
 
         // data: method - transfer, _to - address, _value - uint256
         const methodSpec = ethereumQuery.getMethodSpec({ abi, contractMethod: 'transfer' });
@@ -362,41 +363,56 @@ module.exports = ({ network = 'ETH' }) => {
         // ETH transaction 
         txParams.to = to;
         txParams.value = value;
+        txParams.data = '0x' + Buffer.from(data, 'hex');
       }
   
-      const gasLimit = await ethereumQuery.query({
-        method: 'eth_estimateGas', 
-        params: [ { ...txParams } ], 
-        endpoint
-      });
+      // const gasLimit = await ethereumQuery.query({
+      //   method: 'eth_estimateGas', 
+      //  params: [ { ...txParams } ], 
+      //   endpoint
+      // });
 
       txParams.nonce = nonce;
-      txParams.gasPrice = gasPrice;
-      txParams.gasLimit = gasLimit;
-      
+      txParams.gasPrice = '0x' + gasPrice.toString(16);
+      txParams.gasLimit = '0x' + gasLimit.toString(16);
+
+      console.log('txParams=', txParams);
       const tx = new EthereumTransaction(txParams);
       const privKeyBuffer = Buffer.from(privateKey.substring(2), 'hex');
+      console.log('privKeyBuffer=', privKeyBuffer.toString('hex'));
+      console.log('address from PK=', ethereumUtil.privateToAddress(privKeyBuffer).toString('hex'));
+      const realFrom = '0x' + ethereumUtil.privateToAddress(privKeyBuffer).toString('hex');
+      if (realFrom.toLowerCase() !== address.toLowerCase()) {
+	      throw new Error('address from PK: ' + realFrom + ', expected: ' + address);
+      }
+
+
       tx.sign(privKeyBuffer);
       const serializedTx = tx.serialize();
       const rawTx = '0x' + serializedTx.toString('hex');
-      
       const txHash = await ethereumQuery.query({
         method: 'eth_sendRawTransaction', params: [ rawTx ], endpoint
       });
-      
+
+      console.log('txHash=', txHash)
+
       // Calculate fee:
-      const receipt = await ethereumQuery.query({
-        method: 'eth_getTransactionReceipt', params: [ txHash ], endpoint
-      });
-      const actualFee = fromWei(receipt.gasUsed * gasPrice);
+      // const receipt = await ethereumQuery.query({
+      //    method: 'eth_getTransactionReceipt', params: [ txHash ], endpoint
+      // });
+      // const actualFee = fromWei(receipt.gasUsed * gasPrice);
 
       return {
         txid: txHash,
         from: address,
         to,
         amount,
-        fee: actualFee
-      };
+        //fee: actualFee
+      }
+
+      // return {
+      //   txid: txHash
+      // };
 
     } catch (e) {
       throw new Error(e.message);
