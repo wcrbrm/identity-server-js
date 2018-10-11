@@ -60,7 +60,9 @@ function WalletInfo(walletInfo) {
     }
     const allAssets = await modNetwork.getAssetsList({ walletPublicConfig: { address, networkConfig } });
     // btw there can be another min Value for the asset to be shown, based on cmc.price
-    const assets = allAssets.filter(a => (a.value === undefined || a.value && parseFloat(a.value) > 0.0001));
+    const assets = allAssets.filter(a => (
+      a.value === undefined || a.symbol === networkConfig.network || a.value && parseFloat(a.value) > 0.0001
+    ));
     return Object.assign({ assets }, this.walletInfo); //{ ...this.walletInfo, assets };
   };
 

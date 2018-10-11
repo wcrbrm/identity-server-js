@@ -155,7 +155,7 @@ describe("Ethereum network", () => {
     myToken.length.should.equal(1, 'MY-token records');
   });
 
-  it('Send ETH', async () => {
+  it.only('Send ETH', async () => {
 
     const web3 = getWeb3Client(networkConfig);
 
@@ -176,32 +176,80 @@ describe("Ethereum network", () => {
         value: modEthereum.toWeiHex(amount)
       }], endpoint
     });
+    const gasPrice = await ethereumQuery.query({
+      method: 'eth_gasPrice', params: [], endpoint
+    });
+    const value = modEthereum.toWei(amount) + parseInt(gasFee, 16) * parseInt(gasPrice, 16);
     
-    Genesis.creditAccount({ web3, address, value: modEthereum.toWei(amount) + parseInt(gasFee, 16) });
-    const balanceOfSender = await modEthereum.getBalance({ walletPublicConfig: walletPrivateConfig });
-    //console.log('credited address=', address, ', balanceOfSender=', balanceOfSender, modEthereum.toWei(balanceOfSender[0].value));
-    balanceOfSender[0].should.be.a('object');
-    balanceOfSender[0].symbol.should.equal('ETH');
-    balanceOfSender[0].value.should.equal((amount + parseFloat(modEthereum.fromWei(gasFee))).toString());
+    const creditTx = await Genesis.creditAccount({ web3, address, value: 5 * Math.pow(10, 18) });
+    console.log(creditTx);
+    
+    console.log({ pending: await modEthereum.getPending({ walletPublicConfig: walletPrivateConfig }) });
 
-    // use modEthereum.sendTransaction to send the funds
-    const res = await modEthereum.sendTransaction({ asset: 'ETH', to: dest.address, amount, walletPrivateConfig });
-    const balanceOfDestination = await modEthereum.getBalance({ walletPublicConfig: { networkConfig, address: dest.address } });
-    //console.log(res, balanceOfDestination);
+    await sleep(2000);
+    console.log({ pending: await modEthereum.getPending({ walletPublicConfig: walletPrivateConfig }) });
+
+    if (creditTx) {
+      //const balanceOfSender = await modEthereum.getBalance({ walletPublicConfig: walletPrivateConfig });
+      //console.log('credited address=', address, ', balanceOfSender=', balanceOfSender, modEthereum.toWei(balanceOfSender[0].value));
+      //balanceOfSender[0].should.be.a('object');
+      //balanceOfSender[0].symbol.should.equal('ETH');
+      //balanceOfSender[0].value.should.equal(modEthereum.fromWei(value));
+
+      const balanceOfSender = await web3.eth.getBalance(address);
+      console.log(balanceOfSender.toString());
+  
+      // use modEthereum.sendTransaction to send the funds
+      const res = await modEthereum.sendTransaction({ asset: 'ETH', to: dest.address, amount, walletPrivateConfig });
+      const balanceOfDestination = await modEthereum.getBalance({ walletPublicConfig: { networkConfig, address: dest.address } });
+      //console.log(res, balanceOfDestination);
+    }
   });
 
   it.skip('Send Assets', async () => {
+    const web3 = getWeb3Client(networkConfig);
+    const account1 = await modEthereum.createRandom({ networkConfig });
+    const { contractAddress, abi } = await createMyTokenContract({ web3 });
+    const walletPrivateConfig = { address: account1.address, privateKey: account1.privateKey, networkConfig };
+    await Genesis.creditAccount({ web3, address: account1.address, value: modEthereum.toWei(10) });
+    await Genesis.creditTokens({ web3, contractAddress, abi, to: account1.address, tokens: 3 * Math.pow(10, 18) });
+    //const acc1Balance = await modEthereum.getBalance({ walletPublicConfig: walletPrivateConfig });
+    //const acc1AssetVal = await modEthereum.getAssetValue({ walletPublicConfig: walletPrivateConfig, contractAddress });
+    const acc1Balance = await web3.eth.getBalance(account1.address);
+    
+    console.log(acc1Balance.toString());
+    const account2 = await modEthereum.createRandom({ networkConfig });
+    const tx = await modEthereum.sendTransaction({ amount: 1, to: account2.address, walletPrivateConfig });
+    // const balance = await modEthereum.getAssetValue({ walletPublicConfig: { address: account2.address, networkConfig }, contractAddress });
+    // console.log(balance);
   });
 
   it('Get Transaction History', async () => {
     const endpoint = httpEndpointFromConfig(networkConfig);
     //const address = '0xCA3fF259F4F2F295772a9cE6d2d65fb90b3a769B';
     const address = '0xF83883FE4866A407e4f035cB6C4b359CfC4e2eeA';
-    const walletPublicConfig = { address, networkConfig };
-    const res = modEthereum.getHistory({ walletPublicConfig });
+    const res = await modEthereum.getHistory({ address, networkConfig });
   });
   
   it.skip('Get Pending Transaction', async () => {
+    const web3 = getWeb3Client(networkConfig);
+    const account = await modEthereum.createRandom({ networkConfig });
+    const { address } = account;
+    const walletPublicConfig = { networkConfig, address };
+
+    const pending1 = await modEthereum.getPending({ walletPublicConfig });
+    console.log({ pending1 });
+
+    // Generate new transaction
+    const tx = await Genesis.creditAccount({ web3, address, value: modEthereum.toWei(1) });
+    //console.log(tx);
+
+    const pending2 = await modEthereum.getPending({ walletPublicConfig });
+    //console.log({ pending2 });
+
+    pending1.should.not.contain(tx);
+    pending2.should.contain(tx);
+    
   });
 
   it('Get Asset Value', async () => {
@@ -233,6 +281,14 @@ describe("Ethereum network", () => {
     value.should.equal(res.value);
     symbol.should.equal(res.symbol);
     name.should.equal(res.name);
+  });
+
+  it('Estimate Gas', async () => {
+    // ETH transaction: from, to, value
+
+    // Asset transfer: from, to, contractAddress, value
+
+    // Calling custom 
   });
 
 });

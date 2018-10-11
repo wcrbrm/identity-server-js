@@ -288,7 +288,7 @@ module.exports = ({ network = 'BTC' }) => {
     // Find step:
     const step = parseFloat('0.' + '1'.padStart(digits + 1 , '0'));
 
-    return { fee, min, max, step, units: 'BTC' };
+    return { fee, min, max, step, units: 'BTC', label: 'fee' };
   };
 
   return {

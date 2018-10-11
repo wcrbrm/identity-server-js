@@ -405,6 +405,35 @@ module.exports = (operation, options) => {
         });
 
         return;
+      } else if (operation === 'gas') {
+        const json = getStorageJson(options, res);
+        if (!json) return;
+
+        const walletId = req.params.id;
+        const wallet = json.wallets.find(w => w.id === walletId);
+        if (!wallet) {
+          return error(res, 'Wallet not found');
+        }
+        const module = require('./../network/index')[wallet.network]({ network: wallet.network });
+        if (!module) {
+          return error(res, 'No module implemented for network ' + wallet.network);
+        }
+        if (typeof module.estimateGas !== 'function') {
+          return error(res, 'estimateGas is not implemented for ' + wallet.network);
+        }
+        // Get transaction params:
+        const { from, to, value, data, contractAddress } = req.body;
+        const networkConfig = {
+          network: wallet.network,
+          networkId: wallet.networkId,
+          testnet: wallet.testnet 
+        };
+
+        module.estimateGas({ networkConfig, from, to, value, data, contractAddress }).then(gas => {
+          ok(res, gas);
+        });
+
+        return;
       }
 
       next();

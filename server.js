@@ -62,6 +62,7 @@ app.get(`${root}/wallets/:id/history`, modWallets('history', options));
 app.post(`${root}/wallets/:id/transaction`, modWallets('send_transaction', options));
 app.get(`${root}/wallets/:id/transaction/:txId`, modWallets('transaction_details', options));
 app.get(`${root}/wallets/:id/transaction-fee`, modWallets('fee', options));
+app.post(`${root}/wallets/:id/transaction-gas`, modWallets('gas', options));
 
 const modNetworks = require('./api/networks');
 app.get(`${root}/networks/:networkId/terms`,  modNetworks('terms', options));

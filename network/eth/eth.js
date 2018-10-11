@@ -24,6 +24,10 @@ module.exports = ({ network = 'ETH' }) => {
     return `0x${(new BigNumber(valueEth).multipliedBy(new BigNumber(Math.pow(10, 18)))).toString(16)}`;
   };
 
+  const toGwei = (valueWei) => {
+    return (new BigNumber(valueWei).dividedBy(new BigNumber(Math.pow(10, 9)))).toNumber();
+  };
+
   const create = async ({ seed, index, networkConfig }) => {
     // return require('./../../services/hdwallet')
     //   .create({ ...networkConfig, network, seed, index, hex: true });
@@ -343,6 +347,8 @@ module.exports = ({ network = 'ETH' }) => {
 
       const txParams = { from: address };
       
+      // TODO: data field with contractAddress - calling a custom method
+      
       if (contractAddress) {
         // Smart contract transaction
         const abi = getErc20Abi();
@@ -462,14 +468,50 @@ module.exports = ({ network = 'ETH' }) => {
       method: 'eth_gasPrice', params: [], endpoint
     });
     // to gwei:
-    const fee = (new BigNumber(gasPrice).dividedBy(new BigNumber(Math.pow(10, 9)))).toNumber();
+    const fee = toGwei(gasPrice);
     return { 
       fee: fee,
-      min: fee - fee * 0.9, // -90%
-      max: fee + fee * 0.9, // +90%
+      min: 99,
+      max: 1,
       step: 1,
-      units: 'gwei' 
+      units: 'gwei',
+      label: 'gasPrice',
+      label2: 'gasLimit'
     };
+  };
+
+  const estimateGas = async ({ networkConfig, from, to, value, data, contractAddress }) => {
+
+    if (from && to && (value || contractAddress || data)) {
+      try {
+        const txParams = { from };
+        if (contractAddress && !data) {n
+          const abi = getErc20Abi();
+          txParams.to = contractAddress;
+          const methodSpec = ethereumQuery.getMethodSpec({ abi, contractMethod: 'transfer' });
+          txParams.data = ethereumQuery.encodeParams({ methodSpec, contractParams: [ to, value ] });
+        } else if (data) {
+          // TODO: verify
+          txParams.to = to;
+          txParams.data;
+        } else {
+          txParams.to = to;
+          txParams.value = value;
+        }
+    
+        const endpoint = httpEndpointFromConfig(networkConfig);
+        const gasLimit = await ethereumQuery.query({
+          method: 'eth_estimateGas',
+          params: [ { ...txParams } ],
+          endpoint
+        });
+        return parseInt(gasLimit, 16);
+      } catch (e) {
+        // Do nothing, return standard limit
+      }
+    }
+    // Standard limit:  https://myetherwallet.github.io/knowledge-base/gas/what-is-gas-ethereum.html 
+    return 21000;
   };
 
   return {
@@ -490,7 +532,8 @@ module.exports = ({ network = 'ETH' }) => {
     fromWei,
     toWei,
     toWeiHex,
-    estimateFee
+    estimateFee,
+    estimateGas
   };
 
 };
