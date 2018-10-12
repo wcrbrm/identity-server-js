@@ -216,6 +216,7 @@ module.exports = (operation, options) => {
                 payload.privateKey = objResult.privateKey;
                 delete payload.password;
               }
+              payload.privateKey = `0x${payload.privateKey}`;
             }
             const id = sha1(JSON.stringify(payload)  + idSuffix);
             resultToReturn = Object.assign({ id }, payload); //{ ...payload, id };

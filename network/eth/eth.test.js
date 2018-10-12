@@ -167,7 +167,7 @@ describe("Ethereum network", () => {
     // create random (dest) account#2 (address)
     const dest = await modEthereum.createRandom({ networkConfig });
     const to = dest.address;
-    const gasPrice = 41 * 1e9; // 41 GWei
+    const gasPrice = 41; // 41 GWei
 
     const amount = 0.1; 
     const gasLimit = parseInt( await ethereumQuery.query({
@@ -181,14 +181,14 @@ describe("Ethereum network", () => {
 
     //console.log('gasLimit=', gasLimit, 'gasFee=', gasFee);
     
-    Genesis.creditAccount({ web3, address, value: modEthereum.toWei(amount) + gasFee});
+    Genesis.creditAccount({ web3, address, value: modEthereum.toWei(amount) + gasFee * Math.pow(10, 9)});
 
     const balanceOfSender = await modEthereum.getBalance({ walletPublicConfig: walletPrivateConfig });
     //console.log('credited address=', address, ', balanceOfSender=', balanceOfSender[0].value, 'in wei:', modEthereum.toWei(balanceOfSender[0].value));
 
     balanceOfSender[0].should.be.a('object');
     balanceOfSender[0].symbol.should.equal('ETH');
-    balanceOfSender[0].value.should.equal((amount + parseFloat(modEthereum.fromWei(gasFee))).toString());
+    balanceOfSender[0].value.should.equal((amount + gasFee / Math.pow(10, 9)).toString());
 
     // use modEthereum.sendTransaction to send the funds
     const res = await modEthereum.sendTransaction({ asset: 'ETH', to: dest.address, amount, gasPrice, gasLimit, walletPrivateConfig });
@@ -215,7 +215,7 @@ describe("Ethereum network", () => {
     // console.log(acc1Balance, acc1AssetVal);
 
     const endpoint = httpEndpointFromConfig(walletPrivateConfig.networkConfig);
-    const gasPrice = 41 * 1e9; // 41 GWei 
+    const gasPrice = 41; // 41 GWei 
 
     const methodSpec = ethereumQuery.getMethodSpec({ abi, contractMethod: 'transfer' });
     const contractParams = [ account2.address, `0x${(1 * Math.pow(10, 18)).toString(16)}` ];
@@ -243,6 +243,7 @@ describe("Ethereum network", () => {
     const balance = await modEthereum.getAssetValue({ walletPublicConfig: { address: account2.address, networkConfig }, contractAddress });
     //console.log(balance);
     balance.value.should.equal(1);
+    //console.log(account1, account2);
   });
 
   it('Get Transaction History', async () => {

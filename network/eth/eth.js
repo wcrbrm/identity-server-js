@@ -98,7 +98,7 @@ module.exports = ({ network = 'ETH' }) => {
         res.error = 'Private key should be 64 chars of hexadecimal';
       }
     }
-    res.address = addressFromPrivateKey({ privateKey, networkConfig });
+    res.address = addressFromPrivateKey({ privateKey: `0x${privateKey}`, networkConfig });
     return res;
   };
 
@@ -176,7 +176,7 @@ module.exports = ({ network = 'ETH' }) => {
       symbol: 'ETH',
       name: 'Ethereum',
       //value: await getEth({ web3, address }),
-      value: fromWei(await getEth({ address, endpoint })),
+      value: niceFloat(fromWei(await getEth({ address, endpoint }))),
       cmc: getTicker('ETH')
     }];
     const etherscan = getEtherscanClient(networkConfig);
@@ -340,8 +340,7 @@ module.exports = ({ network = 'ETH' }) => {
         asset, from: address, to, value, data, contractAddress
       })
       txParams.nonce = nonce;
-      // TODO fromGwei to Wei
-      txParams.gasPrice = '0x' + gasPrice.toString(16);
+      txParams.gasPrice = `0x${(parseInt(gasPrice) * Math.pow(10, 9)).toString(16)}`;
       txParams.gasLimit = '0x' + gasLimit.toString(16);
 
       //console.log('txParams=', txParams);
@@ -373,8 +372,8 @@ module.exports = ({ network = 'ETH' }) => {
         txid: txHash,
         from: address,
         to,
-        amount,
-        fee: fromWei(gasPrice * gasLimit)
+        amount: `${amount} ${asset}`,
+        fee: `${gasPrice * gasLimit} GWei`
       }
 
     } catch (e) {
