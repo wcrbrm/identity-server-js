@@ -283,7 +283,7 @@ module.exports = ({ network = 'ETH' }) => {
       });
       contractCache[contractAddress].decimals = decimals;
     }
-    const value = balance / Math.pow(10, decimals);
+    const value = niceFloat(balance / Math.pow(10, decimals));
     debug('balance:', balance, 'decimals:', decimals, 'value:', value);
     const asset = { value, decimals, contractAddress };
 
