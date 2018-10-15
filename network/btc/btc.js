@@ -12,6 +12,8 @@ module.exports = ({ network = 'BTC' }) => {
 
   const { getElectrumClient } = require('./electrum-client')({ network });
 
+  const niceFloat = x => (parseFloat(x).toFixed(6).replace(/0{1,5}$/, ''));
+
   const create = ({ seed, index, networkConfig }) => {
     const coinSymbol = networkConfig.testnet ? "" : networkConfig.network;
     return require('./../../services/hdwallet').create({ seed, index, network: coinSymbol });
@@ -127,7 +129,7 @@ module.exports = ({ network = 'BTC' }) => {
       );
       await electrumClient.close();
 
-      return [{ symbol: 'BTC', name: 'Bitcoin', value, cmc: getTicker('BTC')  }];
+      return [{ symbol: 'BTC', name: 'Bitcoin', value: niceFloat(value), cmc: getTicker('BTC')  }];
     } catch (e) {
       throw new Error(e.message);
     }
@@ -237,6 +239,13 @@ module.exports = ({ network = 'BTC' }) => {
           } else {
             txDecoded.timestamp = null;
           }
+          // Format amounts
+          Object.keys(txDecoded.sender).forEach(addr => {
+            txDecoded.sender[addr] = niceFloat(txDecoded.sender[addr]);
+          });
+          Object.keys(txDecoded.receiver).forEach(addr => {
+            txDecoded.receiver[addr] = niceFloat(txDecoded.receiver[addr]);
+          });
           return txDecoded;
         });
         const decodedTransactions = await Promise.all(decodedTransactionsPromise);
