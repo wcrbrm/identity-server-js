@@ -49,7 +49,7 @@ const callContract = async ({
       to: contractAddress,
       from: address,
       data 
-    }
+    }, 'latest'
   ], endpoint });
 
   // Get output type and decode response according to type
