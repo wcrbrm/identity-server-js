@@ -98,7 +98,9 @@ module.exports = ({ network = 'ETH' }) => {
         res.error = 'Private key should be 64 chars of hexadecimal';
       }
     }
-    res.address = addressFromPrivateKey({ privateKey: `0x${privateKey}`, networkConfig });
+    if (valid) {
+      res.address = addressFromPrivateKey({ privateKey: `0x${privateKey}`, networkConfig });
+    }
     return res;
   };
 

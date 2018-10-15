@@ -280,7 +280,7 @@ describe("Ethereum network", () => {
     const web3 = getWeb3Client(networkConfig);
     const { contractAddress, abi } = await createMyTokenContract({ web3 });
     const { address } = Genesis.createRandomAccount({ web3 });
-    const receipt = await Genesis.creditTokens({ web3, contractAddress, abi, to: address, tokens: 3000000 });
+    const receipt = await Genesis.creditTokens({ web3, contractAddress, abi, to: address, tokens: 3 * Math.pow(10, 18) });
 
     const walletPublicConfig = { address, networkConfig };
 
@@ -301,7 +301,7 @@ describe("Ethereum network", () => {
     const name = theContract.name();
     //console.log(value, symbol, name);
 
-    value.should.equal(res.value);
+    value.should.equal(parseFloat(res.value));
     symbol.should.equal(res.symbol);
     name.should.equal(res.name);
   });
