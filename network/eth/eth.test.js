@@ -155,7 +155,7 @@ describe("Ethereum network", () => {
     myToken.length.should.equal(1, 'MY-token records');
   });
 
-  it('Send ETH', async () => {
+  it.only('Send ETH', async () => {
 
     const web3 = getWeb3Client(networkConfig);
 
@@ -195,10 +195,10 @@ describe("Ethereum network", () => {
     //console.log(res);
     const balanceOfDestination = await modEthereum.getBalance({ walletPublicConfig: { networkConfig, address: dest.address } });
     //console.log(res, balanceOfDestination);
-    balanceOfDestination[0].value.should.equal(amount.toString(10));
+    parseFloat(balanceOfDestination[0].value).should.equal(amount);
   });
 
-  it('Send Assets', async () => {
+  it.only('Send Assets', async () => {
     const web3 = getWeb3Client(networkConfig);
     const account1 = await modEthereum.createRandom({ networkConfig });
     const account2 = await modEthereum.createRandom({ networkConfig });
@@ -229,10 +229,11 @@ describe("Ethereum network", () => {
       }], endpoint
     }), 16);
     //console.log(gasLimit);
+    const amount = 1;
 
     const tx = await modEthereum.sendTransaction({
       asset: 'MY',
-      amount: 1,
+      amount,
       to: account2.address, 
       gasPrice,
       gasLimit,
@@ -242,7 +243,7 @@ describe("Ethereum network", () => {
 
     const balance = await modEthereum.getAssetValue({ walletPublicConfig: { address: account2.address, networkConfig }, contractAddress });
     //console.log(balance);
-    balance.value.should.equal(1);
+    parseFloat(balance.value).should.equal(amount);
     //console.log(account1, account2);
   });
 
