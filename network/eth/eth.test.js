@@ -155,7 +155,7 @@ describe("Ethereum network", () => {
     myToken.length.should.equal(1, 'MY-token records');
   });
 
-  it.only('Send ETH', async () => {
+  it('Send ETH', async () => {
 
     const web3 = getWeb3Client(networkConfig);
 
@@ -198,7 +198,7 @@ describe("Ethereum network", () => {
     parseFloat(balanceOfDestination[0].value).should.equal(amount);
   });
 
-  it.only('Send Assets', async () => {
+  it('Send Assets', async () => {
     const web3 = getWeb3Client(networkConfig);
     const account1 = await modEthereum.createRandom({ networkConfig });
     const account2 = await modEthereum.createRandom({ networkConfig });
