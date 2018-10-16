@@ -416,10 +416,10 @@ module.exports = ({ network = 'ETH' }) => {
     return changes;
   };
 
-  // get list of past transactions. could paging be better?
-  const getHistory = async ({ address, networkConfig, start = 0, limit = 100 }) => {;
+  // get list of past transactions, start = page, limit = offset
+  const getHistory = async ({ address, networkConfig, start = 1, limit = 10 }) => {;
     const etherscan = getEtherscanClient(networkConfig);
-    const result = await etherscan.getAccountHistory(address);
+    const result = await etherscan.getAccountHistory({ address, start, limit });
 
     if (result.length > 0) {
       const history = [];
@@ -427,8 +427,9 @@ module.exports = ({ network = 'ETH' }) => {
         history.push({
           txid: txData.hash,
           timestamp: txData.timeStamp, 
-          sender: { [txData.from]: fromWei(txData.value) }, 
-          receiver: { [txData.to]: fromWei(txData.value) } 
+          sender: { [txData.from]: niceFloat(fromWei(txData.value)) }, 
+          receiver: { [txData.to]: niceFloat(fromWei(txData.value)) },
+          asset: txData.tokenSymbol === undefined ? 'ETH' : (txData.tokenSymbol || '?')
         });
       });
       return history;

@@ -86,9 +86,34 @@ module.exports = ({ network = 'ETH' }) => {
       return r;
     };
 
-    const getAccountHistory = async (address) => {
+    const getAccountHistory = async ({ address, start, limit }) => {
+      const ethTxs = await getEthTransactions({ address, start, limit });
+      const tokenTxs = await getTokenTransactions({ address, start, limit });
+      const txs = ethTxs.concat(tokenTxs);
+      return txs.sort((a, b) => b.timestamp - a.timestamp);
+    };
+
+    const getEthTransactions = async ({ address, start, limit }) => {
       // https://api.etherscan.io/api?module=account&action=txlist&address=0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=YourApiKeyToken
-      const url = withEtherscanApiKey(`${rootUrl}/api?module=account&action=txlist&address=${address}&startblock=0&endblock=9999999&sort=desc`); //&page=${}&offset=${}
+      const url = withEtherscanApiKey(`${rootUrl}/api?module=account&action=txlist&address=${address}&startblock=0&endblock=9999999&sort=desc&page=${start}&offset=${limit}`);
+      debug('requesting', url);
+      const response = await axios.get(url);
+      const { data } = response;
+      const { message, result, status } = data;
+
+      if (parseInt(status, 10) !== 1) {
+        debug("error", JSON.stringify(data));
+        if (message === 'No transactions found') {
+          return [];
+        }
+        throw new Error('Etherscan response error: ' + result);
+      }
+
+      return result;
+    };
+
+    const getTokenTransactions = async ({ address, start, limit }) => {
+      const url = withEtherscanApiKey(`${rootUrl}/api?module=account&action=tokentx&address=${address}&startblock=0&endblock=9999999&sort=desc&page=${start}&offset=${limit}`);
       debug('requesting', url);
       const response = await axios.get(url);
       const { data } = response;

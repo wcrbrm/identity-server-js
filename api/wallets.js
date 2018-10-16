@@ -295,8 +295,8 @@ module.exports = (operation, options) => {
           testnet: wallet.testnet 
         };
         const address = wallet.address;
-        const start = req.query.start || 0;
-        const limit = req.query.limit || 10;
+        const start = req.query.start;
+        const limit = req.query.limit;
 
         module.getHistory({ address, networkConfig, start, limit }).then(history => {
           history.sort((tx1, tx2) => {

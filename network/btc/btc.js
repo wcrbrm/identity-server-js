@@ -217,7 +217,7 @@ module.exports = ({ network = 'BTC' }) => {
   };
 
   // get list of past transactions. could paging be better?
-  const getHistory = async ({ address, networkConfig, start = 0, limit = 100 }) => {
+  const getHistory = async ({ address, networkConfig, start = 0, limit = 10 }) => {
     try {
       const electrumClient = await getElectrumClient(networkConfig);
       const network = utils.getNetwork({ networkConfig });
