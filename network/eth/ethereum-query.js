@@ -1,6 +1,7 @@
 const axios = require('axios');
 const ethereumUtil = require('ethereumjs-util');
 const BigNumber = require('bignumber.js');
+const encodeHelper = require('./ethereum-encodehelper');
 
 const genRpcId = () => (new Date().getTime()) + '.' + Math.random();
 
@@ -41,9 +42,7 @@ const callContract = async ({
   endpoint 
 }) => {
 
-  const methodSpec = getMethodSpec({ abi, contractMethod });
-  const data = encodeParams({ methodSpec, contractParams });
-
+  const data = encodeHelper.encodeTxData({ method: contractMethod, params: contractParams, abi });
   const response = await query({ method: 'eth_call', params: [
     { 
       to: contractAddress,
@@ -52,102 +51,11 @@ const callContract = async ({
     }, 'latest'
   ], endpoint });
 
-  // Get output type and decode response according to type
-  const outputType = methodSpec.outputs.map(output => output.type).pop();
-  switch (outputType) {
-    case 'uint256':  // e.g. balance
-    case 'uint8' : { // e.g. decimals
-      return parseInt(response, 16);
-    }
-    case 'string': { // e.g. name, symbol
-      return decodeString(response);
-    }
-  }
-};
-
-const encodeParams = ({ methodSpec, contractParams }) => {
-  const contractMethod = methodSpec.name;
-  const paramTypesStr = methodSpec.inputs.map(input => input.type).join(',');
-  const methodHash = ethereumUtil.sha3(`${contractMethod}(${paramTypesStr})`).slice(0, 4).toString('hex');
-  contractParams = contractParams || [];
-  // Encode params
-  const encodedParams = methodSpec.inputs.map((input, i) => {
-    const { type } = input;
-    const value = contractParams[i];
-    // TODO: handle other param types
-    switch (type) {
-      case 'address':
-      case 'uint256': {
-        return value.substring(2).padStart(64, '0');
-      }
-    }
-  });
-  return `0x${methodHash}${encodedParams.join('')}`;
-};
-
-const decodeString = (response) => {
-  // web3/lib/solidity/type.js: remove 0x, substr starting from 64 length 64*2
-  const param = response.substr(64 + 2, 64 * 2);
-  const length = (new BigNumber(param.slice(0, 64), 16)).toNumber() * 2;
-  const activePart = param.substr(64, length);
-
-  let string = '';
-  for (let i = 0; i < activePart.length; i += 2) {
-    string += String.fromCharCode(parseInt(activePart.substr(i, 2), 16));
-  }
-  return string;
-};
-
-const getMethodSpec = ({ abi, contractMethod }) => {
-  // Get contract method specification from ABI
-  return abi.find(spec => {
-    if (spec.name === contractMethod) return spec;
-  });
-};
-
-const getErc20Abi = () => {
-  const fs = require('fs');
-  const jsonPath = __dirname + "/MyToken.json";
-  const json = JSON.parse(fs.readFileSync(jsonPath));
-  const { abi } = json;
-  return abi;
-};
-
-const makeTransactionParams = ({ asset, from, to, value, data = '', contractAddress }) => {
-  const txParams = { from }; 
-
-  if (asset !== 'ETH') {
-    // Smart contract transaction
-    const abi = getErc20Abi();
-    txParams.to = contractAddress;
-
-    if (!data) {
-      // Transfer asset to another address
-
-      // data: method - transfer, _to - address, _value - uint256
-      const methodSpec = getMethodSpec({ abi, contractMethod: 'transfer' });
-      txParams.data = encodeParams({ methodSpec, contractParams: [ to, value ] });
-    } else {
-      // Call custom method of contract
-      txParams.data = '0x' + Buffer.from(data, 'hex').toString('hex');
-    }
-
-  } else {
-    // ETH transaction 
-    txParams.to = to;
-    txParams.value = value;
-    txParams.data = '0x' + Buffer.from(data, 'hex').toString('hex');
-  }
-
-  return txParams;
+  return encodeHelper.decodeTxOutput({ method: contractMethod, data: response, abi });
 };
 
 module.exports = {
   query,
   isRPCAccessible,
   callContract,
-  encodeParams,
-  getMethodSpec,
-  makeTransactionParams,
-  getErc20Abi
 };

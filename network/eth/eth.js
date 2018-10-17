@@ -8,6 +8,7 @@ module.exports = ({ network = 'ETH' }) => {
   const { getTicker } = require('./../../services/coinmarketcap');
   const ethereumQuery = require('./ethereum-query');
   const BigNumber = require('bignumber.js');
+  const encodeHelper = require('./ethereum-encodehelper');
 
   const { httpEndpointFromConfig } = require('./ethereum-networkhelper')({ network });
   const { getEtherscanClient } = require('./etherscan-helper')({ network });
@@ -265,7 +266,7 @@ module.exports = ({ network = 'ETH' }) => {
     if (!contractCache[contractAddress]) contractCache[contractAddress] = {};
     const cachedContract = contractCache[contractAddress] || {};
 
-    const abi = ethereumQuery.getErc20Abi();
+    const abi = encodeHelper.getErc20Abi();
 
     const debug = require('debug')('eth.getassetvalue');
     debug('contract at', contractAddress);
@@ -338,7 +339,7 @@ module.exports = ({ network = 'ETH' }) => {
         method: 'eth_getTransactionCount', params: [ address, 'latest' ], endpoint
       });
 
-      const txParams = ethereumQuery.makeTransactionParams({
+      const txParams = encodeHelper.makeTransactionParams({
         asset, from: address, to, value, data, contractAddress
       })
       txParams.nonce = nonce;
@@ -439,8 +440,54 @@ module.exports = ({ network = 'ETH' }) => {
   };
 
   // get transaction details
-  const getTransactionDetails = ({ walletPublicConfig, txHash }) => {
-    return {};
+  const getTransactionDetails = async ({ networkConfig, txid }) => {
+    const endpoint = httpEndpointFromConfig(networkConfig);
+    try {
+      const txData = await ethereumQuery.query({ 
+        method: 'eth_getTransactionByHash',
+        params: [ txid ],
+        endpoint 
+      });
+      // Get timestamp from block:
+      const blockData = await ethereumQuery.query({
+        method: 'eth_getBlockByHash',
+        params: [ txData.blockHash, false ],
+        endpoint
+      });
+
+      let txDetails = { ...txData };
+      txDetails.timestamp = blockData.timestamp;
+
+      // Convert all numeric fields:
+      const numericFields = [ 'blockNumber', 'gas', 'gasPrice', 'nonce', 'transactionIndex', 'value', 'v', 'timestamp' ];
+      Object.keys(txDetails).forEach(k => {
+        if (numericFields.includes(k)) {
+          if (k === 'value') {
+            const value = parseInt(txDetails.value, 16);
+            if (value > 0) {
+              // Ethereum transaction
+              txDetails.value = `${fromWei(txDetails.value)} ETH`;
+            } else {
+              // Decode transaction input
+              const inputDecoded = encodeHelper.decodeTxData({ data: txDetails.input });
+              txDetails = { ...txDetails, contractAddress: txDetails.to, ...inputDecoded };
+              // Find token
+              // const callParams = { address, contractAddress, abi, endpoint };
+              // const symbol = await ethereumQuery.callContract({
+              //   ...callParams, contractMethod: 'symbol'
+              // });
+            }
+          } else {
+            txDetails[k] = parseInt(txDetails[k], 16);
+          }
+          
+        }
+      });
+      // TODO convert value (in case of token transaction?), count gas used, add units 
+      return txDetails;
+    } catch (e) {
+      throw new Error(e.message);
+    }
   };
 
   const estimateFee = async ({ networkConfig }) => {
@@ -468,7 +515,7 @@ module.exports = ({ network = 'ETH' }) => {
 
     if (asset && from && to && (value || contractAddress || data)) {
       try {
-        const txParams = ethereumQuery.makeTransactionParams({
+        const txParams = encodeHelper.makeTransactionParams({
           asset, from, to, value, data, contractAddress
         });
         const endpoint = httpEndpointFromConfig(networkConfig);

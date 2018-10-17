@@ -13,6 +13,7 @@ const { getWeb3Client, isNetworkRunning } = require('./web3-helper')({ network }
 const { isEtherscanRunning } = require('./etherscan-helper')({ network });
 const { httpEndpointFromConfig } = require('./ethereum-networkhelper')({ network });
 const ethereumQuery = require('./ethereum-query');
+const encodeHelper = require('./ethereum-encodehelper');
 
 const Genesis = require('./ethereum-genesis')({ network });
 
@@ -217,9 +218,14 @@ describe("Ethereum network", () => {
     const endpoint = httpEndpointFromConfig(walletPrivateConfig.networkConfig);
     const gasPrice = 41; // 41 GWei 
 
-    const methodSpec = ethereumQuery.getMethodSpec({ abi, contractMethod: 'transfer' });
-    const contractParams = [ account2.address, `0x${(1 * Math.pow(10, 18)).toString(16)}` ];
-    const data = ethereumQuery.encodeParams({ methodSpec, contractParams });
+    const data = encodeHelper.encodeTxData({ 
+      method: 'transfer',
+      params: [
+        account2.address,
+        `0x${(1 * Math.pow(10, 18)).toString(16)}`
+      ],
+      abi
+    });
     
     const gasLimit = parseInt( await ethereumQuery.query({
       method: 'eth_estimateGas', params : [{
@@ -304,6 +310,36 @@ describe("Ethereum network", () => {
     value.should.equal(parseFloat(res.value));
     symbol.should.equal(res.symbol);
     name.should.equal(res.name);
+  });
+
+  it('Decode transaction input', async () => {
+    const data = '0xa9059cbb000000000000000000000000ad0a2478ba25816365aa0e32d77aff92b9e34efc0000000000000000000000000000000000000000000000a8a892cc27eb500000';
+    const res = encodeHelper.decodeTxData({ data });
+    res.to.should.equal('0xad0a2478ba25816365aa0e32d77aff92b9e34efc');
+    (res.value/Math.pow(10, 18)).should.equal(3111.2);
+  });
+
+  it('Encode transaction input', async () => {
+    const amount = 3111.2;
+    const data = encodeHelper.encodeTxData({ 
+      method: 'transfer', 
+      params: [ '0xad0a2478ba25816365aa0e32d77aff92b9e34efc', `0x${(amount * Math.pow(10, 18)).toString(16)}` ]
+    });
+    data.should.equal('0xa9059cbb000000000000000000000000ad0a2478ba25816365aa0e32d77aff92b9e34efc0000000000000000000000000000000000000000000000a8a892cc27eb500000');
+  });
+
+  it('Decode contract call response', async () => {
+    const data = '0x0000000000000000000000000000000000000000000000000de0b6b3a7640000';
+    const res = encodeHelper.decodeTxOutput({ method: 'balanceOf', data });
+    (res/Math.pow(10, 18)).should.equal(1);
+
+    const data2 = '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000024d59000000000000000000000000000000000000000000000000000000000000';
+    const res2 = encodeHelper.decodeTxOutput({ method: 'symbol', data: data2 });
+    res2.should.equal('MY');
+    
+    const data3 = '0x0000000000000000000000000000000000000000000000000000000000000012';
+    const res3 = encodeHelper.decodeTxOutput({ method: 'decimals', data: data3 });
+    res3.should.equal('18');
   });
 
 });
