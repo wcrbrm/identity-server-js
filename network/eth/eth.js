@@ -460,31 +460,49 @@ module.exports = ({ network = 'ETH' }) => {
 
       // Convert all numeric fields:
       const numericFields = [ 'blockNumber', 'gas', 'gasPrice', 'nonce', 'transactionIndex', 'value', 'v', 'timestamp' ];
-      Object.keys(txDetails).forEach(k => {
-        if (numericFields.includes(k)) {
-          if (k === 'value') {
-            const value = parseInt(txDetails.value, 16);
-            if (value > 0) {
-              // Ethereum transaction
-              txDetails.value = `${fromWei(txDetails.value)} ETH`;
+      const promises = [];
+      Object.keys(txDetails).forEach((k) => {
+        promises.push(new Promise(async (resolve, reject) => {
+          if (numericFields.includes(k)) {
+            if (k === 'value') {
+              const value = parseInt(txDetails.value, 16);
+              if (value > 0) {
+                // Ethereum transaction
+                txDetails.value = `${fromWei(txDetails.value)} ETH`;
+                resolve();
+              } else {
+                // Decode transaction input
+                const inputDecoded = encodeHelper.decodeTxData({ data: txDetails.input });
+                txDetails = { ...txDetails, contractAddress: txDetails.to, ...inputDecoded };
+                // Find token
+                const symbol = await ethereumQuery.callContract({
+                  address: txDetails.from,
+                  contractAddress: txDetails.contractAddress,
+                  contractMethod: 'symbol',
+                  endpoint
+                });
+                if (symbol) {
+                  txDetails.value = `${fromWei(txDetails.value)} ${symbol}`;
+                  resolve();
+                }
+              }
+            } else if (k === 'gasPrice') {
+              txDetails[k] = `${toGwei(txDetails[k])} GWei`;
+              resolve();
             } else {
-              // Decode transaction input
-              const inputDecoded = encodeHelper.decodeTxData({ data: txDetails.input });
-              txDetails = { ...txDetails, contractAddress: txDetails.to, ...inputDecoded };
-              // Find token
-              // const callParams = { address, contractAddress, abi, endpoint };
-              // const symbol = await ethereumQuery.callContract({
-              //   ...callParams, contractMethod: 'symbol'
-              // });
+              txDetails[k] = parseInt(txDetails[k], 16);
+              resolve();
             }
           } else {
-            txDetails[k] = parseInt(txDetails[k], 16);
+            resolve();
           }
-          
-        }
+        }));
       });
-      // TODO convert value (in case of token transaction?), count gas used, add units 
-      return txDetails;
+
+      const done = await Promise.all(promises);
+      if (done) {
+        return txDetails;
+      }
     } catch (e) {
       throw new Error(e.message);
     }

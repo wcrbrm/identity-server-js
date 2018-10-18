@@ -41,7 +41,7 @@ const callContract = async ({
   contractParams, // array
   endpoint 
 }) => {
-
+  abi = abi || encodeHelper.getErc20Abi();
   const data = encodeHelper.encodeTxData({ method: contractMethod, params: contractParams, abi });
   const response = await query({ method: 'eth_call', params: [
     { 
