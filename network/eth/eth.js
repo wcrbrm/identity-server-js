@@ -420,20 +420,41 @@ module.exports = ({ network = 'ETH' }) => {
   // get list of past transactions, start = page, limit = offset
   const getHistory = async ({ address, networkConfig, start = 1, limit = 10 }) => {;
     const etherscan = getEtherscanClient(networkConfig);
+    const endpoint = httpEndpointFromConfig(networkConfig);
     const result = await etherscan.getAccountHistory({ address, start, limit });
 
     if (result.length > 0) {
+
       const history = [];
+      const promises = [];
+
       result.forEach(txData => {
-        history.push({
-          txid: txData.hash,
-          timestamp: txData.timeStamp, 
-          sender: { [txData.from]: niceFloat(fromWei(txData.value)) }, 
-          receiver: { [txData.to]: niceFloat(fromWei(txData.value)) },
-          asset: txData.tokenSymbol === undefined ? 'ETH' : (txData.tokenSymbol || '?')
-        });
+        promises.push(new Promise(async (resolve, reject) => {
+          const symbol = txData.tokenSymbol === undefined ? 'ETH' : (
+            txData.tokenSymbol || await ethereumQuery.callContract({
+              address: txData.from,
+              contractAddress: txData.contractAddress,
+              contractMethod: 'symbol',
+              endpoint
+            })
+          );
+
+          history.push({
+            txid: txData.hash,
+            timestamp: txData.timeStamp, 
+            sender: { [txData.from]: niceFloat(fromWei(txData.value)) }, 
+            receiver: { [txData.to]: niceFloat(fromWei(txData.value)) },
+            asset: symbol
+          });
+
+          resolve();
+        })); 
       });
-      return history;
+
+      const done = await Promise.all(promises);
+      if (done) {
+        return history;
+      }
     }
 
     return [];
