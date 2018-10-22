@@ -212,11 +212,10 @@ module.exports = (operation, options) => {
                 return error(res, 'Address must be generated in isValidPrivateKey');
               }
               if (objResult.address) payload.address = objResult.address;
+              payload.privateKey = objResult.privateKey;
               if (payload.password) {
-                payload.privateKey = objResult.privateKey;
                 delete payload.password;
               }
-              payload.privateKey = `0x${payload.privateKey}`;
             }
             const id = sha1(JSON.stringify(payload)  + idSuffix);
             resultToReturn = Object.assign({ id }, payload); //{ ...payload, id };

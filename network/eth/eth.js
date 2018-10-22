@@ -101,6 +101,7 @@ module.exports = ({ network = 'ETH' }) => {
     }
     if (valid) {
       res.address = addressFromPrivateKey({ privateKey: `0x${privateKey}`, networkConfig });
+      res.privateKey = `0x${privateKey}`;
     }
     return res;
   };

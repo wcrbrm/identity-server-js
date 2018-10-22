@@ -14,6 +14,7 @@ const Networks = [
     local: 'http://localhost:8333',
     //disabled: ['watch'],
     disabled: false,
+    BIP38: true,
     // TODO mainnet config
     // https://1209k.com/bitcoin-eye/ele.php?chain=btc
     api: [
@@ -67,7 +68,7 @@ const Networks = [
     disabled: true
   },
   {
-    value: 'ETH', name: 'Ethereum', icon: '/networks/ETH.png', EIP55: true,
+    value: 'ETH', name: 'Ethereum', icon: '/networks/ETH.png', EIP55: true, BIP38: false,
     local: 'http://localhost:8545',
     api: 'http://localhost:9911',
     apiName: 'EtherScan API',
