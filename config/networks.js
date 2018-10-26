@@ -57,7 +57,7 @@ const Networks = [
   //   spec: 'https://github.com/BTCGPU/BTCGPU/wiki/Technical-Spec',
   //   disabled: true
   // },
-  {
+/*  {
     value: 'EOS', name: 'EOS', terms: true, icon: '/networks/EOS.png',
     multiAccount: true,
     local: 'http://localhost:8888',
@@ -65,7 +65,7 @@ const Networks = [
       { value: 'jungle', name: 'Jungle TestNet', explorer: 'http://dev.cryptolions.io/' },
       { value: 'scholar', name: 'Scholar TestNet', explorer: 'https://scholar.eosnation.io/' }
     ]
-  },
+  },*/
   {
     value: 'ETC', name: 'Ethereum Classic', icon: '/networks/ETC.png', EIP55: true,
     local: 'http://localhost:8545',
