@@ -11,7 +11,10 @@ const Networks = [
   },
   {
     value: 'BTC', name: 'Bitcoin', icon: '/networks/BTC.png',
-    local: 'http://localhost:8333',
+    local: {
+      rpc: 'http://localhost:18443',
+      api: 'tcp://127.0.0.1:50001',
+    },
     //disabled: ['watch'],
     disabled: false,
     BIP38: true,
@@ -23,6 +26,7 @@ const Networks = [
       'tcp://helicarrier.bauerj.eu:50001',
       'tcp://174.138.11.174:50001',
     ],
+    apiName: 'ElectrumX API',
     testnets: [
       // TODO testnet config
       // https://1209k.com/bitcoin-eye/ele.php?chain=tbtc
@@ -69,8 +73,10 @@ const Networks = [
   },
   {
     value: 'ETH', name: 'Ethereum', icon: '/networks/ETH.png', EIP55: true, BIP38: false,
-    local: 'http://localhost:8545',
-    api: 'http://localhost:9911',
+    local: {
+      rpc: 'http://localhost:8545',
+      api: 'http://localhost:9911',
+    },
     apiName: 'EtherScan API',
     apiKeys: [
       'J6I6DJSFE763ISRXWI5XCCX23NTTDTHFTM',

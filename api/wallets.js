@@ -128,7 +128,7 @@ module.exports = (operation, options) => {
         return ok(res, { operation: "deleted", length: wallets.length });
 
       } else if (operation === 'generate') {
-        const { name, network, networkId, testnet } = req.body;
+        const { name, network, networkId, testnet, rpc, api } = req.body;
         const json = getStorageJson(options, res);
         if (!json) return;
 
@@ -136,7 +136,7 @@ module.exports = (operation, options) => {
         walletStorage.responseStream(res);
         const debug = require('debug')('wallets.generate');
         debug("generating wallet name=", name);
-        walletStorage.generate(name, { network, networkId, testnet }).then(newWallet => {
+        walletStorage.generate(name, { network, networkId, testnet, rpc, api }).then(newWallet => {
           debug('newWallet=', newWallet);
           if (!newWallet) return;
           json.wallets.push(newWallet);
@@ -203,7 +203,7 @@ module.exports = (operation, options) => {
                   + ', module=' + JSON.stringify(module));
               }
 
-              const { network, networkId = '', testnet = false, privateKey, password } = payload;
+              const { network, networkId = '', testnet = false, privateKey, password, rpc, api } = payload;
               const networkConfig = { network, networkId, testnet };
               const objResult = module.isValidPrivateKey({ privateKey, password, networkConfig });
               if (!objResult.valid || objResult.error) { return ok(res, objResult); }
