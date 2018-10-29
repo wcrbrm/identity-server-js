@@ -9,6 +9,7 @@ module.exports = ({ network = 'ETH' }) => {
   const ethereumQuery = require('./ethereum-query');
   const BigNumber = require('bignumber.js');
   const encodeHelper = require('./ethereum-encodehelper');
+  const { getIcon } = require('./token-icon-helper');
 
   const { httpEndpointFromConfig } = require('./ethereum-networkhelper')({ network });
   const { getEtherscanClient } = require('./etherscan-helper')({ network });
@@ -181,20 +182,29 @@ module.exports = ({ network = 'ETH' }) => {
       name: 'Ethereum',
       //value: await getEth({ web3, address }),
       value: niceFloat(fromWei(await getEth({ address, endpoint }))),
-      cmc: getTicker('ETH')
+      cmc: getTicker('ETH'),
+      icon: 'networks/ETH.png'
     }];
     const etherscan = getEtherscanClient(networkConfig);
     const contracts = await etherscan.getTokenContracts(address);
+    const promises = [];
     if (contracts) {
       // console.log('address:' + address + ', contracts: ' + JSON.stringify(contracts));
-      contracts.forEach(({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
-        assets.push({
-           symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal,
-           contractAddress, cmc: getTicker(tokenSymbol)
-        });
+      contracts.forEach(async ({ contractAddress, tokenSymbol, tokenName, tokenDecimal }) => {
+        promises.push(new Promise(async (resolve) => {
+          const icon = await getIcon({ contractAddress });
+          assets.push({
+            symbol: tokenSymbol, name: tokenName, decimal: tokenDecimal,
+            contractAddress, cmc: getTicker(tokenSymbol), icon
+          });
+          resolve();
+        }));
       });
     }
-    return assets;
+    const done = await Promise.all(promises);
+    if (done) {
+      return assets;
+    }
   };
 
   const contractCache = {};
@@ -326,6 +336,13 @@ module.exports = ({ network = 'ETH' }) => {
     } catch (e) {
       debug('token name extraction error', e.toString());
     }
+
+    asset.icon = await getIcon({ 
+      contractAddress: asset.contractAddress,
+      name: asset.name,
+      symbol: asset.symbol 
+    });
+
     return asset;
   };
 

@@ -129,11 +129,11 @@ module.exports = ({ network = 'BTC' }) => {
       );
       await electrumClient.close();
 
-      return [{ symbol: 'BTC', name: 'Bitcoin', value: niceFloat(value), cmc: getTicker('BTC')  }];
+      return [{ symbol: 'BTC', name: 'Bitcoin', value: niceFloat(value), cmc: getTicker('BTC'), icon: 'networks/BTC.png' }];
     } catch (e) {
       throw new Error(e.message);
     }
-    return [{ symbol: 'BTC', name: 'Bitcoin', value: 0 }];
+    return [{ symbol: 'BTC', name: 'Bitcoin', value: 0, icon: 'networks/BTC.png' }];
   };
 
   const sendTransaction = async ({ asset = 'BTC', amount, fee, to, change, walletPrivateConfig }) => {
