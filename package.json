@@ -57,6 +57,7 @@
     "qrcode": "^1.2.2",
     "sjcl": "^1.0.7",
     "string-pixel-width": "^1.7.0",
+    "uid-generator": "^1.0.0",
     "wif": "^2.0.6"
   },
   "devDependencies": {

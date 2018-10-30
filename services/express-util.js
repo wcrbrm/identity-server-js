@@ -21,9 +21,9 @@ module.exports = module => {
     }
   };
 
-  const error = (res, message, reason) => {
+  const error = (res, message, reason, status = 500) => {
     debug( message );
-    res.status(500).json({
+    res.status(status).json({
       status: "error",
       time: (new Date()).getTime(),
       error: message,
