@@ -2,7 +2,8 @@ let app = null;
 const options = require('./options');
 
 if (process.versions.hasOwnProperty('electron')) {
-  app = require('./ipc/app');
+  const IPCApp = require('./ipc/app');
+  app = new IPCApp();
 } else {
   const http = require("http");
   const express = require("express");

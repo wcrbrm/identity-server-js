@@ -31,33 +31,63 @@ class IPCResponse {
   }
 };
 
-const request = ({ method, path, callback }) => {
-  const channel = `${method} ${path}`;
-  ipcMain.on(channel, (event, args) => {
-    debug(channel, args);
-    const req = Object.assign({}, args);
-    req.body = body(req);
-    const res = new IPCResponse({ event, channel, params: req.params });
-    const next = () => {};
-    callback(req, res, next);
-  });
-};
+class IPCApp {
+  constructor () {
+    this.stack = [];
 
-module.exports = {
+    this.use = (middleware) => {
+      if (typeof middleware === 'function') {
+        this.stack.push(middleware);
+      }
+    };
 
-  get: (path, callback) => {
-    request({ method: 'GET', path, callback });
-  },
+    this.handle = (req, res, callback) => {
+      let idx = 0;
+      const next = () => {
+        if (idx >= this.stack.length) {
+          return setImmediate(() => callback(req, res, next));
+        }
+        const layer = this.stack[idx++];
+        setImmediate(() => {
+          try {
+            layer(req, res, next);
+          } catch(error) {
+            next(error);
+          }
+        });
+      };
+      next();
+    };
+
+    this.request = ({ method, path, callback }) => {
+      const channel = `${method} ${path}`;
+      ipcMain.on(channel, (event, args) => {
+        debug(channel, args);
+        const req = Object.assign({}, args);
+        req.body = body(req);
+        req.path = path;
+        const res = new IPCResponse({ event, channel, params: req.params });
+        this.handle(req, res, callback);
+      });
+    };
+
+    this.get = (path, callback) => {
+      this.request({ method: 'GET', path, callback });
+    };
+    
+    this.post = (path, callback) => {
+      this.request({ method: 'POST', path, callback });
+    };
   
-  post: (path, callback) => {
-    request({ method: 'POST', path, callback });
-  },
+    this.delete = (path, callback) => {
+      this.request({ method: 'DELETE', path, callback });
+    };
 
-  delete: (path, callback) => {
-    request({ method: 'DELETE', path, callback });
-  },
+    this.listen = () => {
+      // Empty method for compatibility with Express only
+    };
 
-  listen: () => {
-    // Empty method for compatibility with Express only
-  },
+  }
 };
+
+module.exports = IPCApp;

@@ -29,13 +29,12 @@ module.exports = (operation, options) => {
         });
         return;
       } else {
-        error(res, 'Pin code incorrect', null, 400);
+        return error(res, 'Pin code incorrect', null, 400);
       }
 
     } else if (operation === 'lock') {
       delete global.tokens;
-      ok(res);
-      return;
+      return ok(res);
 
     } else if (operation === 'validate') {
       const path = req.path;
@@ -44,14 +43,12 @@ module.exports = (operation, options) => {
       if (!openRoutes.includes(path)) {
         const authorizationHeader = req.headers['authorization'];
         if (!authorizationHeader) {
-          error(res, 'Forbidden', 'No authorization token', 403);
-          return;
+          return error(res, 'Forbidden', 'No authorization token', 403);
         }
 
         const headerParts = authorizationHeader.split(' ');
         if (!headerParts[0] === 'Bearer' || !headerParts[1]) {
-          error(res, 'Forbidden', 'Malformed authorization token', 403);
-          return;
+          return error(res, 'Forbidden', 'Malformed authorization token', 403);
         }
 
         const receivedToken = headerParts[1];
@@ -59,7 +56,7 @@ module.exports = (operation, options) => {
         const existingTokens = global.tokens;
         const token = existingTokens.find(t => t.token === receivedToken);
         if (!token || token.expiry < now()) {
-          error(res, 'Forbidden', 'Authorization token not found or expired', 403);
+          return error(res, 'Forbidden', 'Authorization token not found or expired', 403);
         }
       }
     } else if (operation === 'refresh') {
