@@ -69,7 +69,10 @@ typings/
 
 # electron
 main.js
-public/
+!public/
+public/*
+!public/icons
+!public/media
 
 # remove it to avoid conflicts with yarn. Yarn is the main builder for this package
 package-lock.json
