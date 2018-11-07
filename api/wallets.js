@@ -39,7 +39,7 @@ module.exports = (operation, options) => {
 
       if (operation === 'list') {
 
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const wallets = (json.wallets || [])
@@ -50,7 +50,7 @@ module.exports = (operation, options) => {
 
         const id = requireWalletId(req, res);
         if (!id) return;
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const walletsMatch = json.wallets.filter(w => (w.id === id));
@@ -70,7 +70,7 @@ module.exports = (operation, options) => {
         if (!id) return;
         const assetId = requireAssetId(req, res);
         if (!assetId) return;
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const walletsMatch = json.wallets.filter(w => (w.id === id));
@@ -95,7 +95,7 @@ module.exports = (operation, options) => {
 
         const id = requireWalletId(req, res);
         if (!id) return;
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const walletsMatch = json.wallets.filter(w => (w.id === id));
@@ -119,17 +119,18 @@ module.exports = (operation, options) => {
 
         const id = requireWalletId(req, res);
         if (!id) return;
-        const json = getStorageJson(options, res);
+        const pin = body(req).pin;
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
         const wallets = json.wallets.filter(w => (w.id !== id));
         const jsonUpdated = Object.assign(json, { wallets }); // { ...json, wallets };
 
-        saveStorageJson(options, jsonUpdated);
+        saveStorageJson(options, jsonUpdated, pin);
         return ok(res, { operation: "deleted", length: wallets.length });
 
       } else if (operation === 'generate') {
-        const { name, network, networkId, testnet, rpc, api } = req.body;
-        const json = getStorageJson(options, res);
+        const { name, network, networkId, testnet, rpc, api, pin } = req.body;
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const walletStorage = new WalletStorage(json);
@@ -141,7 +142,7 @@ module.exports = (operation, options) => {
           if (!newWallet) return;
           json.wallets.push(newWallet);
           try {
-            saveStorageJson(options, json);
+            saveStorageJson(options, json, pin);
             ok(res, safeWalletInfo(newWallet));
           } catch (e) {
             error(res, "Error on generating wallet: " + e.toString());
@@ -151,7 +152,7 @@ module.exports = (operation, options) => {
 
       } else if (operation === 'append') {
 
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const payload = body(req);
@@ -162,6 +163,7 @@ module.exports = (operation, options) => {
           if (!payload.name) { error(res, 'Name must be provided'); return; }
           const idSuffix = '-' + (new Date()).toISOString();// could that be empty?
           let resultToReturn = null;
+          const pinCode = payload.pin;
 
           if (payload.exchange) {
 
@@ -219,11 +221,12 @@ module.exports = (operation, options) => {
             }
             const id = sha1(JSON.stringify(payload)  + idSuffix);
             resultToReturn = Object.assign({ id }, payload); //{ ...payload, id };
+            delete resultToReturn.pin;
             json.wallets.push(resultToReturn);
           }
 
           try {
-            saveStorageJson(options, json);
+            saveStorageJson(options, json, pinCode);
             ok(res, safeWalletInfo(resultToReturn));
           } catch (e) {
             error(res, "Error on save: " + e.toString());
@@ -234,7 +237,7 @@ module.exports = (operation, options) => {
         return;
 
       } else if (operation === 'pdf') {
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const walletId = req.params.id;
@@ -276,7 +279,7 @@ module.exports = (operation, options) => {
 
         return;
       } else if (operation === 'history') {
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const walletId = req.params.id;
@@ -311,7 +314,7 @@ module.exports = (operation, options) => {
         return;
 
       } else if (operation === 'send_transaction') {
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const walletId = req.params.id;
@@ -356,7 +359,7 @@ module.exports = (operation, options) => {
         return;
 
       } else if (operation === 'transaction_details') {
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const walletId = req.params.id;
@@ -384,7 +387,7 @@ module.exports = (operation, options) => {
 
         return;
       } else if (operation === 'fee') {
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const walletId = req.params.id;
@@ -413,7 +416,7 @@ module.exports = (operation, options) => {
         return;
 
       } else if (operation === 'gas') {
-        const json = getStorageJson(options, res);
+        const json = getStorageJson({ options, req, res });
         if (!json) return;
 
         const walletId = req.params.id;

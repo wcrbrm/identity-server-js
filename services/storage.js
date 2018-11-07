@@ -1,29 +1,77 @@
 const fs = require('fs');
-const { error } = require('./express-util')('storage');
+const CryptoJS = require('crypto-js');
+const { error, body } = require('./express-util')('storage');
+const { getToken } = require('./../api/auth-helpers');
 
-const getStorageJson = (options, res) => {
+const validateStorageJson = (res, json) => {
+  if (!json.format) {
+    return error(res, "Error: Storage file is missing format");
+  }
+  if (!json.seed) {
+    return error(res, "Error: Storage file is missing seed");
+  }
+  // if (!json.pinCode) {
+  //   return error(res, "Error: Storage file is missing pinCode section");
+  // }
+  return json;
+};
+
+const storageExists = (options, res) => {
   const path = options.storage + "/encrypted.storage";
   if (!fs.existsSync(path)) {
     return error(res, 'Error: Storage Not Initialized', 'first_run');
   }
   try {
     const json = JSON.parse(fs.readFileSync(path));
-    if (!json.format) {
-      return error(res, "Error: Storage file is missing format");
-    }
-    if (!json.pinCode) {
-      return error(res, "Error: Storage file is missing pinCode");
-    }
-    if (!json.seed) {
-      return error(res, "Error: Storage file is missing seed");
-    }
-    if (!json.wallets) {
-      return error(res, "Error: Storage file is missing wallets section");
-    }
-    return json;
+    return { installation: 'not_encrypted', locked: false };
   } catch (e) {
-    return error(res, "Error: Storage file cannot be parsed");
+    return { installation: 'encrypted', locked: true };
   }
+};
+
+const getStorageJson = ({ options, res, req }) => {
+  const authToken = getToken(req);
+  const pinCode = body(req).pinCode;
+
+  if (pinCode) {
+    const path = options.storage + "/encrypted.storage";
+    if (!fs.existsSync(path)) {
+      return error(res, 'Error: Storage Not Initialized', 'first_run');
+    }
+    try {
+      const key = CryptoJS.MD5(pinCode).toString();
+      const branca = require('branca')(key);
+      const text = fs.readFileSync(path).toString();
+      const decoded = branca.decode(text);
+      const json = JSON.parse(decoded.toString());
+      if (!json.format) {
+        return error(res, "Error: Storage file is missing format");
+      }
+      if (!json.seed) {
+        return error(res, "Error: Storage file is missing seed");
+      }
+      if (!json.wallets) {
+        return error(res, "Error: Storage file is missing wallets section");
+      }
+      return json;
+    } catch (e) {
+      return error(res, "Error: Storage file cannot be parsed");
+    }
+  } else if (authToken) {
+    const token = global.tokens.find(t => t.token === authToken);
+    if (!token) {
+      return error(res, 'Authentication token not found');
+    }
+    const { storageId } = token;
+    if (!storageId) return error(res, 'Cannot find in-memory storage');
+    if (!global.storage) return error(res, 'In-memory storage not initialized');
+    
+    const json = global.storage[storageId];
+    if (!json) return error(res, "In-memory storage doesn't exist");
+    
+    return validateStorageJson(res, json);
+  }
+  
 };
 
 const ensureExists = dir => {
@@ -33,18 +81,27 @@ const ensureExists = dir => {
 };
 
 
-const saveStorageJson = (options, json) => {
+const saveStorageJson = (options, json, pinCode) => {
+  if (!pinCode) {
+    throw new Error('PIN1 required to encode Storage');
+  }
   const updated = (new Date()).toISOString();
   const wallets = json.wallets || [];
   const obj = Object.assign({ updated, wallets }, json); // { ...json, updated, wallets };
+  delete obj.pinCode; // do not store pinCode, use it only to decrypt storage
 
   ensureExists(options.storage);
   const path = options.storage + "/encrypted.storage";
-  fs.writeFileSync(path, JSON.stringify(obj, null, 2));
+  const key = CryptoJS.MD5(pinCode).toString();
+  const branca = require('branca')(key);
+  const encryptedObj = branca.encode(JSON.stringify(obj, null, 2));
+  fs.writeFileSync(path, encryptedObj);
 };
 
 module.exports = {
-  error, 
+  error,
+  storageExists,
   getStorageJson,
-  saveStorageJson
+  saveStorageJson,
+  validateStorageJson
 };

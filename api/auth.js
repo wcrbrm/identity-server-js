@@ -1,31 +1,18 @@
-const UIDGenerator = require('uid-generator');
 const debug = require('debug')("api/auth");
 const { getStorageJson } = require('../services/storage');
 const { ok, error } = require('../services/express-util')('api/auth');
-
-const now = () => Math.round((new Date()).getTime() / 1000);
-const expiryIn = 15; //minutes
+const { now, saveStorageJsonToMemory, saveAuthTokenToMemory, getToken } = require('./auth-helpers');
 
 module.exports = (operation, options) => {
   return (req, res, next) => {
     if (operation === 'unlock') {
-      const json = getStorageJson(options, res);
-      if (!json) return;
-
-      const storedPin = json.pinCode;
-      const receivedPin = req.body.pinCode;
-
-      if (storedPin === receivedPin) {
-        // Generate new token
-        (new UIDGenerator()).generate().then(uid => {
-          // Token expires in 15 min
-          const expiry = now() + expiryIn * 60;
-          const token = { token: uid, expiry, scope: [] };
-
-          global.tokens = global.tokens || [];
-          global.tokens.push(token);
-
-          ok(res, token);
+      // decode storage with pin1
+      const json = getStorageJson({ options, req, res });
+      if (json) {
+        saveStorageJsonToMemory(json).then(storageId => {
+          saveAuthTokenToMemory({ storageId }).then(token => {
+            ok(res, token);
+          });
         });
         return;
       } else {
@@ -38,7 +25,7 @@ module.exports = (operation, options) => {
 
     } else if (operation === 'validate') {
       const path = req.path;
-      const openRoutes = [ '/api/status', '/api/networks', '/api/auth/unlock' ];
+      const openRoutes = [ '/api/status', '/api/networks', '/api/auth/unlock', '/api/storage' ];
 
       if (!openRoutes.includes(path)) {
         const authorizationHeader = req.headers['authorization'];
@@ -60,14 +47,8 @@ module.exports = (operation, options) => {
         }
       }
     } else if (operation === 'refresh') {
-      (new UIDGenerator()).generate().then(uid => {
-        // Token expires in 15 min
-        const expiry = now() + expiryIn * 60;
-        const token = { token: uid, expiry, scope: [] };
-
-        global.tokens = global.tokens || [];
-        global.tokens.push(token);
-
+      const tokenHeader = getToken(req);
+      saveAuthTokenToMemory({ tokenHeader }).then(token => {
         ok(res, token);
       });
       return;
