@@ -241,13 +241,14 @@ module.exports = (operation, options) => {
         if (!json) return;
 
         const walletId = req.params.id;
-        const wallet = json.wallets.find(w => w.id === walletId);
+        let wallet = json.wallets.find(w => w.id === walletId);
         const errors = []; // All errors, that should be redirected to PDF
 
         if (!wallet) errors.push('Error: \n wallet not found!');
 
         const bip38Passphrase = req.headers['bip38-passphrase'];
         if (bip38Passphrase && wallet) {
+          wallet = Object.assign({}, wallet);
           const module = require('./../network/index')[wallet.network]({ network: wallet.network });
           if (!module) {
             errors.push('No module implemented for network ' + wallet.network);
