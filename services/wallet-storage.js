@@ -2,6 +2,7 @@ const { error } = require("./express-util")('wallet-storage');
 const sha1 = require('js-sha1');
 const fs = require('fs');
 const path = require('path');
+const { encrypt } = require('./../services/encryption');
 
 function WalletStorage(json) {
   this.json = json;
@@ -44,7 +45,7 @@ function WalletStorage(json) {
     return require(modPath)(networkConfig);
   };
 
-  this.generate = async function (name, networkConfig) {
+  this.generate = async function (name, networkConfig, passphrase) {
     if (!name) return error(this.res, 'Name is missing', 'missing_name');
 
     const debug = require('debug')("wallet-storage.generate");
@@ -62,6 +63,7 @@ function WalletStorage(json) {
     // validate network
     const wallet = await modNetwork.create({ seed, index, networkConfig });
     const id = sha1(JSON.stringify(wallet) + '-' + (new Date()).toISOString());
+    wallet.privateKey = encrypt({ message: wallet.privateKey, passphrase });
     return Object.assign({ id, index, name }, networkConfig, wallet); // { ...networkConfig, ...wallet, id, index, name };
   };
 };

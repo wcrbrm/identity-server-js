@@ -1,7 +1,7 @@
 const fs = require('fs');
-const CryptoJS = require('crypto-js');
 const { error, body } = require('./express-util')('storage');
 const { getToken } = require('./../api/auth-helpers');
+const { encrypt, decrypt } = require('./encryption');
 
 const validateStorageJson = (res, json) => {
   if (!json.format) {
@@ -39,11 +39,8 @@ const getStorageJson = ({ options, res, req }) => {
       return error(res, 'Error: Storage Not Initialized', 'first_run');
     }
     try {
-      const key = CryptoJS.MD5(pinCode).toString();
-      const branca = require('branca')(key);
-      const text = fs.readFileSync(path).toString();
-      const decoded = branca.decode(text);
-      const json = JSON.parse(decoded.toString());
+      const json = JSON.parse(decrypt({ token: fs.readFileSync(path).toString(), passphrase: pinCode }));
+      //const json = JSON.parse(fs.readFileSync(path).toString());
       if (!json.format) {
         return error(res, "Error: Storage file is missing format");
       }
@@ -92,10 +89,8 @@ const saveStorageJson = (options, json, pinCode) => {
 
   ensureExists(options.storage);
   const path = options.storage + "/encrypted.storage";
-  const key = CryptoJS.MD5(pinCode).toString();
-  const branca = require('branca')(key);
-  const encryptedObj = branca.encode(JSON.stringify(obj, null, 2));
-  fs.writeFileSync(path, encryptedObj);
+  fs.writeFileSync(path, encrypt({ message: obj, passphrase: pinCode }));
+  //fs.writeFileSync(path, JSON.stringify(obj, null, 2));
 };
 
 module.exports = {

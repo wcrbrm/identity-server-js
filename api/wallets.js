@@ -5,7 +5,7 @@ const WalletStorage = require('./../services/wallet-storage');
 const WalletInfo = require('./../services/wallet-info');
 const { error, ok, body } = require("./../services/express-util")('wallets');
 const { pdf } = require('./../services/pdf');
-
+const { encrypt, decrypt } = require('./../services/encryption');
 
 const requireWalletId = (req, res) => {
   if (!req.params.id) {
@@ -129,7 +129,7 @@ module.exports = (operation, options) => {
         return ok(res, { operation: "deleted", length: wallets.length });
 
       } else if (operation === 'generate') {
-        const { name, network, networkId, testnet, rpc, api, pin } = req.body;
+        const { name, network, networkId, testnet, rpc, api, pin, passphrase } = req.body;
         const json = getStorageJson({ options, req, res });
         if (!json) return;
 
@@ -137,7 +137,7 @@ module.exports = (operation, options) => {
         walletStorage.responseStream(res);
         const debug = require('debug')('wallets.generate');
         debug("generating wallet name=", name);
-        walletStorage.generate(name, { network, networkId, testnet, rpc, api }).then(newWallet => {
+        walletStorage.generate(name, { network, networkId, testnet, rpc, api }, passphrase).then(newWallet => {
           debug('newWallet=', newWallet);
           if (!newWallet) return;
           json.wallets.push(newWallet);
@@ -205,7 +205,7 @@ module.exports = (operation, options) => {
                   + ', module=' + JSON.stringify(module));
               }
 
-              const { network, networkId = '', testnet = false, privateKey, password, rpc, api } = payload;
+              const { network, networkId = '', testnet = false, privateKey, password, rpc, api, passphrase } = payload;
               const networkConfig = { network, networkId, testnet };
               const objResult = module.isValidPrivateKey({ privateKey, password, networkConfig });
               if (!objResult.valid || objResult.error) { return ok(res, objResult); }
@@ -215,9 +215,11 @@ module.exports = (operation, options) => {
               }
               if (objResult.address) payload.address = objResult.address;
               payload.privateKey = objResult.privateKey;
+              payload.privateKey = encrypt({ message: payload.privateKey, passphrase });
               if (payload.password) {
                 delete payload.password;
               }
+              delete payload.passphrase;
             }
             const id = sha1(JSON.stringify(payload)  + idSuffix);
             resultToReturn = Object.assign({ id }, payload); //{ ...payload, id };
@@ -247,22 +249,26 @@ module.exports = (operation, options) => {
         if (!wallet) errors.push('Error: \n wallet not found!');
 
         const bip38Passphrase = req.headers['bip38-passphrase'];
-        if (bip38Passphrase && wallet) {
+        const passphrase = req.headers['passphrase'];
+        if (wallet) {
           wallet = Object.assign({}, wallet);
-          const module = require('./../network/index')[wallet.network]({ network: wallet.network });
-          if (!module) {
-            errors.push('No module implemented for network ' + wallet.network);
-          } else {
-            if ((typeof module.encryptPrivateKey) !== 'function') {
-              errors.push(`encryptPrivateKey is not implemented for ${wallet.network} ${wallet.networkId}`);
+          wallet.privateKey = decrypt({ token: wallet.privateKey, passphrase });
+          if (bip38Passphrase) {
+            const module = require('./../network/index')[wallet.network]({ network: wallet.network });
+            if (!module) {
+              errors.push('No module implemented for network ' + wallet.network);
             } else {
-              const networkConfig = { 
-                network: wallet.network,
-                networkId: wallet.networkId,
-                testnet: wallet.testnet 
-              };
-              const encryptedPrivateKey = module.encryptPrivateKey({ key: wallet.privateKey, password: bip38Passphrase, networkConfig });
-              wallet.privateKey = encryptedPrivateKey;
+              if ((typeof module.encryptPrivateKey) !== 'function') {
+                errors.push(`encryptPrivateKey is not implemented for ${wallet.network} ${wallet.networkId}`);
+              } else {
+                const networkConfig = { 
+                  network: wallet.network,
+                  networkId: wallet.networkId,
+                  testnet: wallet.testnet 
+                };
+                const encryptedPrivateKey = module.encryptPrivateKey({ key: wallet.privateKey, password: bip38Passphrase, networkConfig });
+                wallet.privateKey = encryptedPrivateKey;
+              }
             }
           }
         }
@@ -328,10 +334,10 @@ module.exports = (operation, options) => {
           return error(res, 'No module implemented for network ' + wallet.network);
         }
 
-        const { asset, amount, to, change, fee, gasPrice, gasLimit, data, contractAddress } = req.body;
+        const { asset, amount, to, change, fee, gasPrice, gasLimit, data, contractAddress, passphrase } = req.body;
         const walletPrivateConfig = {
           address: wallet.address,
-          privateKey: wallet.privateKey,
+          privateKey: decrypt({ token: wallet.privateKey, passphrase }),
           publicKey: wallet.publicKey, 
           networkConfig: {
             network: wallet.network,
