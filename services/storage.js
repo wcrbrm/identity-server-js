@@ -1,4 +1,5 @@
 const fs = require('fs');
+const CryptoJS = require('crypto-js');
 const { error, body } = require('./express-util')('storage');
 const { getToken } = require('./../api/auth-helpers');
 const { encrypt, decrypt } = require('./encryption');
@@ -50,6 +51,7 @@ const getStorageJson = ({ options, res, req }) => {
       if (!json.wallets) {
         return error(res, "Error: Storage file is missing wallets section");
       }
+      json.pinHash = CryptoJS.SHA1(pinCode).toString();
       return json;
     } catch (e) {
       return error(res, "Error: Storage file cannot be parsed");
@@ -80,12 +82,16 @@ const ensureExists = dir => {
 
 const saveStorageJson = (options, json, pinCode) => {
   if (!pinCode) {
-    throw new Error('PIN1 required to encode Storage');
+    throw new Error('PIN required to encode Storage');
+  }
+  if (json.pinHash !== CryptoJS.SHA1(pinCode).toString()) {
+    throw new Error('Invalid PIN');
   }
   const updated = (new Date()).toISOString();
   const wallets = json.wallets || [];
   const obj = Object.assign({ updated, wallets }, json); // { ...json, updated, wallets };
   delete obj.pinCode; // do not store pinCode, use it only to decrypt storage
+  delete json.pinHash;
 
   ensureExists(options.storage);
   const path = options.storage + "/encrypted.storage";
