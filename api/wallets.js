@@ -123,7 +123,7 @@ module.exports = (operation, options) => {
         const json = getStorageJson({ options, req, res });
         if (!json) return;
         const wallets = json.wallets.filter(w => (w.id !== id));
-        const jsonUpdated = Object.assign(json, { wallets }); // { ...json, wallets };
+        const jsonUpdated = Object.assign({ wallets }, json); // { ...json, wallets };
 
         saveStorageJson(options, jsonUpdated, pin);
         return ok(res, { operation: "deleted", length: wallets.length });
