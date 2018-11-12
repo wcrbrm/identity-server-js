@@ -19,10 +19,11 @@ if (process.versions.hasOwnProperty('electron')) {
 
 const root = '/api';
 
-app.get(`${root}/status`, require('./api/status')(options));
-
 const modAuth = require('./api/auth');
 app.use(modAuth('validate', options));
+
+app.get(`${root}/status`, require('./api/status')(options));
+
 app.post(`${root}/auth/unlock`, modAuth('unlock', options));
 app.get(`${root}/auth/lock`, modAuth('lock', options));
 app.get(`${root}/auth/refresh`, modAuth('refresh', options));

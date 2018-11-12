@@ -61,9 +61,25 @@ const getToken = (req) => {
   return false;
 };
 
+const needRelogin = (req) => {
+  // In case of server restart, header on client could still be valid, 
+  // but not present in server's memory,
+  // so need to relogin
+  const receivedToken = getToken(req);
+  if (receivedToken) {
+    global.tokens = global.tokens || [];
+    const token = global.tokens.find(t => t.token === receivedToken);
+    if (!token) {
+      return true;
+    }
+  }
+  return false;
+};
+
 module.exports = {
   now,
   saveStorageJsonToMemory,
   saveAuthTokenToMemory,
-  getToken
+  getToken,
+  needRelogin,
 };
