@@ -123,9 +123,12 @@ module.exports = (operation, options) => {
         const json = getStorageJson({ options, req, res });
         if (!json) return;
         const wallets = json.wallets.filter(w => (w.id !== id));
-        const jsonUpdated = Object.assign({ wallets }, json); // { ...json, wallets };
+        const jsonUpdated = Object.assign({}, json); // { ...json, wallets };
+        jsonUpdated.wallets = wallets;
 
         saveStorageJson(options, jsonUpdated, pin);
+        // Update decoded copy only when deletion successful:
+        json.wallets = wallets;
         return ok(res, { operation: "deleted", length: wallets.length });
 
       } else if (operation === 'generate') {
