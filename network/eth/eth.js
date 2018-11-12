@@ -64,7 +64,7 @@ module.exports = ({ network = 'ETH' }) => {
     const hasNicePrefix = address.substring(0, prefix.length) === prefix;
     const isCorrectLength = address.length === (40 + prefix.length);
     const valid = hasNicePrefix && isCorrectLength;
-    const checksum = valid && require('./../../services/eip55').toChecksumAddress(address) === address;
+    const checksum = valid && require('./../../services/eip55').toChecksumAddress(address).toLowerCase() === address.toLowerCase();
     const res = { valid, checksum };
     if (!valid) {
       // try to give suggestion
