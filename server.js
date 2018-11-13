@@ -120,15 +120,15 @@ app.get(`${root}/networks`, modNetworks('list', options));
 
 // PAIR = (PUBLIC, SECRET, URL)
 
-if (require.main === module) {
-  const load = require('./services/coinmarketcap').load;
-  load();
-  setInterval(load, 1000 * 60 * 5);
+const load = require('./services/coinmarketcap').load;
+load();
+setInterval(load, 1000 * 60 * 5);
 
+if (require.main === module) {
   const { host, port } = options;
   console.log("app listening on %s:%d ", host, port);
   app.listen(port, host);
-
+  
 } else {
   module.exports = app;
 }
