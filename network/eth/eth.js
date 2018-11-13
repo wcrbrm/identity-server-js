@@ -350,9 +350,16 @@ module.exports = ({ network = 'ETH' }) => {
 
     const { address, privateKey, networkConfig } = walletPrivateConfig;
     const endpoint = httpEndpointFromConfig(networkConfig);
-    const value = asset === 'ETH' ? toWeiHex(amount) : `0x${(amount * Math.pow(10, 18)).toString(16)}`;
-
+    
+    const getContractDecimals = async () => {
+      return await ethereumQuery.callContract({
+        address, contractAddress, endpoint, contractMethod: 'decimals'
+      });
+    };
+    
     try {
+      const value = asset === 'ETH' ? toWeiHex(amount) : `0x${(amount * Math.pow(10, await getContractDecimals())).toString(16)}`;
+
       const nonce = await ethereumQuery.query({
         method: 'eth_getTransactionCount', params: [ address, 'latest' ], endpoint
       });
