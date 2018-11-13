@@ -19,6 +19,17 @@ if (process.versions.hasOwnProperty('electron')) {
 
 const root = '/api';
 
+// Dummy page for the api
+app.get('/', (req, res, next) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
+// Retrieve Terms, Privacy policy etc files
+app.get(`${root}/locale/:lang/:filename`, (req, res, next) => {
+  const { lang, filename } = req.params;
+  res.sendFile(`${__dirname}/public/locale/${lang}/${filename}`);
+});
+
 const modAuth = require('./api/auth');
 app.use(modAuth('validate', options));
 
@@ -108,11 +119,6 @@ app.get(`${root}/networks`, modNetworks('list', options));
 // Should the same pairing be in the plugin? who knows..
 
 // PAIR = (PUBLIC, SECRET, URL)
-
-// Dummy page for the api
-app.get('/', (req, res, next) => {
-    res.sendFile(__dirname + '/index.html');
-});
 
 if (require.main === module) {
   const load = require('./services/coinmarketcap').load;

@@ -1,4 +1,5 @@
 const { ipcMain } = require('electron');
+const fs = require('fs');
 const debug = require('debug')('app.ipc');
 const { error, ok, body } = require("./../services/express-util")('app.ipc');
 
@@ -28,6 +29,14 @@ class IPCResponse {
     this.setHeader = (header, value) => {
       this.headers[header] = value;
     };
+
+    this.sendFile = (path) => {
+      fs.readFile(path, (err, fileBuffer) => {
+        const encoding = this.params.encoding || 'utf8';
+        this.event.sender.send(channel, fileBuffer.toString(encoding));
+      });
+      return this;
+    };
   }
 };
 
@@ -41,13 +50,13 @@ class IPCApp {
       }
     };
 
-    this.handle = (req, res, callback) => {
+    this.handle = ({ req, res, callback, stack }) => {
       let idx = 0;
       const next = () => {
-        if (idx >= this.stack.length) {
+        if (idx >= stack.length) {
           return setImmediate(() => callback(req, res, next));
         }
-        const layer = this.stack[idx++];
+        const layer = stack[idx++];
         setImmediate(() => {
           try {
             layer(req, res, next);
@@ -61,13 +70,14 @@ class IPCApp {
 
     this.request = ({ method, path, callback }) => {
       const channel = `${method} ${path}`;
+      const stack = this.stack.slice();
       ipcMain.on(channel, (event, args) => {
         debug(channel, args);
         const req = Object.assign({}, args);
         req.body = body(req);
         req.path = path;
         const res = new IPCResponse({ event, channel, params: req.params });
-        this.handle(req, res, callback);
+        this.handle({ req, res, callback, stack });
       });
     };
 

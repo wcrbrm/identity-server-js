@@ -25,7 +25,7 @@ module.exports = (operation, options) => {
 
     } else if (operation === 'validate') {
       const path = req.path;
-      const openRoutes = [ '/api/status', '/api/networks', '/api/auth/unlock', '/api/storage' ];
+      const openRoutes = [ '/', '/api/status', '/api/networks', '/api/auth/unlock', '/api/storage' ];
 
       if (!openRoutes.includes(path)) {
         const authorizationHeader = req.headers['authorization'];
