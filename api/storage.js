@@ -1,3 +1,4 @@
+const CryptoJS = require('crypto-js');
 const debug = require('debug')("api/storage");
 const { saveStorageJson, getStorageJson, validateStorageJson } = require('./../services/storage');
 const { ok, body, error } = require('./../services/express-util')('api/storage');
@@ -7,6 +8,8 @@ module.exports = (options) => {
   return (req, res, next) => {
     const json = body(req);
     if (!validateStorageJson(res, json)) return;
+
+    json.pinHash = CryptoJS.SHA1(json.pinCode).toString();
     saveStorageJson(options, json, json.pinCode);
     
     // Log in user for the first time

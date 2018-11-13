@@ -32,7 +32,7 @@ const storageExists = (options, res) => {
 
 const getStorageJson = ({ options, res, req }) => {
   const authToken = getToken(req);
-  const pinCode = body(req).pinCode;
+  const pinCode = body(req) ? body(req).pinCode : null;
 
   if (pinCode) {
     const path = options.storage + "/encrypted.storage";
