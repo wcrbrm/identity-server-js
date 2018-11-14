@@ -91,7 +91,7 @@ const saveStorageJson = (options, json, pinCode) => {
   const wallets = json.wallets || [];
   const obj = Object.assign({ updated, wallets }, json); // { ...json, updated, wallets };
   delete obj.pinCode; // do not store pinCode, use it only to decrypt storage
-  delete json.pinHash;
+  delete obj.pinHash;
 
   ensureExists(options.storage);
   const path = options.storage + "/encrypted.storage";
