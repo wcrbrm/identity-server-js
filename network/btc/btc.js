@@ -300,6 +300,34 @@ module.exports = ({ network = 'BTC' }) => {
     return { fee, min, max, step, units: 'BTC', label: 'fee' };
   };
 
+  const isUpdated = async ({ walletPublicConfig }) => {
+    const { address, networkConfig } = walletPublicConfig;
+    let updated = new Promise(async (resolve, reject) => {
+      try {
+        const electrumClient = await getElectrumClient(networkConfig);
+
+        const timeout = setTimeout(async () => {
+          resolve(false);
+          await electrumClient.close();
+        }, 20000);
+
+        electrumClient.subscribe.on('blockchain.address.subscribe', async (message) => {
+          if (message) {
+            resolve(true);
+            clearTimeout(timeout);
+            await electrumClient.close();
+          }
+        });
+
+        await electrumClient.blockchainAddress_subscribe(address);
+
+      } catch (e) {
+        throw new Error(e.message);
+      }
+    });
+    return updated;
+  };
+
   return {
     isValidAddress,
     addressFromPrivateKey, // getting address from private key and network config (optional)
@@ -312,7 +340,8 @@ module.exports = ({ network = 'BTC' }) => {
     getPending,
     getHistory,
     getTransactionDetails,
-    estimateFee
+    estimateFee,
+    isUpdated
   };
 
 }

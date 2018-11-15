@@ -242,4 +242,14 @@ describe("Bitcoin functions test", async (d) => {
     //console.log(res);
   });
 
+  it('Check address history has updated', async () => {
+    const address = await btc.query({ method: 'getnewaddress', config: networkConfig });
+    walletPublicConfig.address = address;
+    const amount = 0.1;
+    const txid = await btc.query({ method: 'sendtoaddress', params: [ address, amount ], config: networkConfig });
+
+    const updated = await bitcoin.isUpdated({ walletPublicConfig, txid });
+    updated.should.equal(true);
+  });
+
 });

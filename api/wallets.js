@@ -460,6 +460,38 @@ module.exports = (operation, options) => {
         });
 
         return;
+      } else if (operation === 'updated') {
+        const json = getStorageJson({ options, req, res });
+        if (!json) return;
+
+        const walletId = req.params.id;
+        const wallet = json.wallets.find(w => w.id === walletId);
+        if (!wallet) {
+          return error(res, 'Wallet not found');
+        }
+        const module = require('./../network/index')[wallet.network]({ network: wallet.network });
+        if (!module) {
+          return error(res, 'No module implemented for network ' + wallet.network);
+        }
+        if (typeof module.isUpdated !== 'function') {
+          return error(res, 'isUpdated is not implemented for ' + wallet.network);
+        }
+
+        const networkConfig = {
+          network: wallet.network,
+          networkId: wallet.networkId,
+          testnet: wallet.testnet 
+        };
+        const walletPublicConfig = {
+          address: wallet.address,
+          publicKey: wallet.publicKey,
+          networkConfig
+        };
+
+        module.isUpdated({ walletPublicConfig }).then(updated => {
+          ok(res, updated);
+        });
+        return;
       }
 
       next();
