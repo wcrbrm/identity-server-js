@@ -61,7 +61,7 @@ const parse = (value) =>  parseFloat(value.toFixed(8));
 
 const parseSatoshi = value => value / Math.pow(10, 8);
 
-const toSatoshi = (value) => value * Math.pow(10, 8);
+const toSatoshi = (value) => parseInt(value * Math.pow(10, 8));
 
 // https://github.com/you21979/node-multisig-wallet/blob/master/lib/txdecoder.js:
 
