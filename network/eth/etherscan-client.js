@@ -130,11 +130,30 @@ module.exports = ({ network = 'ETH' }) => {
       return result;
     };
 
+    const getLatestBlock = async () => {
+      // https://api.etherscan.io/api?module=proxy&action=eth_blockNumber&apikey=YourApiKeyToken
+      const url = withEtherscanApiKey(`${rootUrl}/api?module=proxy&action=eth_blockNumber`);
+      debug('requesting', url);
+      const response = await axios.get(url);
+      const { data } = response;
+      const { message, result, status } = data;
+
+      if (parseInt(status, 10) !== 1) {
+        debug("error", JSON.stringify(data));
+        if (message === 'No block found') {
+          return [];
+        }
+        throw new Error('Etherscan response error: ' + result);
+      }
+      return result;
+    };
+
     return {
       isConnected,
       getTokenContracts,
       getAccountHistory,
-      withEtherscanApiKey
+      withEtherscanApiKey,
+      getLatestBlock
     };
   };
 

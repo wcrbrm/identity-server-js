@@ -10,7 +10,7 @@ const networkConfig = {
 };
 
 const { getWeb3Client, isNetworkRunning } = require('./web3-helper')({ network });
-const { isEtherscanRunning } = require('./etherscan-helper')({ network });
+const { isEtherscanRunning, getEtherscanClient } = require('./etherscan-helper')({ network });
 const { httpEndpointFromConfig } = require('./ethereum-networkhelper')({ network });
 const ethereumQuery = require('./ethereum-query');
 const encodeHelper = require('./ethereum-encodehelper');
@@ -78,14 +78,6 @@ describe("Ethereum network", () => {
     res[0].value.should.equal('0.01');
   });
 
-  it('Address Validation (Checksum)', async () => {
-    const address = '0x939c4eb44c9ffd7f63c108ecd93013e02d23bb26';
-    const res = modEthereum.isValidAddress({ address });
-    res.should.be.a('object');
-    res.valid.should.equal(true);
-    res.checksum.should.equal(false);
-  });
-
   it('Address Validation', async () => {
     const address = '0xe17ED9eD45fFAeAbf01970f7C05Ca1bcD15Fd241';
     const res = modEthereum.isValidAddress({ address });
@@ -134,26 +126,30 @@ describe("Ethereum network", () => {
   }
 
   // skipping this - as it is usually very slow
-  it.skip('Get Assets Balance', async () => {
+  it('Get Assets Balance', async () => {
     const web3 = getWeb3Client(networkConfig);
     const { contractAddress, abi } = await createMyTokenContract({ web3 });
     const { address } = Genesis.createRandomAccount({ web3 });
     const receipt = await Genesis.creditTokens({ web3, contractAddress, abi, to: address, tokens: 3000000 });
+    //console.log({ receipt });
     receipt.should.be.a('object');
     receipt.transactionHash.should.be.a('string');
     receipt.logs.should.be.a('array');
     receipt.status.should.equal('0x1');
 
-    // let is record and be saved in etherscan
-    await sleep(3000);
-
-    // console.log(receipt);
-    const walletPublicConfig = { networkConfig, address };
-    const res = await modEthereum.getAssetsList({ walletPublicConfig });
-
-    // console.log('getting assets list', res);
-    const myToken = res.filter(asset => (asset.symbol === 'MY'));
-    myToken.length.should.equal(1, 'MY-token records');
+    const etherscan = getEtherscanClient(networkConfig);
+    
+    const waitForBlock = setInterval(async () => {
+      const blockInfo = await etherscan.getLatestBlock();
+      if (parseInt(blockInfo, 16) >= receipt.blockNumber) {
+        clearInterval(waitForBlock);
+        const walletPublicConfig = { networkConfig, address };
+        const res = await modEthereum.getAssetsList({ walletPublicConfig });
+  
+        const myToken = res.filter(asset => (asset.symbol === 'MY'));
+        myToken.length.should.equal(1);
+      }
+    }, 1000);
   });
 
   it('Send ETH', async () => {
