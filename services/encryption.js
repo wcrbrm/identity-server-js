@@ -11,7 +11,7 @@ const encrypt = ({ message, passphrase = '' }) => {
 
     return branca.encode(message);
   } catch (error) {
-    throw new Error(error.message);
+    throw new Error(error.message || 'Encryption error');
   }
 };
 
@@ -21,7 +21,7 @@ const decrypt = ({ token, passphrase = '' }) => {
     const branca = require('branca')(key);
     return branca.decode(token).toString();
   } catch (error) {
-    throw new Error(error.message);
+    throw new Error(error.message || 'Decryption error');
   }
 };
 
