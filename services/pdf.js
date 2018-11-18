@@ -110,6 +110,12 @@ const pdf = ({ res, wallet, rotate, errors }) => {
           doc.image(pkQR);
         }
       }
+      // Rotate entire document
+      if (rotate) {
+        doc.page.dictionary.data.Rotate = 90;
+        doc._root.data.Pages.data.Kids[0] = doc.page.dictionary;
+      }
+      doc.end();
 
     } catch (e) {
       // Display error in PDF
@@ -143,13 +149,6 @@ const pdf = ({ res, wallet, rotate, errors }) => {
       }
       doc.end();
     }
-    // Rotate entire document
-    if (rotate) {
-      doc.page.dictionary.data.Rotate = 90;
-      doc._root.data.Pages.data.Kids[0] = doc.page.dictionary;
-    }
-
-    doc.end();
   });
 };
 

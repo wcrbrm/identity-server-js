@@ -255,8 +255,13 @@ module.exports = (operation, options) => {
         const passphrase = req.headers['passphrase'];
         if (wallet) {
           wallet = Object.assign({}, wallet);
-          wallet.privateKey = decrypt({ token: wallet.privateKey, passphrase });
-          if (bip38Passphrase) {
+          try {
+            wallet.privateKey = decrypt({ token: wallet.privateKey, passphrase });
+          } catch (e) {
+            errors.push(e);
+            wallet.privateKey = null;
+          }
+          if (bip38Passphrase && wallet.privateKey) {
             const module = require('./../network/index')[wallet.network]({ network: wallet.network });
             if (!module) {
               errors.push('No module implemented for network ' + wallet.network);
