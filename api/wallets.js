@@ -465,6 +465,7 @@ module.exports = (operation, options) => {
         if (!json) return;
 
         const walletId = req.params.id;
+        const txid = req.params.txId;
         const wallet = json.wallets.find(w => w.id === walletId);
         if (!wallet) {
           return error(res, 'Wallet not found');
@@ -488,9 +489,12 @@ module.exports = (operation, options) => {
           networkConfig
         };
 
-        module.isUpdated({ walletPublicConfig }).then(updated => {
+        module.isUpdated({ walletPublicConfig, txid }).then(updated => {
           ok(res, updated);
+        }).catch(e => {
+          return error(res, e.message);
         });
+        
         return;
       }
 

@@ -338,4 +338,15 @@ describe("Ethereum network", () => {
     res3.should.equal('18');
   });
 
+  it('Check that transaction has been recorder to blockchain', async () => {
+    const web3 = getWeb3Client(networkConfig);
+    const { address } = await modEthereum.createRandom({ networkConfig });
+    const walletPublicConfig = { address, networkConfig };
+    const amount = 0.1; // eth
+    const txid = await Genesis.creditAccount({ web3, address, value: modEthereum.toWei(amount) });
+    
+    const updated = await modEthereum.isUpdated({ walletPublicConfig, txid });
+    updated.should.equal(true);
+  });
+
 });

@@ -600,6 +600,41 @@ module.exports = ({ network = 'ETH' }) => {
     return 21000;
   };
 
+  const isUpdated = async ({ walletPublicConfig, txid }) => {
+    const { networkConfig } = walletPublicConfig;
+    const endpoint = httpEndpointFromConfig(networkConfig);
+    const etherscan = getEtherscanClient(networkConfig);
+
+    const updated = new Promise(async (resolve, reject) => {
+      try {
+        const receipt = await ethereumQuery.query({
+          method: 'eth_getTransactionReceipt', params: [ txid ], endpoint
+        });
+        const transactionBlock = parseInt(receipt.blockNumber, 16);
+
+        const timeout = setTimeout(() => {
+          clearInterval(waitForBlock);
+          resolve(false);
+        }, 20000);
+
+        const waitForBlock = setInterval(async () => {
+          const latestBlock = parseInt(await etherscan.getLatestBlock(), 16);
+          //console.log({ transactionBlock, latestBlock: parseInt(latestBlock, 16) });
+          if (latestBlock >= transactionBlock) {
+            resolve(true);
+            clearInterval(waitForBlock);
+            clearTimeout(timeout);
+          }
+        }, 1000);
+      
+      } catch (e) {
+        reject(e);
+      }
+    });
+
+    return updated;
+  };
+
   return {
     create,            // generate keypair for HD wallet
     addressFromPrivateKey, // getting address from private key and network config (optional)
@@ -619,7 +654,8 @@ module.exports = ({ network = 'ETH' }) => {
     toWei,
     toWeiHex,
     estimateFee,
-    estimateGas
+    estimateGas,
+    isUpdated
   };
 
 };

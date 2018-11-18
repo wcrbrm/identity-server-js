@@ -301,6 +301,9 @@ module.exports = ({ network = 'BTC' }) => {
   };
 
   const isUpdated = async ({ walletPublicConfig }) => {
+    // We cannot check using ElectrumX that specific transaction has been recorded,
+    // it's only possible to detect changes in Address's history
+
     const { address, networkConfig } = walletPublicConfig;
     let updated = new Promise(async (resolve, reject) => {
       try {
@@ -322,7 +325,7 @@ module.exports = ({ network = 'BTC' }) => {
         await electrumClient.blockchainAddress_subscribe(address);
 
       } catch (e) {
-        throw new Error(e.message);
+        reject(e);
       }
     });
     return updated;

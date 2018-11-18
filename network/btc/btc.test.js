@@ -248,7 +248,7 @@ describe("Bitcoin functions test", async (d) => {
     const amount = 0.1;
     const txid = await btc.query({ method: 'sendtoaddress', params: [ address, amount ], config: networkConfig });
 
-    const updated = await bitcoin.isUpdated({ walletPublicConfig, txid });
+    const updated = await bitcoin.isUpdated({ walletPublicConfig });
     updated.should.equal(true);
   });
 
