@@ -50,7 +50,7 @@
     "express": "^4.16.3",
     "js-sha1": "^0.6.0",
     "jssha": "^2.3.1",
-    "msgpack5": "^4.2.0",
+    "msgpack5": "^4.5.1",
     "node-machine-id": "^1.1.10",
     "path-to-regexp": "^2.4.0",
     "pdfkit": "^0.8.3",
